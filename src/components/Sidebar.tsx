@@ -1,0 +1,106 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { 
+  LayoutDashboard, 
+  Users, 
+  Settings, 
+  LogOut,
+  Gamepad2,
+  BarChart3,
+  Bell
+} from 'lucide-react'
+
+interface SidebarProps {
+  user: {
+    id: string
+    email: string
+    name: string | null
+    role: string
+  }
+}
+
+const menuItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/games', label: 'Games', icon: Gamepad2 },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/users', label: 'Users', icon: Users, adminOnly: true },
+  { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+]
+
+export default function Sidebar({ user }: SidebarProps) {
+  const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
+  }
+
+  const filteredMenuItems = menuItems.filter(
+    item => !item.adminOnly || user.role === 'ADMIN'
+  )
+
+  return (
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col z-50">
+      {/* Logo */}
+      <div className="p-6 border-b border-slate-700">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          PlayPulse
+        </h1>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-4 overflow-y-auto">
+        <ul className="space-y-2">
+          {filteredMenuItems.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href || 
+              (item.href !== '/dashboard' && pathname.startsWith(item.href))
+            
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
+                      : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                  }`}
+                >
+                  <Icon size={20} />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+
+      {/* User Section */}
+      <div className="p-4 border-t border-slate-700">
+        <div className="flex items-center gap-3 px-4 py-3 mb-2">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+            {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white truncate">
+              {user.name || 'User'}
+            </p>
+            <p className="text-xs text-slate-400 truncate">{user.email}</p>
+          </div>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 w-full px-4 py-3 text-slate-300 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-all duration-200"
+        >
+          <LogOut size={20} />
+          <span className="font-medium">Logout</span>
+        </button>
+      </div>
+    </aside>
+  )
+}
