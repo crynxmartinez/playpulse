@@ -32,9 +32,14 @@ export async function GET(
           select: { id: true, title: true }
         },
         answers: {
-          include: {
+          select: {
+            id: true,
+            value: true,
+            textValue: true,
             question: {
-              include: {
+              select: {
+                questionText: true,
+                type: true,
                 stat: {
                   select: { name: true, minValue: true, maxValue: true }
                 }
