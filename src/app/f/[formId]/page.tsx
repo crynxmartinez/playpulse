@@ -23,7 +23,7 @@ interface QuestionOption {
 interface Question {
   id: string
   questionText: string
-  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'IMAGE_CHOICE' | 'TEXT_RATING'
+  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING'
   stat: Stat | null
   options: QuestionOption[] | null
   minValue: number
@@ -449,9 +449,8 @@ export default function PublicFormPage() {
 
       case 'YES_NO':
       case 'MULTIPLE_SINGLE':
-      case 'IMAGE_CHOICE':
         return (
-          <div className={`grid gap-3 ${question.type === 'IMAGE_CHOICE' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          <div className="grid gap-3 grid-cols-1">
             {question.options?.map((option, idx) => (
               <button
                 key={idx}
@@ -464,9 +463,6 @@ export default function PublicFormPage() {
                 }`}
                 style={ans.value === idx ? { borderColor: form.themeColor, backgroundColor: `${form.themeColor}30` } : {}}
               >
-                {question.type === 'IMAGE_CHOICE' && option.imageUrl && (
-                  <img src={option.imageUrl} alt="" className="w-full h-32 object-cover rounded-lg mb-2" />
-                )}
                 <span className="font-medium">{option.text}</span>
               </button>
             ))}

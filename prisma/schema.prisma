@@ -110,7 +110,6 @@ enum QuestionType {
   YES_NO          // Yes/No/Maybe
   MULTIPLE_SINGLE // Multiple choice, pick one
   MULTIPLE_MULTI  // Multiple choice, pick many
-  IMAGE_CHOICE    // Click on images
   TEXT_RATING     // Open text + rate the stat
 }
 

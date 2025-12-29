@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, FileText, Eye, EyeOff, Trash2, Link as LinkIcon, Check, X, ChevronRight, Image, Type, List, ToggleLeft, SlidersHorizontal, MessageSquare } from 'lucide-react'
+import { Plus, FileText, Eye, EyeOff, Trash2, Link as LinkIcon, Check, X, ChevronRight, Type, List, ToggleLeft, SlidersHorizontal, MessageSquare } from 'lucide-react'
 
 interface Stat {
   id: string
@@ -24,7 +24,7 @@ interface QuestionOption {
 interface Question {
   id: string
   questionText: string
-  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'IMAGE_CHOICE' | 'TEXT_RATING'
+  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING'
   statId: string | null
   stat: Stat | null
   options: QuestionOption[] | null
@@ -63,7 +63,6 @@ const QUESTION_TYPES = [
   { value: 'YES_NO', label: 'Yes / No', icon: ToggleLeft, description: 'Simple yes/no/maybe choice' },
   { value: 'MULTIPLE_SINGLE', label: 'Multiple Choice', icon: List, description: 'Pick one answer' },
   { value: 'MULTIPLE_MULTI', label: 'Checkboxes', icon: Check, description: 'Pick multiple answers' },
-  { value: 'IMAGE_CHOICE', label: 'Image Choice', icon: Image, description: 'Click on images' },
   { value: 'TEXT_RATING', label: 'Text + Rating', icon: MessageSquare, description: 'Open text with rating' },
 ]
 
@@ -87,7 +86,7 @@ interface WizardData {
   // Step 3: Questions
   questions: {
     questionText: string
-    type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'IMAGE_CHOICE' | 'TEXT_RATING'
+    type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING'
     statId: string
     options: QuestionOption[]
     minValue: number
@@ -727,7 +726,7 @@ export default function FormsPage() {
                                     value={question.type}
                                     onChange={(e) => updateQuestion(qIndex, { 
                                       type: e.target.value as typeof question.type,
-                                      options: ['MULTIPLE_SINGLE', 'MULTIPLE_MULTI', 'IMAGE_CHOICE', 'YES_NO'].includes(e.target.value) 
+                                      options: ['MULTIPLE_SINGLE', 'MULTIPLE_MULTI', 'YES_NO'].includes(e.target.value) 
                                         ? (e.target.value === 'YES_NO' ? [{ text: 'Yes', points: 10 }, { text: 'No', points: 0 }] : [])
                                         : []
                                     })}
@@ -779,7 +778,7 @@ export default function FormsPage() {
                               )}
 
                               {/* Multiple choice options */}
-                              {['MULTIPLE_SINGLE', 'MULTIPLE_MULTI', 'IMAGE_CHOICE', 'YES_NO'].includes(question.type) && (
+                              {['MULTIPLE_SINGLE', 'MULTIPLE_MULTI', 'YES_NO'].includes(question.type) && (
                                 <div>
                                   <div className="flex items-center justify-between mb-2">
                                     <label className="block text-sm font-medium text-slate-700">Answer Options</label>
@@ -792,31 +791,47 @@ export default function FormsPage() {
                                       </button>
                                     )}
                                   </div>
-                                  <div className="space-y-2">
+                                  <div className="space-y-3">
                                     {question.options.map((option, oIndex) => (
-                                      <div key={oIndex} className="flex items-center gap-2">
-                                        <input
-                                          type="text"
-                                          value={option.text}
-                                          onChange={(e) => updateOption(qIndex, oIndex, { text: e.target.value })}
-                                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
-                                          placeholder="Option text..."
-                                        />
-                                        <input
-                                          type="number"
-                                          value={option.points}
-                                          onChange={(e) => updateOption(qIndex, oIndex, { points: parseInt(e.target.value) || 0 })}
-                                          className="w-20 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
-                                          placeholder="Points"
-                                        />
-                                        {question.type !== 'YES_NO' && (
-                                          <button
-                                            onClick={() => removeOption(qIndex, oIndex)}
-                                            className="p-2 text-slate-400 hover:text-red-600"
+                                      <div key={oIndex} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <input
+                                            type="text"
+                                            value={option.text}
+                                            onChange={(e) => updateOption(qIndex, oIndex, { text: e.target.value })}
+                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                                            placeholder="Option text..."
+                                          />
+                                          <input
+                                            type="number"
+                                            value={option.points}
+                                            onChange={(e) => updateOption(qIndex, oIndex, { points: parseInt(e.target.value) || 0 })}
+                                            className="w-20 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                                            placeholder="Pts"
+                                            title="Points"
+                                          />
+                                          {question.type !== 'YES_NO' && (
+                                            <button
+                                              onClick={() => removeOption(qIndex, oIndex)}
+                                              className="p-2 text-slate-400 hover:text-red-600"
+                                            >
+                                              <X size={16} />
+                                            </button>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs text-slate-500">Stat:</span>
+                                          <select
+                                            value={option.statId || ''}
+                                            onChange={(e) => updateOption(qIndex, oIndex, { statId: e.target.value || undefined })}
+                                            className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
                                           >
-                                            <X size={16} />
-                                          </button>
-                                        )}
+                                            <option value="">No stat (optional)</option>
+                                            {stats.filter(s => wizardData.selectedStatIds.includes(s.id)).map(stat => (
+                                              <option key={stat.id} value={stat.id}>{stat.name}</option>
+                                            ))}
+                                          </select>
+                                        </div>
                                       </div>
                                     ))}
                                   </div>
