@@ -2,10 +2,19 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { 
-  LayoutDashboard, 
-  LogOut
+  LogOut,
+  Plus,
+  Gamepad2,
+  FolderOpen
 } from 'lucide-react'
+
+interface Project {
+  id: string
+  name: string
+  description: string | null
+}
 
 interface SidebarProps {
   user: {
@@ -16,13 +25,53 @@ interface SidebarProps {
   }
 }
 
-const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-]
-
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isCreating, setIsCreating] = useState(false)
+  const [newProjectName, setNewProjectName] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch('/api/projects')
+      const data = await res.json()
+      if (data.projects) {
+        setProjects(data.projects)
+      }
+    } catch (error) {
+      console.error('Failed to fetch projects:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newProjectName.trim()) return
+
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newProjectName }),
+      })
+      const data = await res.json()
+      if (data.project) {
+        setProjects([data.project, ...projects])
+        setNewProjectName('')
+        setIsCreating(false)
+        router.push(`/dashboard/projects/${data.project.id}`)
+      }
+    } catch (error) {
+      console.error('Failed to create project:', error)
+    }
+  }
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -34,42 +83,102 @@ export default function Sidebar({ user }: SidebarProps) {
     <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col z-50">
       {/* Logo */}
       <div className="p-6 border-b border-slate-700">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          PlayPulse
-        </h1>
+        <Link href="/dashboard">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            PlayPulse
+          </h1>
+        </Link>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 overflow-y-auto">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href || 
-              (item.href !== '/dashboard' && pathname.startsWith(item.href))
-            
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
-                      : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                  }`}
+      {/* Projects Section */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-slate-700">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Projects</span>
+            <button
+              onClick={() => setIsCreating(!isCreating)}
+              className="p-1 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+
+          {isCreating && (
+            <form onSubmit={handleCreateProject} className="mb-3">
+              <input
+                type="text"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                placeholder="Project name..."
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                autoFocus
+              />
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="submit"
+                  className="flex-1 px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
                 >
-                  <Icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
+                  Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsCreating(false); setNewProjectName('') }}
+                  className="px-3 py-1.5 text-slate-400 text-sm hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+
+        {/* Projects List */}
+        <nav className="flex-1 p-2 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="text-center py-8 px-4">
+              <FolderOpen className="mx-auto text-slate-500 mb-2" size={32} />
+              <p className="text-sm text-slate-400">No projects yet</p>
+              <button
+                onClick={() => setIsCreating(true)}
+                className="mt-2 text-sm text-purple-400 hover:text-purple-300"
+              >
+                Create your first project
+              </button>
+            </div>
+          ) : (
+            <ul className="space-y-1">
+              {projects.map((project) => {
+                const isActive = pathname.startsWith(`/dashboard/projects/${project.id}`)
+                
+                return (
+                  <li key={project.id}>
+                    <Link
+                      href={`/dashboard/projects/${project.id}`}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
+                          : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                      }`}
+                    >
+                      <Gamepad2 size={18} />
+                      <span className="font-medium text-sm truncate">{project.name}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </nav>
+      </div>
 
       {/* User Section */}
       <div className="p-4 border-t border-slate-700">
-        <div className="flex items-center gap-3 px-4 py-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+        <div className="flex items-center gap-3 px-3 py-2 mb-2">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm">
             {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
@@ -81,10 +190,10 @@ export default function Sidebar({ user }: SidebarProps) {
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-4 py-3 text-slate-300 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-all duration-200"
+          className="flex items-center gap-3 w-full px-3 py-2 text-slate-300 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-all duration-200"
         >
-          <LogOut size={20} />
-          <span className="font-medium">Logout</span>
+          <LogOut size={18} />
+          <span className="font-medium text-sm">Logout</span>
         </button>
       </div>
     </aside>
