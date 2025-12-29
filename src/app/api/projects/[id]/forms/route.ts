@@ -61,24 +61,50 @@ export async function POST(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    const { title, description, statIds } = await request.json()
+    const { 
+      title, 
+      landingTitle,
+      landingSubtitle,
+      landingDescription,
+      landingImage,
+      ctaText,
+      themeColor,
+      questions 
+    } = await request.json()
 
     if (!title || title.trim() === '') {
       return NextResponse.json({ error: 'Form title is required' }, { status: 400 })
     }
 
-    if (!statIds || statIds.length === 0) {
-      return NextResponse.json({ error: 'At least one stat is required' }, { status: 400 })
+    if (!questions || questions.length === 0) {
+      return NextResponse.json({ error: 'At least one question is required' }, { status: 400 })
     }
 
     const form = await prisma.form.create({
       data: {
         title: title.trim(),
-        description: description?.trim() || null,
+        landingTitle: landingTitle?.trim() || null,
+        landingSubtitle: landingSubtitle?.trim() || null,
+        landingDescription: landingDescription?.trim() || null,
+        landingImage: landingImage?.trim() || null,
+        ctaText: ctaText?.trim() || 'Start Quiz',
+        themeColor: themeColor || '#8b5cf6',
         projectId: id,
         questions: {
-          create: statIds.map((statId: string, index: number) => ({
-            statId,
+          create: questions.map((q: { 
+            questionText: string
+            type: string
+            statId: string
+            options: unknown[]
+            minValue: number
+            maxValue: number 
+          }, index: number) => ({
+            questionText: q.questionText.trim(),
+            type: q.type,
+            statId: q.statId || null,
+            options: q.options && q.options.length > 0 ? q.options : null,
+            minValue: q.minValue || 1,
+            maxValue: q.maxValue || 10,
             order: index,
           }))
         }

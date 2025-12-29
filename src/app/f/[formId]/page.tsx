@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Gamepad2, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import { Gamepad2, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Send } from 'lucide-react'
 
 interface Stat {
   id: string
@@ -14,9 +14,20 @@ interface Stat {
   weight: number
 }
 
+interface QuestionOption {
+  text: string
+  points: number
+  imageUrl?: string
+}
+
 interface Question {
   id: string
-  stat: Stat
+  questionText: string
+  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'IMAGE_CHOICE' | 'TEXT_RATING'
+  stat: Stat | null
+  options: QuestionOption[] | null
+  minValue: number
+  maxValue: number
   order: number
 }
 
@@ -24,6 +35,12 @@ interface Form {
   id: string
   title: string
   description: string | null
+  landingTitle: string | null
+  landingSubtitle: string | null
+  landingDescription: string | null
+  landingImage: string | null
+  ctaText: string
+  themeColor: string
   showCategoryScores: boolean
   showOverallScore: boolean
   project: { 
@@ -38,6 +55,12 @@ interface Form {
     tierHighMsg: string | null
   }
   questions: Question[]
+}
+
+interface AnswerData {
+  value?: number
+  textValue?: string
+  selectedIndices?: number[]
 }
 
 const STAT_CATEGORIES = [
@@ -59,7 +82,9 @@ export default function PublicFormPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [answers, setAnswers] = useState<Record<string, number>>({})
+  const [started, setStarted] = useState(false)
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [answers, setAnswers] = useState<Record<string, AnswerData>>({})
   const [comment, setComment] = useState('')
   const [respondent, setRespondent] = useState('')
   const [results, setResults] = useState<{
@@ -86,11 +111,17 @@ export default function PublicFormPage() {
       
       if (data.form) {
         setForm(data.form)
-        // Initialize answers with middle values
-        const initialAnswers: Record<string, number> = {}
+        // Initialize answers
+        const initialAnswers: Record<string, AnswerData> = {}
         data.form.questions.forEach((q: Question) => {
-          const mid = Math.floor((q.stat.minValue + q.stat.maxValue) / 2)
-          initialAnswers[q.id] = mid
+          if (q.type === 'SLIDER' || q.type === 'TEXT_RATING') {
+            const mid = Math.floor((q.minValue + q.maxValue) / 2)
+            initialAnswers[q.id] = { value: mid }
+          } else if (q.type === 'MULTIPLE_MULTI') {
+            initialAnswers[q.id] = { selectedIndices: [] }
+          } else {
+            initialAnswers[q.id] = {}
+          }
         })
         setAnswers(initialAnswers)
       }
@@ -102,15 +133,43 @@ export default function PublicFormPage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const calculateScore = (question: Question, answer: AnswerData): number => {
+    if (question.type === 'SLIDER') {
+      return answer.value || question.minValue
+    } else if (question.type === 'TEXT_RATING') {
+      return answer.value || question.minValue
+    } else if (['YES_NO', 'MULTIPLE_SINGLE', 'IMAGE_CHOICE'].includes(question.type)) {
+      if (answer.value !== undefined && question.options) {
+        return question.options[answer.value]?.points || 0
+      }
+      return 0
+    } else if (question.type === 'MULTIPLE_MULTI') {
+      if (answer.selectedIndices && question.options) {
+        return answer.selectedIndices.reduce((sum, idx) => sum + (question.options?.[idx]?.points || 0), 0)
+      }
+      return 0
+    }
+    return 0
+  }
+
+  const handleSubmit = async () => {
     setSubmitting(true)
 
     try {
+      // Transform answers for API
+      const apiAnswers: Record<string, { value?: number; textValue?: string; selectedIds?: number[] }> = {}
+      Object.entries(answers).forEach(([qId, ans]) => {
+        apiAnswers[qId] = {
+          value: ans.value,
+          textValue: ans.textValue,
+          selectedIds: ans.selectedIndices,
+        }
+      })
+
       const res = await fetch(`/api/forms/${formId}/responses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, comment, respondent }),
+        body: JSON.stringify({ answers: apiAnswers, comment, respondent }),
       })
 
       if (!res.ok) {
@@ -121,30 +180,35 @@ export default function PublicFormPage() {
 
       // Calculate results
       if (form) {
-        const categoryScores: { [key: string]: { total: number, max: number, weight: number } } = {}
+        const categoryScores: { [key: string]: { total: number, max: number } } = {}
         let overallTotal = 0
         let overallMax = 0
         
         form.questions.forEach((q) => {
-          const value = answers[q.id] || q.stat.minValue
-          const normalized = (value - q.stat.minValue) / (q.stat.maxValue - q.stat.minValue)
-          const weight = q.stat.weight || 1
+          const answer = answers[q.id]
+          const score = calculateScore(q, answer)
+          const maxScore = q.type === 'SLIDER' || q.type === 'TEXT_RATING' 
+            ? q.maxValue 
+            : (q.options ? Math.max(...q.options.map(o => o.points)) : 10)
+          
+          const weight = q.stat?.weight || 1
+          const normalized = maxScore > 0 ? (score / maxScore) : 0
           
           overallTotal += normalized * weight
           overallMax += weight
           
-          const cat = q.stat.category || 'uncategorized'
+          const cat = q.stat?.category || 'uncategorized'
           if (!categoryScores[cat]) {
-            categoryScores[cat] = { total: 0, max: 0, weight: 0 }
+            categoryScores[cat] = { total: 0, max: 0 }
           }
           categoryScores[cat].total += normalized * weight
           categoryScores[cat].max += weight
         })
         
-        const overallPercent = Math.round((overallTotal / overallMax) * 100)
+        const overallPercent = overallMax > 0 ? Math.round((overallTotal / overallMax) * 100) : 0
         const categoryPercents: { [key: string]: number } = {}
         Object.entries(categoryScores).forEach(([cat, scores]) => {
-          categoryPercents[cat] = Math.round((scores.total / scores.max) * 100)
+          categoryPercents[cat] = scores.max > 0 ? Math.round((scores.total / scores.max) * 100) : 0
         })
         
         let tier = 'high'
@@ -179,6 +243,38 @@ export default function PublicFormPage() {
     }
   }
 
+  const getCategoryInfo = (categoryValue: string | null) => {
+    return STAT_CATEGORIES.find(c => c.value === categoryValue) || null
+  }
+
+  const goNext = () => {
+    if (form && currentQuestion < form.questions.length) {
+      setCurrentQuestion(currentQuestion + 1)
+    }
+  }
+
+  const goPrev = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1)
+    }
+  }
+
+  const isCurrentAnswered = () => {
+    if (!form) return false
+    if (currentQuestion >= form.questions.length) return true // On final page
+    
+    const q = form.questions[currentQuestion]
+    const ans = answers[q.id]
+    
+    if (q.type === 'SLIDER' || q.type === 'TEXT_RATING') {
+      return ans?.value !== undefined
+    } else if (q.type === 'MULTIPLE_MULTI') {
+      return (ans?.selectedIndices?.length || 0) > 0
+    } else {
+      return ans?.value !== undefined
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
@@ -199,34 +295,53 @@ export default function PublicFormPage() {
     )
   }
 
-  const getCategoryInfo = (categoryValue: string | null) => {
-    return STAT_CATEGORIES.find(c => c.value === categoryValue) || null
+  // Landing Page
+  if (!started) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: `linear-gradient(135deg, ${form.themeColor}20 0%, #1e1b4b 50%, ${form.themeColor}10 100%)` }}>
+        <div className="max-w-xl w-full text-center">
+          {form.landingImage && (
+            <img 
+              src={form.landingImage} 
+              alt="" 
+              className="w-full max-h-64 object-cover rounded-2xl mb-8 shadow-2xl"
+            />
+          )}
+          
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Gamepad2 className="text-white/60" size={24} />
+            <span className="text-white/60 text-sm">{form.project.name}</span>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            {form.landingTitle || form.title}
+          </h1>
+          
+          {form.landingSubtitle && (
+            <p className="text-xl text-white/80 mb-4">{form.landingSubtitle}</p>
+          )}
+          
+          {form.landingDescription && (
+            <p className="text-white/60 mb-8 max-w-md mx-auto">{form.landingDescription}</p>
+          )}
+          
+          <button
+            onClick={() => setStarted(true)}
+            className="px-8 py-4 text-lg font-semibold text-white rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+            style={{ backgroundColor: form.themeColor }}
+          >
+            {form.ctaText || 'Start Quiz'}
+          </button>
+          
+          <p className="text-white/40 text-sm mt-8">
+            {form.questions.length} questions · Takes about {Math.ceil(form.questions.length * 0.5)} min
+          </p>
+        </div>
+      </div>
+    )
   }
 
-  const groupQuestionsByCategory = () => {
-    if (!form) return { grouped: {}, hasCategories: false }
-    
-    const grouped: { [key: string]: Question[] } = { uncategorized: [] }
-    STAT_CATEGORIES.forEach(cat => { grouped[cat.value] = [] })
-    
-    form.questions.forEach(q => {
-      if (q.stat.category && grouped[q.stat.category]) {
-        grouped[q.stat.category].push(q)
-      } else {
-        grouped.uncategorized.push(q)
-      }
-    })
-    
-    const hasCategories = Object.entries(grouped).some(([key, items]) => key !== 'uncategorized' && items.length > 0)
-    return { grouped, hasCategories }
-  }
-
-  const getProgress = () => {
-    if (!form) return 0
-    const answered = Object.keys(answers).length
-    return Math.round((answered / form.questions.length) * 100)
-  }
-
+  // Results Page
   if (submitted) {
     const tierColors = {
       low: 'from-red-500 to-orange-500',
@@ -235,14 +350,14 @@ export default function PublicFormPage() {
     }
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8 px-4">
+      <div className="min-h-screen py-8 px-4" style={{ background: `linear-gradient(135deg, ${form.themeColor}20 0%, #1e1b4b 50%, ${form.themeColor}10 100%)` }}>
         <div className="max-w-2xl mx-auto">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-center">
             <CheckCircle className="mx-auto text-green-400 mb-4" size={56} />
             <h1 className="text-2xl font-bold text-white mb-2">Thank You!</h1>
             <p className="text-white/70 mb-6">Your feedback has been submitted successfully.</p>
             
-            {results && form?.showOverallScore && (
+            {results && form.showOverallScore && (
               <div className="mb-8">
                 <div className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
                   {results.overall}%
@@ -256,7 +371,7 @@ export default function PublicFormPage() {
               </div>
             )}
             
-            {results && form?.showCategoryScores && Object.keys(results.categories).length > 1 && (
+            {results && form.showCategoryScores && Object.keys(results.categories).length > 1 && (
               <div className="mt-8 pt-6 border-t border-white/10">
                 <h3 className="text-white/80 font-medium mb-4">Category Breakdown</h3>
                 <div className="space-y-3">
@@ -284,184 +399,223 @@ export default function PublicFormPage() {
             )}
           </div>
           
-          <p className="text-center text-white/40 text-sm mt-8">
-            Powered by PlayPulse
-          </p>
+          <p className="text-center text-white/40 text-sm mt-8">Powered by PlayPulse</p>
         </div>
       </div>
     )
   }
 
-  const { grouped, hasCategories } = groupQuestionsByCategory()
+  // Question Pages (One at a time)
+  const totalSteps = form.questions.length + 1 // +1 for final comment page
+  const progress = ((currentQuestion + 1) / totalSteps) * 100
+  const isOnFinalPage = currentQuestion >= form.questions.length
 
-  const renderQuestion = (question: Question) => {
-    const catInfo = getCategoryInfo(question.stat.category)
-    return (
-      <div
-        key={question.id}
-        className="bg-white/10 backdrop-blur-lg rounded-xl p-6"
-      >
-        <div className="flex items-start justify-between mb-2">
-          <label className="block text-white font-medium">
-            {question.stat.name}
-          </label>
-          {catInfo && (
-            <span className={`text-xs px-2 py-0.5 rounded ${catInfo.bgColor} ${catInfo.textColor}`}>
-              {catInfo.label}
-            </span>
-          )}
-        </div>
-        {question.stat.description && (
-          <p className="text-white/60 text-sm mb-4">{question.stat.description}</p>
-        )}
-        
-        <div className="space-y-3">
-          <input
-            type="range"
-            min={question.stat.minValue}
-            max={question.stat.maxValue}
-            value={answers[question.id] || question.stat.minValue}
-            onChange={(e) => setAnswers({ ...answers, [question.id]: parseInt(e.target.value) })}
-            className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-purple-500"
-          />
-          <div className="flex justify-between text-sm">
-            <span className="text-white/50">{question.stat.minValue}</span>
-            <span className="text-purple-400 font-bold text-lg">
-              {answers[question.id]}
-            </span>
-            <span className="text-white/50">{question.stat.maxValue}</span>
+  const renderQuestionContent = (question: Question) => {
+    const ans = answers[question.id] || {}
+
+    switch (question.type) {
+      case 'SLIDER':
+      case 'TEXT_RATING':
+        return (
+          <div className="space-y-6">
+            <input
+              type="range"
+              min={question.minValue}
+              max={question.maxValue}
+              value={ans.value || question.minValue}
+              onChange={(e) => setAnswers({ ...answers, [question.id]: { ...ans, value: parseInt(e.target.value) } })}
+              className="w-full h-3 bg-white/20 rounded-lg appearance-none cursor-pointer"
+              style={{ accentColor: form.themeColor }}
+            />
+            <div className="flex justify-between items-center">
+              <span className="text-white/50">{question.minValue}</span>
+              <span className="text-4xl font-bold" style={{ color: form.themeColor }}>
+                {ans.value || question.minValue}
+              </span>
+              <span className="text-white/50">{question.maxValue}</span>
+            </div>
+            {question.type === 'TEXT_RATING' && (
+              <textarea
+                value={ans.textValue || ''}
+                onChange={(e) => setAnswers({ ...answers, [question.id]: { ...ans, textValue: e.target.value } })}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 resize-none"
+                style={{ '--tw-ring-color': form.themeColor } as React.CSSProperties}
+                placeholder="Share your thoughts..."
+                rows={3}
+              />
+            )}
           </div>
-        </div>
-      </div>
-    )
+        )
+
+      case 'YES_NO':
+      case 'MULTIPLE_SINGLE':
+      case 'IMAGE_CHOICE':
+        return (
+          <div className={`grid gap-3 ${question.type === 'IMAGE_CHOICE' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {question.options?.map((option, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setAnswers({ ...answers, [question.id]: { value: idx } })}
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  ans.value === idx 
+                    ? 'border-white bg-white/20 text-white' 
+                    : 'border-white/20 text-white/80 hover:border-white/40'
+                }`}
+                style={ans.value === idx ? { borderColor: form.themeColor, backgroundColor: `${form.themeColor}30` } : {}}
+              >
+                {question.type === 'IMAGE_CHOICE' && option.imageUrl && (
+                  <img src={option.imageUrl} alt="" className="w-full h-32 object-cover rounded-lg mb-2" />
+                )}
+                <span className="font-medium">{option.text}</span>
+              </button>
+            ))}
+          </div>
+        )
+
+      case 'MULTIPLE_MULTI':
+        const selectedIndices = ans.selectedIndices || []
+        return (
+          <div className="grid gap-3">
+            {question.options?.map((option, idx) => {
+              const isSelected = selectedIndices.includes(idx)
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    const newSelected = isSelected 
+                      ? selectedIndices.filter(i => i !== idx)
+                      : [...selectedIndices, idx]
+                    setAnswers({ ...answers, [question.id]: { selectedIndices: newSelected } })
+                  }}
+                  className={`p-4 rounded-xl border-2 text-left transition-all flex items-center gap-3 ${
+                    isSelected 
+                      ? 'border-white bg-white/20 text-white' 
+                      : 'border-white/20 text-white/80 hover:border-white/40'
+                  }`}
+                  style={isSelected ? { borderColor: form.themeColor, backgroundColor: `${form.themeColor}30` } : {}}
+                >
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${isSelected ? 'bg-white' : 'border-white/40'}`}>
+                    {isSelected && <CheckCircle size={14} style={{ color: form.themeColor }} />}
+                  </div>
+                  <span className="font-medium">{option.text}</span>
+                </button>
+              )
+            })}
+          </div>
+        )
+
+      default:
+        return null
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Gamepad2 className="text-purple-400" size={32} />
-            <span className="text-white/60 text-sm">{form.project.name}</span>
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">{form.title}</h1>
-          {form.description && (
-            <p className="text-white/70">{form.description}</p>
-          )}
-        </div>
+    <div className="min-h-screen flex flex-col" style={{ background: `linear-gradient(135deg, ${form.themeColor}20 0%, #1e1b4b 50%, ${form.themeColor}10 100%)` }}>
+      {/* Progress Bar */}
+      <div className="h-1 bg-white/10">
+        <div 
+          className="h-full transition-all duration-300"
+          style={{ width: `${progress}%`, backgroundColor: form.themeColor }}
+        />
+      </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm text-white/60 mb-2">
-            <span>Progress</span>
-            <span>{getProgress()}%</span>
-          </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
-              style={{ width: `${getProgress()}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Questions - Grouped or Flat */}
-          {hasCategories ? (
-            <div className="space-y-8">
-              {STAT_CATEGORIES.map((category) => {
-                const categoryQuestions = grouped[category.value]
-                if (!categoryQuestions || categoryQuestions.length === 0) return null
-                
-                return (
-                  <div key={category.value}>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`h-1 flex-1 bg-gradient-to-r ${category.color} rounded-full opacity-50`} />
-                      <span className={`text-sm font-medium ${category.textColor}`}>
-                        {category.label}
-                      </span>
-                      <div className={`h-1 flex-1 bg-gradient-to-r ${category.color} rounded-full opacity-50`} />
-                    </div>
-                    <div className="space-y-4">
-                      {categoryQuestions.map(renderQuestion)}
-                    </div>
-                  </div>
-                )
-              })}
+      {/* Content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="max-w-xl w-full">
+          {!isOnFinalPage ? (
+            // Question
+            <div className="text-center">
+              <p className="text-white/50 text-sm mb-2">
+                Question {currentQuestion + 1} of {form.questions.length}
+              </p>
               
-              {/* Uncategorized */}
-              {grouped.uncategorized.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-1 flex-1 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full opacity-50" />
-                    <span className="text-sm font-medium text-gray-400">Other</span>
-                    <div className="h-1 flex-1 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full opacity-50" />
-                  </div>
-                  <div className="space-y-4">
-                    {grouped.uncategorized.map(renderQuestion)}
-                  </div>
-                </div>
-              )}
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">
+                {form.questions[currentQuestion].questionText}
+              </h2>
+              
+              {renderQuestionContent(form.questions[currentQuestion])}
             </div>
           ) : (
-            <div className="space-y-4">
-              {form.questions.map(renderQuestion)}
+            // Final Page - Comment & Name
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-white mb-2">Almost done!</h2>
+                <p className="text-white/60">Any final thoughts?</p>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
+                <label className="block text-white font-medium mb-2">Additional Comments (Optional)</label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 resize-none"
+                  style={{ '--tw-ring-color': form.themeColor } as React.CSSProperties}
+                  placeholder="Share your thoughts..."
+                  rows={4}
+                />
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
+                <label className="block text-white font-medium mb-2">Your Name (Optional)</label>
+                <input
+                  type="text"
+                  value={respondent}
+                  onChange={(e) => setRespondent(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2"
+                  style={{ '--tw-ring-color': form.themeColor } as React.CSSProperties}
+                  placeholder="Anonymous"
+                />
+              </div>
             </div>
           )}
+        </div>
+      </div>
 
-          {/* Comment */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
-            <label className="block text-white font-medium mb-2">
-              Additional Comments (Optional)
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-              placeholder="Share your thoughts about the game..."
-              rows={4}
-            />
-          </div>
-
-          {/* Respondent Name */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
-            <label className="block text-white font-medium mb-2">
-              Your Name (Optional)
-            </label>
-            <input
-              type="text"
-              value={respondent}
-              onChange={(e) => setRespondent(e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Anonymous"
-            />
-          </div>
-
-          {/* Submit */}
+      {/* Navigation */}
+      <div className="p-4">
+        <div className="max-w-xl mx-auto flex items-center justify-between">
           <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            onClick={goPrev}
+            disabled={currentQuestion === 0}
+            className="flex items-center gap-2 px-4 py-2 text-white/60 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            {submitting ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Submitting...
-              </>
-            ) : (
-              <>
-                <Send size={20} />
-                Submit Feedback
-              </>
-            )}
+            <ChevronLeft size={20} />
+            Back
           </button>
-        </form>
 
-        {/* Footer */}
-        <p className="text-center text-white/40 text-sm mt-8">
-          Powered by PlayPulse
-        </p>
+          {isOnFinalPage ? (
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-xl transition-all disabled:opacity-50"
+              style={{ backgroundColor: form.themeColor }}
+            >
+              {submitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send size={20} />
+                  Submit
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={goNext}
+              disabled={!isCurrentAnswered()}
+              className="flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: form.themeColor }}
+            >
+              Next
+              <ChevronRight size={20} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

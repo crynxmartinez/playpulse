@@ -67,8 +67,9 @@ export async function GET(
         }
 
         for (const answer of response.answers) {
+          if (!answer.question.stat) continue
           const statId = answer.question.stat.id
-          if (statAverages[statId]) {
+          if (statAverages[statId] && answer.value !== null) {
             statAverages[statId].count++
             statAverages[statId].average += answer.value
             responseData.answers.push({ statId, value: answer.value })

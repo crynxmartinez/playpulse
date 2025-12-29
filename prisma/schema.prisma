@@ -69,7 +69,15 @@ model Form {
   id                 String     @id @default(cuid())
   title              String
   description        String?
-  isActive           Boolean    @default(true)
+  isActive           Boolean    @default(false)
+  // Landing page fields
+  landingTitle       String?    // Main headline for landing page
+  landingSubtitle    String?    // Supporting text
+  landingDescription String?    // Detailed description
+  landingImage       String?    // Cover image URL
+  ctaText            String     @default("Start Quiz")  // Call-to-action button text
+  themeColor         String     @default("#8b5cf6")     // Primary theme color (purple default)
+  // Results display settings
   showCategoryScores Boolean    @default(true)   // Show category breakdown on results
   showOverallScore   Boolean    @default(true)   // Show overall score on results
   showComparison     Boolean    @default(false)  // Show "your score vs average"
@@ -82,14 +90,28 @@ model Form {
 }
 
 model Question {
-  id        String   @id @default(cuid())
-  formId    String
-  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
-  statId    String
-  stat      Stat     @relation(fields: [statId], references: [id], onDelete: Cascade)
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
-  answers   Answer[]
+  id           String       @id @default(cuid())
+  formId       String
+  form         Form         @relation(fields: [formId], references: [id], onDelete: Cascade)
+  statId       String?      // Optional - some question types may not have a direct stat
+  stat         Stat?        @relation(fields: [statId], references: [id], onDelete: Cascade)
+  questionText String       // The actual question text
+  type         QuestionType @default(SLIDER)
+  options      Json?        // For multiple choice: [{text: "Option A", points: 10, statId?: "..."}, ...]
+  minValue     Int          @default(1)   // For slider type
+  maxValue     Int          @default(10)  // For slider type
+  order        Int          @default(0)
+  createdAt    DateTime     @default(now())
+  answers      Answer[]
+}
+
+enum QuestionType {
+  SLIDER          // Rate on a scale (1-10)
+  YES_NO          // Yes/No/Maybe
+  MULTIPLE_SINGLE // Multiple choice, pick one
+  MULTIPLE_MULTI  // Multiple choice, pick many
+  IMAGE_CHOICE    // Click on images
+  TEXT_RATING     // Open text + rate the stat
 }
 
 model Response {
@@ -103,11 +125,13 @@ model Response {
 }
 
 model Answer {
-  id         String   @id @default(cuid())
-  responseId String
-  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
-  questionId String
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  value      Int
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  responseId  String
+  response    Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  value       Int?     // Numeric value (for slider, yes/no points, selected option points)
+  textValue   String?  // Text value (for open text questions)
+  selectedIds Json?    // For multi-select: array of selected option indices
+  createdAt   DateTime @default(now())
 }
