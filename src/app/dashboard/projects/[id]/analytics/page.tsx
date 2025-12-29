@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { LineChart, BarChart2, TrendingUp, FileText, MessageSquare } from 'lucide-react'
+import { LineChart, BarChart2, TrendingUp, FileText, MessageSquare, Lightbulb, PieChart } from 'lucide-react'
 
 interface StatAverage {
   name: string
@@ -10,6 +10,14 @@ interface StatAverage {
   count: number
   min: number
   max: number
+  category: string | null
+  weight: number
+}
+
+interface CategoryScore {
+  category: string
+  score: number
+  statCount: number
 }
 
 interface DailyResponse {
@@ -19,11 +27,24 @@ interface DailyResponse {
 
 interface AnalyticsData {
   statAverages: StatAverage[]
+  categoryScores: CategoryScore[]
+  insights: string[]
   dailyResponses: DailyResponse[]
   totalResponses: number
   totalForms: number
   activeForms: number
 }
+
+const STAT_CATEGORIES = [
+  { value: 'gameplay', label: 'Gameplay', color: 'bg-blue-500', textColor: 'text-blue-600', lightColor: 'bg-blue-100' },
+  { value: 'visuals', label: 'Visuals & Audio', color: 'bg-purple-500', textColor: 'text-purple-600', lightColor: 'bg-purple-100' },
+  { value: 'ux', label: 'User Experience', color: 'bg-green-500', textColor: 'text-green-600', lightColor: 'bg-green-100' },
+  { value: 'balance', label: 'Balance', color: 'bg-orange-500', textColor: 'text-orange-600', lightColor: 'bg-orange-100' },
+  { value: 'progression', label: 'Progression', color: 'bg-pink-500', textColor: 'text-pink-600', lightColor: 'bg-pink-100' },
+  { value: 'multiplayer', label: 'Multiplayer', color: 'bg-cyan-500', textColor: 'text-cyan-600', lightColor: 'bg-cyan-100' },
+  { value: 'overall', label: 'Overall', color: 'bg-slate-500', textColor: 'text-slate-600', lightColor: 'bg-slate-100' },
+  { value: 'uncategorized', label: 'Other', color: 'bg-gray-500', textColor: 'text-gray-600', lightColor: 'bg-gray-100' },
+]
 
 export default function AnalyticsPage() {
   const params = useParams()
@@ -58,6 +79,109 @@ export default function AnalyticsPage() {
     return 'from-red-500 to-pink-500'
   }
 
+  const getCategoryInfo = (categoryValue: string) => {
+    return STAT_CATEGORIES.find(c => c.value === categoryValue) || STAT_CATEGORIES[STAT_CATEGORIES.length - 1]
+  }
+
+  // Simple radar chart using CSS
+  const RadarChart = ({ scores }: { scores: CategoryScore[] }) => {
+    if (scores.length === 0) return null
+    
+    const size = 200
+    const center = size / 2
+    const radius = 80
+    const angleStep = (2 * Math.PI) / scores.length
+    
+    // Calculate points for the polygon
+    const points = scores.map((score, i) => {
+      const angle = angleStep * i - Math.PI / 2
+      const r = (score.score / 100) * radius
+      return {
+        x: center + r * Math.cos(angle),
+        y: center + r * Math.sin(angle),
+        labelX: center + (radius + 25) * Math.cos(angle),
+        labelY: center + (radius + 25) * Math.sin(angle),
+        score,
+      }
+    })
+    
+    const polygonPoints = points.map(p => `${p.x},${p.y}`).join(' ')
+    
+    // Grid lines
+    const gridLevels = [25, 50, 75, 100]
+    
+    return (
+      <div className="flex justify-center">
+        <svg width={size + 60} height={size + 60} viewBox={`-30 -30 ${size + 60} ${size + 60}`}>
+          {/* Grid circles */}
+          {gridLevels.map(level => (
+            <circle
+              key={level}
+              cx={center}
+              cy={center}
+              r={(level / 100) * radius}
+              fill="none"
+              stroke="#e2e8f0"
+              strokeWidth="1"
+            />
+          ))}
+          
+          {/* Grid lines from center */}
+          {scores.map((_, i) => {
+            const angle = angleStep * i - Math.PI / 2
+            return (
+              <line
+                key={i}
+                x1={center}
+                y1={center}
+                x2={center + radius * Math.cos(angle)}
+                y2={center + radius * Math.sin(angle)}
+                stroke="#e2e8f0"
+                strokeWidth="1"
+              />
+            )
+          })}
+          
+          {/* Data polygon */}
+          <polygon
+            points={polygonPoints}
+            fill="rgba(147, 51, 234, 0.3)"
+            stroke="#9333ea"
+            strokeWidth="2"
+          />
+          
+          {/* Data points */}
+          {points.map((p, i) => (
+            <circle
+              key={i}
+              cx={p.x}
+              cy={p.y}
+              r="4"
+              fill="#9333ea"
+            />
+          ))}
+          
+          {/* Labels */}
+          {points.map((p, i) => {
+            const catInfo = getCategoryInfo(p.score.category)
+            return (
+              <text
+                key={i}
+                x={p.labelX}
+                y={p.labelY}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="text-xs fill-slate-600"
+              >
+                {catInfo.label}
+              </text>
+            )
+          })}
+        </svg>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -79,6 +203,24 @@ export default function AnalyticsPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold text-slate-800 mb-6">Analytics</h2>
+
+      {/* Insights Panel */}
+      {data.insights.length > 0 && (
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb className="text-purple-600" size={24} />
+            <h3 className="text-lg font-semibold text-slate-800">Key Insights</h3>
+          </div>
+          <div className="space-y-2">
+            {data.insights.map((insight, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-purple-500 mt-0.5">•</span>
+                <p className="text-slate-700">{insight}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -119,11 +261,58 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+      {/* Category Scores with Radar Chart */}
+      {data.categoryScores.length > 1 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Radar Chart */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+            <div className="flex items-center gap-2 mb-4">
+              <PieChart className="text-purple-600" size={24} />
+              <h3 className="text-lg font-semibold text-slate-800">Category Overview</h3>
+            </div>
+            <RadarChart scores={data.categoryScores} />
+          </div>
+
+          {/* Category Bars */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart2 className="text-purple-600" size={24} />
+              <h3 className="text-lg font-semibold text-slate-800">Category Scores</h3>
+            </div>
+            <div className="space-y-4">
+              {data.categoryScores.map((cat) => {
+                const catInfo = getCategoryInfo(cat.category)
+                return (
+                  <div key={cat.category} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-3 h-3 rounded-full ${catInfo.color}`} />
+                        <span className="font-medium text-slate-700">{catInfo.label}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-slate-800">{cat.score}%</span>
+                        <span className="text-xs text-slate-400">({cat.statCount} stats)</span>
+                      </div>
+                    </div>
+                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full ${catInfo.color} rounded-full transition-all duration-500`}
+                        style={{ width: `${cat.score}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stat Averages */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-8">
         <div className="flex items-center gap-2 mb-6">
           <BarChart2 className="text-purple-600" size={24} />
-          <h3 className="text-lg font-semibold text-slate-800">Stat Averages</h3>
+          <h3 className="text-lg font-semibold text-slate-800">Individual Stat Averages</h3>
         </div>
 
         {data.statAverages.length === 0 ? (
@@ -132,10 +321,18 @@ export default function AnalyticsPage() {
           <div className="space-y-4">
             {data.statAverages.map((stat) => {
               const percentage = getPercentage(stat)
+              const catInfo = stat.category ? getCategoryInfo(stat.category) : null
               return (
                 <div key={stat.name} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-slate-700">{stat.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-700">{stat.name}</span>
+                      {catInfo && (
+                        <span className={`text-xs px-2 py-0.5 rounded ${catInfo.lightColor} ${catInfo.textColor}`}>
+                          {catInfo.label}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-bold text-slate-800">{stat.average}</span>
                       <span className="text-sm text-slate-400">/ {stat.max}</span>

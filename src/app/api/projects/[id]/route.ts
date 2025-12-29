@@ -61,7 +61,18 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const { name, description } = await request.json()
+    const { 
+      name, 
+      description,
+      tierLowMax,
+      tierMediumMax,
+      tierLowLabel,
+      tierMediumLabel,
+      tierHighLabel,
+      tierLowMsg,
+      tierMediumMsg,
+      tierHighMsg,
+    } = await request.json()
 
     const existingProject = await prisma.project.findFirst({
       where: { id, userId: user.id }
@@ -76,6 +87,14 @@ export async function PATCH(
       data: {
         ...(name && { name: name.trim() }),
         ...(description !== undefined && { description: description?.trim() || null }),
+        ...(tierLowMax !== undefined && { tierLowMax }),
+        ...(tierMediumMax !== undefined && { tierMediumMax }),
+        ...(tierLowLabel !== undefined && { tierLowLabel }),
+        ...(tierMediumLabel !== undefined && { tierMediumLabel }),
+        ...(tierHighLabel !== undefined && { tierHighLabel }),
+        ...(tierLowMsg !== undefined && { tierLowMsg: tierLowMsg?.trim() || null }),
+        ...(tierMediumMsg !== undefined && { tierMediumMsg: tierMediumMsg?.trim() || null }),
+        ...(tierHighMsg !== undefined && { tierHighMsg: tierHighMsg?.trim() || null }),
       },
     })
 

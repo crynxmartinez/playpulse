@@ -42,7 +42,7 @@ export async function GET(
     }
 
     // Calculate stat averages
-    const statAverages: Record<string, { name: string; average: number; count: number; min: number; max: number }> = {}
+    const statAverages: Record<string, { name: string; average: number; count: number; min: number; max: number; category: string | null; weight: number }> = {}
     
     for (const stat of project.stats) {
       statAverages[stat.id] = {
@@ -51,6 +51,8 @@ export async function GET(
         count: 0,
         min: stat.minValue,
         max: stat.maxValue,
+        category: stat.category,
+        weight: stat.weight,
       }
     }
 
@@ -109,8 +111,82 @@ export async function GET(
     const totalForms = project.forms.length
     const activeForms = project.forms.filter(f => f.isActive).length
 
+    // Calculate category averages
+    const categoryAverages: Record<string, { total: number; max: number; count: number }> = {}
+    const statAveragesArray = Object.values(statAverages)
+    
+    for (const stat of statAveragesArray) {
+      if (stat.count > 0) {
+        const cat = stat.category || 'uncategorized'
+        if (!categoryAverages[cat]) {
+          categoryAverages[cat] = { total: 0, max: 0, count: 0 }
+        }
+        // Normalize to percentage
+        const percentage = ((stat.average - stat.min) / (stat.max - stat.min)) * 100
+        categoryAverages[cat].total += percentage * stat.weight
+        categoryAverages[cat].max += 100 * stat.weight
+        categoryAverages[cat].count++
+      }
+    }
+
+    const categoryScores = Object.entries(categoryAverages).map(([category, data]) => ({
+      category,
+      score: Math.round(data.total / data.count),
+      statCount: data.count,
+    }))
+
+    // Generate insights
+    const insights: string[] = []
+    
+    if (statAveragesArray.length > 0 && totalResponses > 0) {
+      // Find highest and lowest scoring stats
+      const statsWithScores = statAveragesArray
+        .filter(s => s.count > 0)
+        .map(s => ({
+          ...s,
+          percentage: Math.round(((s.average - s.min) / (s.max - s.min)) * 100)
+        }))
+        .sort((a, b) => b.percentage - a.percentage)
+      
+      if (statsWithScores.length > 0) {
+        const highest = statsWithScores[0]
+        const lowest = statsWithScores[statsWithScores.length - 1]
+        
+        insights.push(`"${highest.name}" is your highest rated stat at ${highest.percentage}%`)
+        
+        if (statsWithScores.length > 1 && lowest.percentage < highest.percentage) {
+          insights.push(`"${lowest.name}" needs attention - only ${lowest.percentage}%`)
+        }
+        
+        // Category comparison
+        if (categoryScores.length > 1) {
+          const sortedCats = [...categoryScores].sort((a, b) => b.score - a.score)
+          const highCat = sortedCats[0]
+          const lowCat = sortedCats[sortedCats.length - 1]
+          
+          if (highCat.score - lowCat.score > 15) {
+            insights.push(`${highCat.category} scores ${highCat.score - lowCat.score}% higher than ${lowCat.category}`)
+          }
+        }
+        
+        // Response trend insight
+        const recentResponses = Object.entries(dailyResponses).slice(-7)
+        const recentTotal = recentResponses.reduce((sum, [, count]) => sum + count, 0)
+        const olderResponses = Object.entries(dailyResponses).slice(0, 7)
+        const olderTotal = olderResponses.reduce((sum, [, count]) => sum + count, 0)
+        
+        if (recentTotal > olderTotal * 1.5 && olderTotal > 0) {
+          insights.push(`Response rate increased ${Math.round((recentTotal / olderTotal - 1) * 100)}% this week`)
+        } else if (recentTotal < olderTotal * 0.5 && recentTotal > 0) {
+          insights.push(`Response rate dropped - consider promoting your forms`)
+        }
+      }
+    }
+
     return NextResponse.json({
-      statAverages: Object.values(statAverages),
+      statAverages: statAveragesArray,
+      categoryScores,
+      insights,
       dailyResponses: Object.entries(dailyResponses)
         .map(([date, count]) => ({ date, count }))
         .reverse(),

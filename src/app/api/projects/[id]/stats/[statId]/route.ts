@@ -30,7 +30,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Stat not found' }, { status: 404 })
     }
 
-    const { name, description, minValue, maxValue } = await request.json()
+    const { name, description, minValue, maxValue, category, weight } = await request.json()
 
     const stat = await prisma.stat.update({
       where: { id: statId },
@@ -39,6 +39,8 @@ export async function PATCH(
         ...(description !== undefined && { description: description?.trim() || null }),
         ...(minValue !== undefined && { minValue }),
         ...(maxValue !== undefined && { maxValue }),
+        ...(category !== undefined && { category: category?.trim() || null }),
+        ...(weight !== undefined && { weight }),
       }
     })
 

@@ -10,6 +10,8 @@ interface Stat {
   description: string | null
   minValue: number
   maxValue: number
+  category: string | null
+  weight: number
 }
 
 interface StatTemplate {
@@ -17,7 +19,18 @@ interface StatTemplate {
   description: string
   minValue: number
   maxValue: number
+  category: string
 }
+
+const STAT_CATEGORIES = [
+  { value: 'gameplay', label: 'Gameplay', color: 'bg-blue-100 text-blue-700' },
+  { value: 'visuals', label: 'Visuals & Audio', color: 'bg-purple-100 text-purple-700' },
+  { value: 'ux', label: 'User Experience', color: 'bg-green-100 text-green-700' },
+  { value: 'balance', label: 'Balance', color: 'bg-orange-100 text-orange-700' },
+  { value: 'progression', label: 'Progression', color: 'bg-pink-100 text-pink-700' },
+  { value: 'multiplayer', label: 'Multiplayer', color: 'bg-cyan-100 text-cyan-700' },
+  { value: 'overall', label: 'Overall', color: 'bg-slate-100 text-slate-700' },
+]
 
 interface TemplateCategory {
   name: string
@@ -28,61 +41,61 @@ const STAT_TEMPLATES: TemplateCategory[] = [
   {
     name: 'Core Gameplay',
     templates: [
-      { name: 'Fun Factor', description: 'How enjoyable was the overall experience?', minValue: 1, maxValue: 10 },
-      { name: 'Difficulty', description: 'Was the game too easy or too hard?', minValue: 1, maxValue: 10 },
-      { name: 'Game Length', description: 'Was the match/session length appropriate?', minValue: 1, maxValue: 10 },
-      { name: 'Replayability', description: 'Would you want to play again?', minValue: 1, maxValue: 10 },
+      { name: 'Fun Factor', description: 'How enjoyable was the overall experience?', minValue: 1, maxValue: 10, category: 'gameplay' },
+      { name: 'Difficulty', description: 'Was the game too easy or too hard?', minValue: 1, maxValue: 10, category: 'gameplay' },
+      { name: 'Game Length', description: 'Was the match/session length appropriate?', minValue: 1, maxValue: 10, category: 'gameplay' },
+      { name: 'Replayability', description: 'Would you want to play again?', minValue: 1, maxValue: 10, category: 'gameplay' },
     ]
   },
   {
     name: 'Card/Deck Balance (TCG)',
     templates: [
-      { name: 'Card Balance', description: 'Do cards feel fair and balanced?', minValue: 1, maxValue: 10 },
-      { name: 'Deck Variety', description: 'Are there enough viable deck strategies?', minValue: 1, maxValue: 10 },
-      { name: 'Meta Diversity', description: 'Is the competitive meta healthy?', minValue: 1, maxValue: 10 },
-      { name: 'Power Creep', description: 'Do newer cards feel overpowered?', minValue: 1, maxValue: 10 },
+      { name: 'Card Balance', description: 'Do cards feel fair and balanced?', minValue: 1, maxValue: 10, category: 'balance' },
+      { name: 'Deck Variety', description: 'Are there enough viable deck strategies?', minValue: 1, maxValue: 10, category: 'balance' },
+      { name: 'Meta Diversity', description: 'Is the competitive meta healthy?', minValue: 1, maxValue: 10, category: 'balance' },
+      { name: 'Power Creep', description: 'Do newer cards feel overpowered?', minValue: 1, maxValue: 10, category: 'balance' },
     ]
   },
   {
     name: 'User Experience',
     templates: [
-      { name: 'UI Clarity', description: 'Is the interface easy to understand?', minValue: 1, maxValue: 10 },
-      { name: 'Tutorial Quality', description: 'Did the tutorial teach you well?', minValue: 1, maxValue: 10 },
-      { name: 'Controls', description: 'Are the controls intuitive and responsive?', minValue: 1, maxValue: 10 },
-      { name: 'Match Flow', description: 'Does the game flow smoothly?', minValue: 1, maxValue: 10 },
+      { name: 'UI Clarity', description: 'Is the interface easy to understand?', minValue: 1, maxValue: 10, category: 'ux' },
+      { name: 'Tutorial Quality', description: 'Did the tutorial teach you well?', minValue: 1, maxValue: 10, category: 'ux' },
+      { name: 'Controls', description: 'Are the controls intuitive and responsive?', minValue: 1, maxValue: 10, category: 'ux' },
+      { name: 'Match Flow', description: 'Does the game flow smoothly?', minValue: 1, maxValue: 10, category: 'ux' },
     ]
   },
   {
     name: 'Visuals & Audio',
     templates: [
-      { name: 'Art Quality', description: 'How good is the visual artwork?', minValue: 1, maxValue: 10 },
-      { name: 'Visual Effects', description: 'Are animations and effects satisfying?', minValue: 1, maxValue: 10 },
-      { name: 'Sound Design', description: 'Are sound effects appropriate?', minValue: 1, maxValue: 10 },
-      { name: 'Music', description: 'Does the soundtrack fit the game?', minValue: 1, maxValue: 10 },
+      { name: 'Art Quality', description: 'How good is the visual artwork?', minValue: 1, maxValue: 10, category: 'visuals' },
+      { name: 'Visual Effects', description: 'Are animations and effects satisfying?', minValue: 1, maxValue: 10, category: 'visuals' },
+      { name: 'Sound Design', description: 'Are sound effects appropriate?', minValue: 1, maxValue: 10, category: 'visuals' },
+      { name: 'Music', description: 'Does the soundtrack fit the game?', minValue: 1, maxValue: 10, category: 'visuals' },
     ]
   },
   {
     name: 'Progression & Economy',
     templates: [
-      { name: 'Reward Satisfaction', description: 'Do rewards feel meaningful?', minValue: 1, maxValue: 10 },
-      { name: 'Grind Factor', description: 'Is progression too grindy?', minValue: 1, maxValue: 10 },
-      { name: 'F2P Friendliness', description: 'Is the game fair for free players?', minValue: 1, maxValue: 10 },
-      { name: 'Collection Progress', description: 'Is collecting items/cards satisfying?', minValue: 1, maxValue: 10 },
+      { name: 'Reward Satisfaction', description: 'Do rewards feel meaningful?', minValue: 1, maxValue: 10, category: 'progression' },
+      { name: 'Grind Factor', description: 'Is progression too grindy?', minValue: 1, maxValue: 10, category: 'progression' },
+      { name: 'F2P Friendliness', description: 'Is the game fair for free players?', minValue: 1, maxValue: 10, category: 'progression' },
+      { name: 'Collection Progress', description: 'Is collecting items/cards satisfying?', minValue: 1, maxValue: 10, category: 'progression' },
     ]
   },
   {
     name: 'Multiplayer',
     templates: [
-      { name: 'Matchmaking Quality', description: 'Are matches fair and balanced?', minValue: 1, maxValue: 10 },
-      { name: 'Connection Stability', description: 'Any lag or disconnects?', minValue: 1, maxValue: 10 },
-      { name: 'Opponent Skill Match', description: 'Were opponents your skill level?', minValue: 1, maxValue: 10 },
+      { name: 'Matchmaking Quality', description: 'Are matches fair and balanced?', minValue: 1, maxValue: 10, category: 'multiplayer' },
+      { name: 'Connection Stability', description: 'Any lag or disconnects?', minValue: 1, maxValue: 10, category: 'multiplayer' },
+      { name: 'Opponent Skill Match', description: 'Were opponents your skill level?', minValue: 1, maxValue: 10, category: 'multiplayer' },
     ]
   },
   {
     name: 'Overall',
     templates: [
-      { name: 'Would Recommend', description: 'Would you recommend to a friend?', minValue: 1, maxValue: 10 },
-      { name: 'Overall Score', description: 'Overall rating of the game', minValue: 1, maxValue: 10 },
+      { name: 'Would Recommend', description: 'Would you recommend to a friend?', minValue: 1, maxValue: 10, category: 'overall' },
+      { name: 'Overall Score', description: 'Overall rating of the game', minValue: 1, maxValue: 10, category: 'overall' },
     ]
   },
 ]
@@ -101,6 +114,8 @@ export default function StatsPage() {
     description: '',
     minValue: 1,
     maxValue: 10,
+    category: '',
+    weight: 1.0,
   })
 
   useEffect(() => {
@@ -173,6 +188,8 @@ export default function StatsPage() {
       description: stat.description || '',
       minValue: stat.minValue,
       maxValue: stat.maxValue,
+      category: stat.category || '',
+      weight: stat.weight || 1.0,
     })
     setIsCreating(true)
   }
@@ -180,7 +197,26 @@ export default function StatsPage() {
   const resetForm = () => {
     setIsCreating(false)
     setEditingStat(null)
-    setFormData({ name: '', description: '', minValue: 1, maxValue: 10 })
+    setFormData({ name: '', description: '', minValue: 1, maxValue: 10, category: '', weight: 1.0 })
+  }
+
+  const getCategoryInfo = (categoryValue: string | null) => {
+    return STAT_CATEGORIES.find(c => c.value === categoryValue) || null
+  }
+
+  const groupStatsByCategory = () => {
+    const grouped: { [key: string]: Stat[] } = { uncategorized: [] }
+    STAT_CATEGORIES.forEach(cat => { grouped[cat.value] = [] })
+    
+    stats.forEach(stat => {
+      if (stat.category && grouped[stat.category]) {
+        grouped[stat.category].push(stat)
+      } else {
+        grouped.uncategorized.push(stat)
+      }
+    })
+    
+    return grouped
   }
 
   const handleAddFromTemplate = async (template: StatTemplate) => {
@@ -188,7 +224,7 @@ export default function StatsPage() {
       const res = await fetch(`/api/projects/${projectId}/stats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(template),
+        body: JSON.stringify({ ...template, weight: 1.0 }),
       })
       const data = await res.json()
       if (data.stat) {
@@ -339,7 +375,23 @@ export default function StatsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Category
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+              >
+                <option value="">No Category</option>
+                {STAT_CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Min Value
@@ -362,6 +414,20 @@ export default function StatsPage() {
                   onChange={(e) => setFormData({ ...formData, maxValue: parseInt(e.target.value) })}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
                   min={1}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Weight
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={formData.weight}
+                  onChange={(e) => setFormData({ ...formData, weight: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                  min={0.1}
+                  max={5}
                 />
               </div>
             </div>
@@ -399,44 +465,182 @@ export default function StatsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.id}
-              className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <BarChart2 className="text-purple-600" size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-slate-800">{stat.name}</h4>
-                    <p className="text-sm text-slate-500">
-                      Range: {stat.minValue} - {stat.maxValue}
-                    </p>
-                  </div>
+        <div className="space-y-6">
+          {/* Stats grouped by category */}
+          {(() => {
+            const grouped = groupStatsByCategory()
+            const hasCategories = Object.entries(grouped).some(([key, items]) => key !== 'uncategorized' && items.length > 0)
+            
+            if (!hasCategories) {
+              // Show flat grid if no categories used
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {stats.map((stat) => {
+                    const catInfo = getCategoryInfo(stat.category)
+                    return (
+                      <div
+                        key={stat.id}
+                        className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                              <BarChart2 className="text-purple-600" size={20} />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-slate-800">{stat.name}</h4>
+                              <p className="text-sm text-slate-500">
+                                Range: {stat.minValue} - {stat.maxValue}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => handleEdit(stat)}
+                              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(stat.id)}
+                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        {catInfo && (
+                          <span className={`inline-block text-xs px-2 py-1 rounded-full ${catInfo.color} mb-2`}>
+                            {catInfo.label}
+                          </span>
+                        )}
+                        {stat.description && (
+                          <p className="text-sm text-slate-500">{stat.description}</p>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleEdit(stat)}
-                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(stat.id)}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-              {stat.description && (
-                <p className="text-sm text-slate-500">{stat.description}</p>
-              )}
-            </div>
-          ))}
+              )
+            }
+            
+            // Show grouped by category
+            return (
+              <>
+                {STAT_CATEGORIES.map((category) => {
+                  const categoryStats = grouped[category.value]
+                  if (!categoryStats || categoryStats.length === 0) return null
+                  
+                  return (
+                    <div key={category.value} className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color}`}>
+                          {category.label}
+                        </span>
+                        <span className="text-sm text-slate-400">
+                          {categoryStats.length} stat{categoryStats.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {categoryStats.map((stat) => (
+                          <div
+                            key={stat.id}
+                            className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-lg ${category.color.split(' ')[0]} flex items-center justify-center`}>
+                                  <BarChart2 className={category.color.split(' ')[1]} size={20} />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-slate-800">{stat.name}</h4>
+                                  <p className="text-sm text-slate-500">
+                                    Range: {stat.minValue} - {stat.maxValue}
+                                    {stat.weight !== 1 && ` • Weight: ${stat.weight}x`}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => handleEdit(stat)}
+                                  className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(stat.id)}
+                                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
+                            {stat.description && (
+                              <p className="text-sm text-slate-500">{stat.description}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+                
+                {/* Uncategorized stats */}
+                {grouped.uncategorized.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                        Uncategorized
+                      </span>
+                      <span className="text-sm text-slate-400">
+                        {grouped.uncategorized.length} stat{grouped.uncategorized.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {grouped.uncategorized.map((stat) => (
+                        <div
+                          key={stat.id}
+                          className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                                <BarChart2 className="text-gray-600" size={20} />
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-slate-800">{stat.name}</h4>
+                                <p className="text-sm text-slate-500">
+                                  Range: {stat.minValue} - {stat.maxValue}
+                                  {stat.weight !== 1 && ` • Weight: ${stat.weight}x`}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleEdit(stat)}
+                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(stat.id)}
+                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                          {stat.description && (
+                            <p className="text-sm text-slate-500">{stat.description}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )
+          })()}
         </div>
       )}
     </div>

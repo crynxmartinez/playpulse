@@ -54,7 +54,7 @@ export async function POST(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    const { name, description, minValue, maxValue } = await request.json()
+    const { name, description, minValue, maxValue, category, weight } = await request.json()
 
     if (!name || name.trim() === '') {
       return NextResponse.json({ error: 'Stat name is required' }, { status: 400 })
@@ -66,6 +66,8 @@ export async function POST(
         description: description?.trim() || null,
         minValue: minValue || 1,
         maxValue: maxValue || 10,
+        category: category?.trim() || null,
+        weight: weight || 1.0,
         projectId: id,
       }
     })

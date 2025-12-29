@@ -30,15 +30,24 @@ enum Role {
 }
 
 model Project {
-  id          String     @id @default(cuid())
-  name        String
-  description String?
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  stats       Stat[]
-  forms       Form[]
+  id            String     @id @default(cuid())
+  name          String
+  description   String?
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  // Score tier configuration
+  tierLowMax    Int        @default(40)   // 0-40% = low tier
+  tierMediumMax Int        @default(70)   // 41-70% = medium tier (71-100% = high)
+  tierLowLabel  String     @default("Needs Improvement")
+  tierMediumLabel String   @default("Good")
+  tierHighLabel String     @default("Excellent")
+  tierLowMsg    String?    // Custom message for low scorers
+  tierMediumMsg String?    // Custom message for medium scorers  
+  tierHighMsg   String?    // Custom message for high scorers
+  stats         Stat[]
+  forms         Form[]
 }
 
 model Stat {
@@ -47,6 +56,8 @@ model Stat {
   description String?
   minValue    Int        @default(1)
   maxValue    Int        @default(10)
+  category    String?    // Category grouping: gameplay, visuals, audio, balance, progression, multiplayer, overall
+  weight      Float      @default(1.0)  // Weight multiplier for category scoring
   projectId   String
   project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt   DateTime   @default(now())
@@ -55,16 +66,19 @@ model Stat {
 }
 
 model Form {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  isActive    Boolean    @default(true)
-  projectId   String
-  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  questions   Question[]
-  responses   Response[]
+  id                 String     @id @default(cuid())
+  title              String
+  description        String?
+  isActive           Boolean    @default(true)
+  showCategoryScores Boolean    @default(true)   // Show category breakdown on results
+  showOverallScore   Boolean    @default(true)   // Show overall score on results
+  showComparison     Boolean    @default(false)  // Show "your score vs average"
+  projectId          String
+  project            Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  questions          Question[]
+  responses          Response[]
 }
 
 model Question {

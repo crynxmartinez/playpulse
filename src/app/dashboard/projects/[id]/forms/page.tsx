@@ -9,7 +9,19 @@ interface Stat {
   name: string
   minValue: number
   maxValue: number
+  category: string | null
+  weight: number
 }
+
+const STAT_CATEGORIES = [
+  { value: 'gameplay', label: 'Gameplay', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  { value: 'visuals', label: 'Visuals & Audio', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+  { value: 'ux', label: 'User Experience', color: 'bg-green-100 text-green-700 border-green-200' },
+  { value: 'balance', label: 'Balance', color: 'bg-orange-100 text-orange-700 border-orange-200' },
+  { value: 'progression', label: 'Progression', color: 'bg-pink-100 text-pink-700 border-pink-200' },
+  { value: 'multiplayer', label: 'Multiplayer', color: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
+  { value: 'overall', label: 'Overall', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+]
 
 interface Question {
   id: string
@@ -160,6 +172,41 @@ export default function FormsPage() {
     setFormData({ title: '', description: '', statIds: [] })
   }
 
+  const getCategoryInfo = (categoryValue: string | null) => {
+    return STAT_CATEGORIES.find(c => c.value === categoryValue) || null
+  }
+
+  const groupStatsByCategory = () => {
+    const grouped: { [key: string]: Stat[] } = { uncategorized: [] }
+    STAT_CATEGORIES.forEach(cat => { grouped[cat.value] = [] })
+    
+    stats.forEach(stat => {
+      if (stat.category && grouped[stat.category]) {
+        grouped[stat.category].push(stat)
+      } else {
+        grouped.uncategorized.push(stat)
+      }
+    })
+    
+    return grouped
+  }
+
+  const selectAllInCategory = (categoryValue: string) => {
+    const grouped = groupStatsByCategory()
+    const categoryStats = grouped[categoryValue] || []
+    const categoryStatIds = categoryStats.map(s => s.id)
+    const allSelected = categoryStatIds.every(id => formData.statIds.includes(id))
+    
+    if (allSelected) {
+      // Deselect all in category
+      setFormData({ ...formData, statIds: formData.statIds.filter(id => !categoryStatIds.includes(id)) })
+    } else {
+      // Select all in category
+      const newIds = [...new Set([...formData.statIds, ...categoryStatIds])]
+      setFormData({ ...formData, statIds: newIds })
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -232,25 +279,132 @@ export default function FormsPage() {
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Select Stats to Include *
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {stats.map((stat) => (
-                  <button
-                    key={stat.id}
-                    type="button"
-                    onClick={() => handleStatToggle(stat.id)}
-                    className={`p-3 rounded-lg border text-left transition-colors ${
-                      formData.statIds.includes(stat.id)
-                        ? 'border-purple-500 bg-purple-50 text-purple-700'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <p className="font-medium text-sm">{stat.name}</p>
-                    <p className="text-xs text-slate-500">{stat.minValue} - {stat.maxValue}</p>
-                  </button>
-                ))}
-              </div>
+              <p className="text-xs text-slate-500 mb-3">
+                {formData.statIds.length} stat{formData.statIds.length !== 1 ? 's' : ''} selected
+              </p>
+              
+              {(() => {
+                const grouped = groupStatsByCategory()
+                const hasCategories = Object.entries(grouped).some(([key, items]) => key !== 'uncategorized' && items.length > 0)
+                
+                if (!hasCategories) {
+                  // Show flat grid if no categories
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {stats.map((stat) => (
+                        <button
+                          key={stat.id}
+                          type="button"
+                          onClick={() => handleStatToggle(stat.id)}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            formData.statIds.includes(stat.id)
+                              ? 'border-purple-500 bg-purple-50 text-purple-700'
+                              : 'border-slate-200 hover:border-slate-300 text-slate-800'
+                          }`}
+                        >
+                          <p className="font-medium text-sm">{stat.name}</p>
+                          <p className="text-xs text-slate-500">{stat.minValue} - {stat.maxValue}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                }
+                
+                // Show grouped by category
+                return (
+                  <div className="space-y-4">
+                    {STAT_CATEGORIES.map((category) => {
+                      const categoryStats = grouped[category.value]
+                      if (!categoryStats || categoryStats.length === 0) return null
+                      
+                      const allSelected = categoryStats.every(s => formData.statIds.includes(s.id))
+                      const someSelected = categoryStats.some(s => formData.statIds.includes(s.id))
+                      
+                      return (
+                        <div key={category.value} className="border border-slate-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${category.color}`}>
+                              {category.label}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => selectAllInCategory(category.value)}
+                              className={`text-xs px-2 py-1 rounded transition-colors ${
+                                allSelected 
+                                  ? 'bg-purple-100 text-purple-700' 
+                                  : someSelected
+                                    ? 'bg-purple-50 text-purple-600'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              }`}
+                            >
+                              {allSelected ? 'Deselect All' : 'Select All'}
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {categoryStats.map((stat) => (
+                              <button
+                                key={stat.id}
+                                type="button"
+                                onClick={() => handleStatToggle(stat.id)}
+                                className={`p-2 rounded-lg border text-left transition-colors ${
+                                  formData.statIds.includes(stat.id)
+                                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                    : 'border-slate-200 hover:border-slate-300 text-slate-800'
+                                }`}
+                              >
+                                <p className="font-medium text-sm">{stat.name}</p>
+                                <p className="text-xs text-slate-500">{stat.minValue} - {stat.maxValue}</p>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                    
+                    {/* Uncategorized stats */}
+                    {grouped.uncategorized.length > 0 && (
+                      <div className="border border-slate-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                            Uncategorized
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => selectAllInCategory('uncategorized')}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${
+                              grouped.uncategorized.every(s => formData.statIds.includes(s.id))
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            {grouped.uncategorized.every(s => formData.statIds.includes(s.id)) ? 'Deselect All' : 'Select All'}
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {grouped.uncategorized.map((stat) => (
+                            <button
+                              key={stat.id}
+                              type="button"
+                              onClick={() => handleStatToggle(stat.id)}
+                              className={`p-2 rounded-lg border text-left transition-colors ${
+                                formData.statIds.includes(stat.id)
+                                  ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                  : 'border-slate-200 hover:border-slate-300 text-slate-800'
+                              }`}
+                            >
+                              <p className="font-medium text-sm">{stat.name}</p>
+                              <p className="text-xs text-slate-500">{stat.minValue} - {stat.maxValue}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+              
               {formData.statIds.length === 0 && (
-                <p className="text-sm text-red-500 mt-1">Select at least one stat</p>
+                <p className="text-sm text-red-500 mt-2">Select at least one stat</p>
               )}
             </div>
 
@@ -325,11 +479,19 @@ export default function FormsPage() {
               )}
 
               <div className="flex flex-wrap gap-2 mb-4">
-                {form.questions.map((q) => (
-                  <span key={q.id} className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded">
-                    {q.stat.name}
-                  </span>
-                ))}
+                {form.questions.map((q) => {
+                  const catInfo = getCategoryInfo(q.stat.category)
+                  return (
+                    <span 
+                      key={q.id} 
+                      className={`text-xs px-2 py-1 rounded ${
+                        catInfo ? catInfo.color : 'bg-purple-50 text-purple-700'
+                      }`}
+                    >
+                      {q.stat.name}
+                    </span>
+                  )
+                })}
               </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-slate-100">

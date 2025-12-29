@@ -16,7 +16,17 @@ export async function GET(
       },
       include: {
         project: {
-          select: { name: true }
+          select: { 
+            name: true,
+            tierLowMax: true,
+            tierMediumMax: true,
+            tierLowLabel: true,
+            tierMediumLabel: true,
+            tierHighLabel: true,
+            tierLowMsg: true,
+            tierMediumMsg: true,
+            tierHighMsg: true,
+          }
         },
         questions: {
           include: { 
@@ -27,6 +37,8 @@ export async function GET(
                 description: true,
                 minValue: true,
                 maxValue: true,
+                category: true,
+                weight: true,
               }
             } 
           },
