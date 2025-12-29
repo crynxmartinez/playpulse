@@ -13,13 +13,19 @@ export async function GET(
     }
 
     const { id } = await params
+    const url = new URL(request.url)
+    const formFilter = url.searchParams.get('formId') || 'all'
+    const timeRange = url.searchParams.get('timeRange') || '30' // days
 
     const project = await prisma.project.findFirst({
       where: { id, userId: user.id },
       include: {
         stats: true,
         forms: {
-          include: {
+          select: {
+            id: true,
+            title: true,
+            isActive: true,
             responses: {
               include: {
                 answers: {
@@ -41,11 +47,41 @@ export async function GET(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
+    // Forms list for filter dropdown
+    const formsList = project.forms.map(f => ({
+      id: f.id,
+      title: f.title,
+      isActive: f.isActive,
+      responseCount: f.responses.length
+    }))
+
+    // Filter forms based on formFilter
+    const filteredForms = formFilter === 'all' 
+      ? project.forms 
+      : project.forms.filter(f => f.id === formFilter)
+
+    // Time range filter
+    const daysAgo = parseInt(timeRange) || 30
+    const timeRangeDate = new Date()
+    timeRangeDate.setDate(timeRangeDate.getDate() - daysAgo)
+
     // Calculate stat averages
-    const statAverages: Record<string, { name: string; average: number; count: number; min: number; max: number; category: string | null; weight: number }> = {}
+    const statAverages: Record<string, { 
+      id: string
+      name: string
+      average: number
+      count: number
+      min: number
+      max: number
+      category: string | null
+      weight: number
+      trend: number // percentage change from previous period
+      values: number[] // for distribution chart
+    }> = {}
     
     for (const stat of project.stats) {
       statAverages[stat.id] = {
+        id: stat.id,
         name: stat.name,
         average: 0,
         count: 0,
@@ -53,16 +89,29 @@ export async function GET(
         max: stat.maxValue,
         category: stat.category,
         weight: stat.weight,
+        trend: 0,
+        values: [],
       }
     }
 
-    // Collect all responses with timestamps for trend data
-    const allResponses: { createdAt: Date; answers: { statId: string; value: number }[] }[] = []
+    // For trend calculation - split responses into current and previous period
+    const halfPeriodDate = new Date()
+    halfPeriodDate.setDate(halfPeriodDate.getDate() - Math.floor(daysAgo / 2))
+    
+    const currentPeriodStats: Record<string, { total: number; count: number }> = {}
+    const previousPeriodStats: Record<string, { total: number; count: number }> = {}
 
-    for (const form of project.forms) {
+    // Collect all responses with timestamps for trend data
+    const allResponses: { createdAt: Date; formId: string; answers: { statId: string; value: number }[] }[] = []
+
+    for (const form of filteredForms) {
       for (const response of form.responses) {
-        const responseData: { createdAt: Date; answers: { statId: string; value: number }[] } = {
+        // Apply time range filter
+        if (response.createdAt < timeRangeDate) continue
+
+        const responseData: { createdAt: Date; formId: string; answers: { statId: string; value: number }[] } = {
           createdAt: response.createdAt,
+          formId: form.id,
           answers: []
         }
 
@@ -72,7 +121,19 @@ export async function GET(
           if (statAverages[statId] && answer.value !== null) {
             statAverages[statId].count++
             statAverages[statId].average += answer.value
+            statAverages[statId].values.push(answer.value)
             responseData.answers.push({ statId, value: answer.value })
+
+            // Track for trend calculation
+            if (response.createdAt >= halfPeriodDate) {
+              if (!currentPeriodStats[statId]) currentPeriodStats[statId] = { total: 0, count: 0 }
+              currentPeriodStats[statId].total += answer.value
+              currentPeriodStats[statId].count++
+            } else {
+              if (!previousPeriodStats[statId]) previousPeriodStats[statId] = { total: 0, count: 0 }
+              previousPeriodStats[statId].total += answer.value
+              previousPeriodStats[statId].count++
+            }
           }
         }
 
@@ -80,20 +141,27 @@ export async function GET(
       }
     }
 
-    // Calculate final averages
+    // Calculate final averages and trends
     for (const statId in statAverages) {
       if (statAverages[statId].count > 0) {
         statAverages[statId].average = 
           Math.round((statAverages[statId].average / statAverages[statId].count) * 10) / 10
+        
+        // Calculate trend
+        const current = currentPeriodStats[statId]
+        const previous = previousPeriodStats[statId]
+        if (current && previous && previous.count > 0) {
+          const currentAvg = current.total / current.count
+          const previousAvg = previous.total / previous.count
+          const range = statAverages[statId].max - statAverages[statId].min
+          statAverages[statId].trend = Math.round(((currentAvg - previousAvg) / range) * 100)
+        }
       }
     }
 
-    // Calculate daily response counts for the last 30 days
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
+    // Calculate daily response counts for the time range
     const dailyResponses: Record<string, number> = {}
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < daysAgo; i++) {
       const date = new Date()
       date.setDate(date.getDate() - i)
       const key = date.toISOString().split('T')[0]
@@ -136,6 +204,11 @@ export async function GET(
       statCount: data.count,
     }))
 
+    // Calculate overall score
+    const overallScore = categoryScores.length > 0
+      ? Math.round(categoryScores.reduce((sum, c) => sum + c.score, 0) / categoryScores.length)
+      : 0
+
     // Generate insights
     const insights: string[] = []
     
@@ -158,6 +231,17 @@ export async function GET(
         if (statsWithScores.length > 1 && lowest.percentage < highest.percentage) {
           insights.push(`"${lowest.name}" needs attention - only ${lowest.percentage}%`)
         }
+
+        // Trend insights
+        const trendingUp = statsWithScores.filter(s => s.trend > 5)
+        const trendingDown = statsWithScores.filter(s => s.trend < -5)
+        
+        if (trendingUp.length > 0) {
+          insights.push(`📈 "${trendingUp[0].name}" improved by ${trendingUp[0].trend}% recently`)
+        }
+        if (trendingDown.length > 0) {
+          insights.push(`📉 "${trendingDown[0].name}" dropped by ${Math.abs(trendingDown[0].trend)}% recently`)
+        }
         
         // Category comparison
         if (categoryScores.length > 1) {
@@ -171,9 +255,10 @@ export async function GET(
         }
         
         // Response trend insight
-        const recentResponses = Object.entries(dailyResponses).slice(-7)
+        const dailyEntries = Object.entries(dailyResponses)
+        const recentResponses = dailyEntries.slice(-7)
         const recentTotal = recentResponses.reduce((sum, [, count]) => sum + count, 0)
-        const olderResponses = Object.entries(dailyResponses).slice(0, 7)
+        const olderResponses = dailyEntries.slice(0, 7)
         const olderTotal = olderResponses.reduce((sum, [, count]) => sum + count, 0)
         
         if (recentTotal > olderTotal * 1.5 && olderTotal > 0) {
@@ -181,6 +266,22 @@ export async function GET(
         } else if (recentTotal < olderTotal * 0.5 && recentTotal > 0) {
           insights.push(`Response rate dropped - consider promoting your forms`)
         }
+      }
+    }
+
+    // Distribution data for donut chart (score tiers)
+    const scoreDistribution = {
+      high: 0, // 70-100%
+      medium: 0, // 40-69%
+      low: 0, // 0-39%
+    }
+    
+    for (const stat of statAveragesArray) {
+      if (stat.count > 0) {
+        const percentage = ((stat.average - stat.min) / (stat.max - stat.min)) * 100
+        if (percentage >= 70) scoreDistribution.high++
+        else if (percentage >= 40) scoreDistribution.medium++
+        else scoreDistribution.low++
       }
     }
 
@@ -194,6 +295,11 @@ export async function GET(
       totalResponses,
       totalForms,
       activeForms,
+      formsList,
+      overallScore,
+      scoreDistribution,
+      timeRange: daysAgo,
+      formFilter,
     })
   } catch (error) {
     console.error('Get analytics error:', error)
