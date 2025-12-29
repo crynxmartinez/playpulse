@@ -9,6 +9,7 @@ out/
 
 # Prisma
 /generated/prisma
+/src/generated/prisma
 
 # IDE
 .vscode/
