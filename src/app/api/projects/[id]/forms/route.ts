@@ -83,6 +83,7 @@ export async function POST(
     const form = await prisma.form.create({
       data: {
         title: title.trim(),
+        isActive: true,
         landingTitle: landingTitle?.trim() || null,
         landingSubtitle: landingSubtitle?.trim() || null,
         landingDescription: landingDescription?.trim() || null,
