@@ -4,12 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
   LayoutDashboard, 
-  Users, 
-  Settings, 
-  LogOut,
-  Gamepad2,
-  BarChart3,
-  Bell
+  LogOut
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -23,11 +18,6 @@ interface SidebarProps {
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/games', label: 'Games', icon: Gamepad2 },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/dashboard/users', label: 'Users', icon: Users, adminOnly: true },
-  { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function Sidebar({ user }: SidebarProps) {
@@ -39,10 +29,6 @@ export default function Sidebar({ user }: SidebarProps) {
     router.push('/login')
     router.refresh()
   }
-
-  const filteredMenuItems = menuItems.filter(
-    item => !item.adminOnly || user.role === 'ADMIN'
-  )
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col z-50">
@@ -56,7 +42,7 @@ export default function Sidebar({ user }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-2">
-          {filteredMenuItems.map((item) => {
+          {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href || 
               (item.href !== '/dashboard' && pathname.startsWith(item.href))
