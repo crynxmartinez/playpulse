@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, Edit2, Trash2, BarChart2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, BarChart2, Sparkles, X } from 'lucide-react'
 
 interface Stat {
   id: string
@@ -12,6 +12,81 @@ interface Stat {
   maxValue: number
 }
 
+interface StatTemplate {
+  name: string
+  description: string
+  minValue: number
+  maxValue: number
+}
+
+interface TemplateCategory {
+  name: string
+  templates: StatTemplate[]
+}
+
+const STAT_TEMPLATES: TemplateCategory[] = [
+  {
+    name: 'Core Gameplay',
+    templates: [
+      { name: 'Fun Factor', description: 'How enjoyable was the overall experience?', minValue: 1, maxValue: 10 },
+      { name: 'Difficulty', description: 'Was the game too easy or too hard?', minValue: 1, maxValue: 10 },
+      { name: 'Game Length', description: 'Was the match/session length appropriate?', minValue: 1, maxValue: 10 },
+      { name: 'Replayability', description: 'Would you want to play again?', minValue: 1, maxValue: 10 },
+    ]
+  },
+  {
+    name: 'Card/Deck Balance (TCG)',
+    templates: [
+      { name: 'Card Balance', description: 'Do cards feel fair and balanced?', minValue: 1, maxValue: 10 },
+      { name: 'Deck Variety', description: 'Are there enough viable deck strategies?', minValue: 1, maxValue: 10 },
+      { name: 'Meta Diversity', description: 'Is the competitive meta healthy?', minValue: 1, maxValue: 10 },
+      { name: 'Power Creep', description: 'Do newer cards feel overpowered?', minValue: 1, maxValue: 10 },
+    ]
+  },
+  {
+    name: 'User Experience',
+    templates: [
+      { name: 'UI Clarity', description: 'Is the interface easy to understand?', minValue: 1, maxValue: 10 },
+      { name: 'Tutorial Quality', description: 'Did the tutorial teach you well?', minValue: 1, maxValue: 10 },
+      { name: 'Controls', description: 'Are the controls intuitive and responsive?', minValue: 1, maxValue: 10 },
+      { name: 'Match Flow', description: 'Does the game flow smoothly?', minValue: 1, maxValue: 10 },
+    ]
+  },
+  {
+    name: 'Visuals & Audio',
+    templates: [
+      { name: 'Art Quality', description: 'How good is the visual artwork?', minValue: 1, maxValue: 10 },
+      { name: 'Visual Effects', description: 'Are animations and effects satisfying?', minValue: 1, maxValue: 10 },
+      { name: 'Sound Design', description: 'Are sound effects appropriate?', minValue: 1, maxValue: 10 },
+      { name: 'Music', description: 'Does the soundtrack fit the game?', minValue: 1, maxValue: 10 },
+    ]
+  },
+  {
+    name: 'Progression & Economy',
+    templates: [
+      { name: 'Reward Satisfaction', description: 'Do rewards feel meaningful?', minValue: 1, maxValue: 10 },
+      { name: 'Grind Factor', description: 'Is progression too grindy?', minValue: 1, maxValue: 10 },
+      { name: 'F2P Friendliness', description: 'Is the game fair for free players?', minValue: 1, maxValue: 10 },
+      { name: 'Collection Progress', description: 'Is collecting items/cards satisfying?', minValue: 1, maxValue: 10 },
+    ]
+  },
+  {
+    name: 'Multiplayer',
+    templates: [
+      { name: 'Matchmaking Quality', description: 'Are matches fair and balanced?', minValue: 1, maxValue: 10 },
+      { name: 'Connection Stability', description: 'Any lag or disconnects?', minValue: 1, maxValue: 10 },
+      { name: 'Opponent Skill Match', description: 'Were opponents your skill level?', minValue: 1, maxValue: 10 },
+    ]
+  },
+  {
+    name: 'Overall',
+    templates: [
+      { name: 'Would Recommend', description: 'Would you recommend to a friend?', minValue: 1, maxValue: 10 },
+      { name: 'Overall Score', description: 'Overall rating of the game', minValue: 1, maxValue: 10 },
+    ]
+  },
+]
+
 export default function StatsPage() {
   const params = useParams()
   const projectId = params.id as string
@@ -19,6 +94,7 @@ export default function StatsPage() {
   const [stats, setStats] = useState<Stat[]>([])
   const [loading, setLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
   const [editingStat, setEditingStat] = useState<Stat | null>(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -107,6 +183,26 @@ export default function StatsPage() {
     setFormData({ name: '', description: '', minValue: 1, maxValue: 10 })
   }
 
+  const handleAddFromTemplate = async (template: StatTemplate) => {
+    try {
+      const res = await fetch(`/api/projects/${projectId}/stats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(template),
+      })
+      const data = await res.json()
+      if (data.stat) {
+        setStats([...stats, data.stat])
+      }
+    } catch (error) {
+      console.error('Failed to add stat from template:', error)
+    }
+  }
+
+  const isStatAlreadyAdded = (templateName: string) => {
+    return stats.some(s => s.name.toLowerCase() === templateName.toLowerCase())
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -119,18 +215,95 @@ export default function StatsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-800">Stats</h2>
-        <button
-          onClick={() => setIsCreating(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-        >
-          <Plus size={20} />
-          Add Stat
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowTemplates(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
+          >
+            <Sparkles size={20} />
+            Use Template
+          </button>
+          <button
+            onClick={() => setIsCreating(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <Plus size={20} />
+            Add Stat
+          </button>
+        </div>
       </div>
 
       <p className="text-slate-500 mb-6">
         Stats are the metrics you want to track in your feedback forms. For example: &quot;Fun Rating&quot;, &quot;Difficulty&quot;, &quot;Graphics Quality&quot;.
       </p>
+
+      {/* Templates Modal */}
+      {showTemplates && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800">Stat Templates</h3>
+                <p className="text-sm text-slate-500 mt-1">Click on any stat to add it to your project</p>
+              </div>
+              <button
+                onClick={() => setShowTemplates(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="space-y-6">
+                {STAT_TEMPLATES.map((category) => (
+                  <div key={category.name}>
+                    <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">
+                      {category.name}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {category.templates.map((template) => {
+                        const alreadyAdded = isStatAlreadyAdded(template.name)
+                        return (
+                          <button
+                            key={template.name}
+                            onClick={() => !alreadyAdded && handleAddFromTemplate(template)}
+                            disabled={alreadyAdded}
+                            className={`p-3 rounded-lg border text-left transition-all ${
+                              alreadyAdded
+                                ? 'border-green-200 bg-green-50 cursor-default'
+                                : 'border-slate-200 hover:border-purple-400 hover:bg-purple-50 hover:shadow-sm'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className={`font-medium ${alreadyAdded ? 'text-green-700' : 'text-slate-800'}`}>
+                                {template.name}
+                              </span>
+                              {alreadyAdded && (
+                                <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                  Added
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">{template.description}</p>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                onClick={() => setShowTemplates(false)}
+                className="w-full py-2 text-slate-600 hover:text-slate-800 font-medium transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create/Edit Form */}
       {isCreating && (
@@ -147,7 +320,7 @@ export default function StatsPage() {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
                 placeholder="e.g., Fun Rating"
                 required
               />
@@ -161,7 +334,7 @@ export default function StatsPage() {
                 type="text"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
                 placeholder="e.g., How fun was the game?"
               />
             </div>
@@ -175,7 +348,7 @@ export default function StatsPage() {
                   type="number"
                   value={formData.minValue}
                   onChange={(e) => setFormData({ ...formData, minValue: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
                   min={0}
                 />
               </div>
@@ -187,7 +360,7 @@ export default function StatsPage() {
                   type="number"
                   value={formData.maxValue}
                   onChange={(e) => setFormData({ ...formData, maxValue: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
                   min={1}
                 />
               </div>
