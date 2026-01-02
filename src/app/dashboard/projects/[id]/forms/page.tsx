@@ -446,10 +446,11 @@ export default function FormsPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1 text-slate-500">
+                  <div className="flex items-center gap-1 text-slate-500 bg-slate-50 px-3 py-2 rounded-lg">
                     <LinkIcon size={12} />
-                    <span className="font-mono">/f/{form.slug || form.id}</span>
-                    {form.slug && <span className="text-green-600 ml-1">(custom)</span>}
+                    <span className="text-slate-400">playpulse.vercel.app/f/</span>
+                    <span className="font-mono font-semibold text-slate-800">{form.slug || form.id}</span>
+                    {form.slug && <span className="text-green-600 ml-1 text-xs">(custom)</span>}
                   </div>
                 )}
               </div>
