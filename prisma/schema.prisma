@@ -67,6 +67,7 @@ model Stat {
 
 model Form {
   id                 String     @id @default(cuid())
+  slug               String?    @unique  // Custom URL slug (optional)
   title              String
   description        String?
   isActive           Boolean    @default(false)
@@ -114,13 +115,14 @@ enum QuestionType {
 }
 
 model Response {
-  id         String   @id @default(cuid())
-  formId     String
-  form       Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
-  comment    String?
-  respondent String?
-  createdAt  DateTime @default(now())
-  answers    Answer[]
+  id              String   @id @default(cuid())
+  formId          String
+  form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  comment         String?
+  respondent      String?
+  respondentEmail String?
+  createdAt       DateTime @default(now())
+  answers         Answer[]
 }
 
 model Answer {

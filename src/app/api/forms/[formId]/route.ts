@@ -9,9 +9,13 @@ export async function GET(
   try {
     const { formId } = await params
 
+    // Look up by ID or slug
     const form = await prisma.form.findFirst({
       where: { 
-        id: formId,
+        OR: [
+          { id: formId },
+          { slug: formId }
+        ],
         isActive: true 
       },
       include: {

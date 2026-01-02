@@ -87,6 +87,7 @@ export default function PublicFormPage() {
   const [answers, setAnswers] = useState<Record<string, AnswerData>>({})
   const [comment, setComment] = useState('')
   const [respondent, setRespondent] = useState('')
+  const [respondentEmail, setRespondentEmail] = useState('')
   const [results, setResults] = useState<{
     overall: number
     categories: { [key: string]: number }
@@ -169,7 +170,7 @@ export default function PublicFormPage() {
       const res = await fetch(`/api/forms/${formId}/responses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers: apiAnswers, comment, respondent }),
+        body: JSON.stringify({ answers: apiAnswers, comment, respondent, respondentEmail }),
       })
 
       if (!res.ok) {
@@ -562,6 +563,18 @@ export default function PublicFormPage() {
                   className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2"
                   style={{ '--tw-ring-color': form.themeColor } as React.CSSProperties}
                   placeholder="Anonymous"
+                />
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
+                <label className="block text-white font-medium mb-2">Your Email (Optional)</label>
+                <input
+                  type="email"
+                  value={respondentEmail}
+                  onChange={(e) => setRespondentEmail(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2"
+                  style={{ '--tw-ring-color': form.themeColor } as React.CSSProperties}
+                  placeholder="email@example.com"
                 />
               </div>
             </div>

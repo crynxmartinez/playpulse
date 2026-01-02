@@ -23,6 +23,7 @@ interface Response {
   id: string
   comment: string | null
   respondent: string | null
+  respondentEmail: string | null
   createdAt: string
   form: {
     id: string
@@ -245,6 +246,9 @@ export default function ResponsesPage() {
                         <p className="font-semibold text-slate-800">
                           {response.respondent || 'Anonymous'}
                         </p>
+                        {response.respondentEmail && (
+                          <p className="text-xs text-slate-600">{response.respondentEmail}</p>
+                        )}
                         <p className="text-xs text-slate-500">{formatShortDate(response.createdAt)}</p>
                       </div>
                     </div>

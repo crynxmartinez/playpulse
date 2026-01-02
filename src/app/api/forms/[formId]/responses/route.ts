@@ -9,9 +9,13 @@ export async function POST(
   try {
     const { formId } = await params
 
+    // Look up by ID or slug
     const form = await prisma.form.findFirst({
       where: { 
-        id: formId,
+        OR: [
+          { id: formId },
+          { slug: formId }
+        ],
         isActive: true 
       },
       include: {
@@ -23,7 +27,7 @@ export async function POST(
       return NextResponse.json({ error: 'Form not found or inactive' }, { status: 404 })
     }
 
-    const { answers, comment, respondent } = await request.json()
+    const { answers, comment, respondent, respondentEmail } = await request.json()
 
     if (!answers || typeof answers !== 'object') {
       return NextResponse.json({ error: 'Answers are required' }, { status: 400 })
@@ -42,9 +46,10 @@ export async function POST(
 
     const response = await prisma.response.create({
       data: {
-        formId,
+        formId: form.id,
         comment: comment?.trim() || null,
         respondent: respondent?.trim() || null,
+        respondentEmail: respondentEmail?.trim() || null,
         answers: {
           create: answerCreateData
         }

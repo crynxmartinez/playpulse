@@ -27,7 +27,12 @@ export async function GET(
         form: { projectId: id }
       },
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        comment: true,
+        respondent: true,
+        respondentEmail: true,
+        createdAt: true,
         form: {
           select: { id: true, title: true }
         },

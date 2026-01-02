@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, FileText, Eye, EyeOff, Trash2, Link as LinkIcon, Check, X, ChevronRight, Type, List, ToggleLeft, SlidersHorizontal, MessageSquare } from 'lucide-react'
+import { Plus, FileText, Eye, EyeOff, Trash2, Link as LinkIcon, Check, X, ChevronRight, Type, List, ToggleLeft, SlidersHorizontal, MessageSquare, Pencil } from 'lucide-react'
 
 interface Stat {
   id: string
@@ -35,6 +35,7 @@ interface Question {
 
 interface Form {
   id: string
+  slug: string | null
   title: string
   description: string | null
   isActive: boolean
@@ -104,6 +105,8 @@ export default function FormsPage() {
   const [showWizard, setShowWizard] = useState(false)
   const [wizardStep, setWizardStep] = useState(1)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [editingSlug, setEditingSlug] = useState<string | null>(null)
+  const [slugInput, setSlugInput] = useState('')
   
   const [wizardData, setWizardData] = useState<WizardData>({
     title: '',
@@ -288,11 +291,46 @@ export default function FormsPage() {
     }
   }
 
-  const copyShareLink = (formId: string) => {
-    const url = `${window.location.origin}/f/${formId}`
+  const copyShareLink = (form: Form) => {
+    const urlPath = form.slug || form.id
+    const url = `${window.location.origin}/f/${urlPath}`
     navigator.clipboard.writeText(url)
-    setCopiedId(formId)
+    setCopiedId(form.id)
     setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  const startEditSlug = (form: Form) => {
+    setEditingSlug(form.id)
+    setSlugInput(form.slug || '')
+  }
+
+  const cancelEditSlug = () => {
+    setEditingSlug(null)
+    setSlugInput('')
+  }
+
+  const saveSlug = async (formId: string) => {
+    const slug = slugInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-')
+    
+    try {
+      const res = await fetch(`/api/projects/${projectId}/forms/${formId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: slug || null }),
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+      if (data.form) {
+        setForms(forms.map(f => f.id === formId ? data.form : f))
+      }
+      setEditingSlug(null)
+      setSlugInput('')
+    } catch (error) {
+      console.error('Failed to update slug:', error)
+    }
   }
 
   const resetWizard = () => {
@@ -381,6 +419,41 @@ export default function FormsPage() {
                 </span>
               </div>
 
+              {/* URL Slug Display/Edit */}
+              <div className="mb-3 text-xs">
+                {editingSlug === form.id ? (
+                  <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg">
+                    <span className="text-slate-500">{window.location.origin}/f/</span>
+                    <input
+                      type="text"
+                      value={slugInput}
+                      onChange={(e) => setSlugInput(e.target.value)}
+                      placeholder="custom-url-slug"
+                      className="flex-1 px-2 py-1 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => saveSlug(form.id)}
+                      className="px-2 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={cancelEditSlug}
+                      className="px-2 py-1 bg-slate-200 text-slate-600 rounded text-xs hover:bg-slate-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-slate-500">
+                    <LinkIcon size={12} />
+                    <span className="font-mono">/f/{form.slug || form.id}</span>
+                    {form.slug && <span className="text-green-600 ml-1">(custom)</span>}
+                  </div>
+                )}
+              </div>
+
               {form.landingTitle && (
                 <p className="text-sm text-slate-600 mb-3">{form.landingTitle}</p>
               )}
@@ -388,13 +461,20 @@ export default function FormsPage() {
               <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => copyShareLink(form.id)}
+                    onClick={() => copyShareLink(form)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                   >
                     {copiedId === form.id ? <><Check size={14} /> Copied!</> : <><LinkIcon size={14} /> Copy Link</>}
                   </button>
+                  <button
+                    onClick={() => startEditSlug(form)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                    title="Edit URL"
+                  >
+                    <Pencil size={14} /> Edit URL
+                  </button>
                   <a
-                    href={`/f/${form.id}`}
+                    href={`/f/${form.slug || form.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

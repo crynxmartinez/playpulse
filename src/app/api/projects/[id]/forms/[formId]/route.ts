@@ -72,7 +72,20 @@ export async function PATCH(
       return NextResponse.json({ error: 'Form not found' }, { status: 404 })
     }
 
-    const { title, description, isActive, statIds } = await request.json()
+    const { title, description, isActive, statIds, slug } = await request.json()
+
+    // If slug is provided, check for uniqueness
+    if (slug !== undefined && slug !== null && slug !== '') {
+      const existingSlug = await prisma.form.findFirst({
+        where: { 
+          slug: slug,
+          id: { not: formId }
+        }
+      })
+      if (existingSlug) {
+        return NextResponse.json({ error: 'This URL slug is already in use' }, { status: 400 })
+      }
+    }
 
     // If statIds provided, update questions
     if (statIds !== undefined) {
@@ -99,6 +112,7 @@ export async function PATCH(
         ...(title && { title: title.trim() }),
         ...(description !== undefined && { description: description?.trim() || null }),
         ...(isActive !== undefined && { isActive }),
+        ...(slug !== undefined && { slug: slug?.trim() || null }),
       },
       include: {
         questions: {
