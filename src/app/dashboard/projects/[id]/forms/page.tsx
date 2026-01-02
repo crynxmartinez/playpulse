@@ -423,13 +423,13 @@ export default function FormsPage() {
               <div className="mb-3 text-xs">
                 {editingSlug === form.id ? (
                   <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg">
-                    <span className="text-slate-500">{window.location.origin}/f/</span>
+                    <span className="text-slate-500 text-xs">playpulse.vercel.app/f/</span>
                     <input
                       type="text"
                       value={slugInput}
                       onChange={(e) => setSlugInput(e.target.value)}
                       placeholder="custom-url-slug"
-                      className="flex-1 px-2 py-1 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="flex-1 px-2 py-1 border border-slate-300 rounded text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                       autoFocus
                     />
                     <button
