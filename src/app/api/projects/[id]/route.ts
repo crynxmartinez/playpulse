@@ -65,8 +65,7 @@ export async function PATCH(
     const { 
       name, 
       description,
-      // Game Hub fields
-      slug,
+      // Game Hub fields (slug is auto-generated from name)
       visibility,
       bannerUrl,
       logoUrl,
@@ -95,32 +94,26 @@ export async function PATCH(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    // Validate slug if provided
-    if (slug !== undefined && slug !== null && slug !== '') {
-      const slugRegex = /^[a-z0-9-]{3,50}$/
-      if (!slugRegex.test(slug)) {
-        return NextResponse.json(
-          { error: 'Slug must be 3-50 characters, lowercase letters, numbers, and hyphens only' },
-          { status: 400 }
-        )
-      }
-
-      // Check uniqueness
-      const existingSlug = await prisma.project.findUnique({
-        where: { slug },
-      })
-      if (existingSlug && existingSlug.id !== id) {
-        return NextResponse.json({ error: 'Slug already taken' }, { status: 400 })
+    // Auto-generate slug from name if name is being updated
+    let newSlug = existingProject.slug
+    if (name && name.trim() !== existingProject.name) {
+      const baseSlug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      newSlug = baseSlug
+      let counter = 1
+      while (true) {
+        const existing = await prisma.project.findFirst({ where: { slug: newSlug } })
+        if (!existing || existing.id === id) break
+        newSlug = `${baseSlug}-${counter}`
+        counter++
       }
     }
 
     const project = await prisma.project.update({
       where: { id },
       data: {
-        ...(name && { name: name.trim() }),
+        ...(name && { name: name.trim(), slug: newSlug }),
         ...(description !== undefined && { description: description?.trim() || null }),
-        // Game Hub fields
-        ...(slug !== undefined && { slug: slug ? slug.toLowerCase() : null }),
+        // Game Hub fields (slug is now auto-generated from name)
         ...(visibility !== undefined && { visibility }),
         ...(bannerUrl !== undefined && { bannerUrl: bannerUrl?.trim() || null }),
         ...(logoUrl !== undefined && { logoUrl: logoUrl?.trim() || null }),

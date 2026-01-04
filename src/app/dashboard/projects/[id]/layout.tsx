@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import ProjectNav from '@/components/ProjectNav'
+import ProjectHeader from '@/components/ProjectHeader'
 
 interface ProjectLayoutProps {
   children: React.ReactNode
@@ -22,6 +23,13 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       id,
       userId: user.id 
     },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      visibility: true,
+    }
   })
 
   if (!project) {
@@ -30,13 +38,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
 
   return (
     <div className="flex flex-col h-full">
-      {/* Project Header */}
-      <div className="rounded-3xl border bg-card p-4 mb-4">
-        <h1 className="text-xl font-bold">{project.name}</h1>
-        {project.description && (
-          <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
-        )}
-      </div>
+      {/* Project Header with Public View Toggle */}
+      <ProjectHeader project={project} />
 
       {/* Horizontal Navigation */}
       <ProjectNav projectId={id} />

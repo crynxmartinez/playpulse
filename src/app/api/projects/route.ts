@@ -44,9 +44,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Project name is required' }, { status: 400 })
     }
 
+    // Auto-generate slug from project name
+    const baseSlug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    
+    // Check for existing slugs and make unique if needed
+    let slug = baseSlug
+    let counter = 1
+    while (await prisma.project.findFirst({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+
     const project = await prisma.project.create({
       data: {
         name: name.trim(),
+        slug,
         description: description?.trim() || null,
         userId: user.id,
       },
