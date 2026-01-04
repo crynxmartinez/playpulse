@@ -108,8 +108,8 @@ export default function Sidebar({ user }: SidebarProps) {
 
       {/* Games Section */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-slate-700">
-          <div className="flex items-center justify-between mb-3">
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Games</span>
             <button
               onClick={() => setIsCreating(!isCreating)}
