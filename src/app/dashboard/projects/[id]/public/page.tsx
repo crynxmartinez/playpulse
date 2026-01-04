@@ -398,7 +398,7 @@ export default function GamePageEditor() {
 
       {/* Preview with Editable Sections - Light Theme */}
       <div className="rounded-3xl border overflow-hidden bg-card">
-        <div className="px-6 pt-4">
+        <div className="space-y-4 p-6">
           <EditableCard
             sectionName="banner"
             title="Banner & Logo"
@@ -511,28 +511,26 @@ export default function GamePageEditor() {
             )}
           </EditableCard>
 
-          <div className="px-6 py-4 border-b">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-muted border-2 shadow-lg flex-shrink-0 -mt-16 relative z-10">
-                {project.logoUrl ? (
-                  <img src={project.logoUrl} alt={project.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/40">
-                    <Gamepad2 className="h-8 w-8 text-primary" />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 pt-3">
-                <h1 className="text-2xl font-bold mb-1">{project.name}</h1>
-                <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
-                  <span className="flex items-center gap-1">
-                    <User className="h-3 w-3" /> {developerName}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" /> {new Date().toLocaleDateString()}
-                  </span>
+          {/* Game Title & Logo */}
+          <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl">
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted border-2 shadow-md flex-shrink-0">
+              {project.logoUrl ? (
+                <img src={project.logoUrl} alt={project.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/40">
+                  <Gamepad2 className="h-6 w-6 text-primary" />
                 </div>
+              )}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">{project.name}</h1>
+              <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
+                <span className="flex items-center gap-1">
+                  <User className="h-3 w-3" /> {developerName}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> {new Date().toLocaleDateString()}
+                </span>
               </div>
             </div>
           </div>
