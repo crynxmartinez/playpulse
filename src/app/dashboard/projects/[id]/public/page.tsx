@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
@@ -385,9 +385,241 @@ export default function GamePageEditor() {
           <h2 className="text-lg font-semibold">Game Page Editor</h2>
           <p className="text-sm text-muted-foreground">
             Click on any section to edit. Changes are saved per section.
+            {project.visibility === 'PRIVATE' && (
+              <span className="text-yellow-600 ml-1">(Currently private)</span>
+            )}
           </p>
         </div>
+        {publicUrl && (
+          <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+            <Button className="rounded-2xl">
+              <Eye className="h-4 w-4 mr-2" /> View Live Page
+              <ExternalLink className="h-3 w-3 ml-1" />
+            </Button>
+          </a>
+        )}
       </div>
+
+      {message && (
+        <div
+          className={`p-3 rounded-xl text-sm ${
+            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
+      {/* Preview with Editable Sections - Light Theme */}
+      <div className="rounded-3xl border overflow-hidden bg-card">
+        <div className="space-y-4 p-6">
+          <EditableCard
+            sectionName="banner"
+            title="Banner & Logo"
+            icon={Image}
+            editingSection={editingSection}
+            setEditingSection={setEditingSection}
+            onSave={() => handleSave('banner')}
+            onCancel={() => setEditingSection(null)}
+            saving={saving}
+            editContent={
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground">Banner Image URL</label>
+                  <Input
+                    value={heroForm.bannerUrl}
+                    onChange={(e) => setHeroForm({ ...heroForm, bannerUrl: e.target.value })}
+                    className="mt-1 rounded-xl"
+                    placeholder="https://example.com/banner.jpg"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Recommended: 1200x400px</p>
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Logo Image URL</label>
+                  <Input
+                    value={heroForm.logoUrl}
+                    onChange={(e) => setHeroForm({ ...heroForm, logoUrl: e.target.value })}
+                    className="mt-1 rounded-xl"
+                    placeholder="https://example.com/logo.jpg"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Recommended: 200x200px square</p>
+                </div>
+              </div>
+            }
+          >
+            <div className="relative h-48 overflow-hidden bg-muted rounded-xl">
+              {project.bannerUrl ? (
+                <img src={project.bannerUrl} alt={project.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-gray-200 to-gray-300">
+                  <span className="text-muted-foreground text-sm">No banner image set</span>
+                </div>
+              )}
+            </div>
+          </EditableCard>
+
+          <EditableCard
+            sectionName="about"
+            title="About & Features"
+            icon={Sparkles}
+            editingSection={editingSection}
+            setEditingSection={setEditingSection}
+            onSave={() => handleSave('about')}
+            onCancel={() => setEditingSection(null)}
+            saving={saving}
+            editContent={
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground">Description</label>
+                  <textarea
+                    value={aboutForm.description}
+                    onChange={(e) => setAboutForm({ ...aboutForm, description: e.target.value })}
+                    className="w-full mt-1 border rounded-xl px-3 py-2 text-sm resize-none"
+                    rows={4}
+                    placeholder="Describe your game..."
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Key Features</label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      value={aboutForm.featureInput}
+                      onChange={(e) => setAboutForm({ ...aboutForm, featureInput: e.target.value })}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                      className="rounded-xl"
+                      placeholder="Add feature..."
+                    />
+                    <Button size="sm" variant="outline" className="rounded-xl" onClick={addFeature}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {aboutForm.features.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {aboutForm.features.map(f => (
+                        <Badge key={f} variant="secondary" className="cursor-pointer rounded-full" onClick={() => removeFeature(f)}>
+                          {f} ├ù
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            }
+          >
+            {project.description ? (
+              <p className="text-muted-foreground text-sm mb-3">{project.description}</p>
+            ) : (
+              <p className="text-muted-foreground text-sm italic">No description yet. Click Edit to add one.</p>
+            )}
+            {project.features.length > 0 ? (
+              <div className="space-y-1">
+                {project.features.map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    {f}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-xs italic">No features listed</p>
+            )}
+          </EditableCard>
+
+          {/* Game Title & Logo */}
+          <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl">
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted border-2 shadow-md flex-shrink-0">
+              {project.logoUrl ? (
+                <img src={project.logoUrl} alt={project.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/40">
+                  <Gamepad2 className="h-6 w-6 text-primary" />
+                </div>
+              )}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">{project.name}</h1>
+              <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
+                <span className="flex items-center gap-1">
+                  <User className="h-3 w-3" /> {developerName}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> {new Date().toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <EditableCard
+            sectionName="rules"
+            title="How to Play"
+            icon={BookOpen}
+            editingSection={editingSection}
+            setEditingSection={setEditingSection}
+            onSave={() => handleSave('rules')}
+            onCancel={() => setEditingSection(null)}
+            saving={saving}
+            editContent={
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground">Rules / Instructions (Rich text)</label>
+                  <textarea
+                    value={rulesForm.rules}
+                    onChange={(e) => setRulesForm({ ...rulesForm, rules: e.target.value })}
+                    className="w-full mt-1 border rounded-xl px-3 py-2 text-sm resize-none"
+                    rows={8}
+                    placeholder="Write your game rules and instructions here..."
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">PDF Rules Link (optional)</label>
+                  <Input
+                    value={rulesForm.rulesPdfUrl}
+                    onChange={(e) => setRulesForm({ ...rulesForm, rulesPdfUrl: e.target.value })}
+                    className="mt-1 rounded-xl"
+                    placeholder="https://example.com/rules.pdf"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Link to a PDF document with detailed rules</p>
+                </div>
+              </div>
+            }
+          >
+            {project.rules ? (
+              <p className="text-muted-foreground text-sm whitespace-pre-wrap">{project.rules}</p>
+            ) : (
+              <p className="text-muted-foreground text-sm italic">No rules or instructions yet. Click Edit to add them.</p>
+            )}
+            {project.rulesPdfUrl && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3 rounded-xl"
+                onClick={() => setPdfModalOpen(true)}
+              >
+                <FileText className="h-4 w-4 mr-2" /> View Rules PDF
+              </Button>
+            )}
+          </EditableCard>
+
+          {/* PDF Modal */}
+          {pdfModalOpen && project.rulesPdfUrl && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <h3 className="font-semibold">Rules PDF</h3>
+                  <Button size="sm" variant="ghost" onClick={() => setPdfModalOpen(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 p-4">
+                  <iframe
+                    src={project.rulesPdfUrl}
+                    className="w-full h-full rounded-xl border"
+                    title="Rules PDF"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <EditableCard
             sectionName="hero"
@@ -428,7 +660,7 @@ export default function GamePageEditor() {
                       <div className="flex flex-wrap gap-1 mt-2">
                         {heroForm.tags.map(tag => (
                           <Badge key={tag} variant="secondary" className="cursor-pointer rounded-full" onClick={() => removeTag(tag)}>
-                            {tag} ×
+                            {tag} ├ù
                           </Badge>
                         ))}
                       </div>
@@ -497,63 +729,23 @@ export default function GamePageEditor() {
                 {project.websiteUrl && (
                   <Button size="sm" variant="outline" className="rounded-xl h-7 text-xs">
                     <Globe className="h-3 w-3 mr-1" /> Website
-
-if (loading) {
-  return (
-    <div className="flex items-center justify-center py-12">
-      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
-
-if (!project) {
-  return (
-    <div className="text-center py-12">
-      <Gamepad2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-      <h2 className="text-lg font-semibold mb-2">Project Not Found</h2>
-    </div>
-  );
-}
-
-const developerName = game?.user.studioName || game?.user.displayName || game?.user.username || 'You';
-const publicUrl = project.slug ? `/g/${project.slug}` : null;
-
-return (
-  <div className="space-y-4">
-    {/* Header */}
-    <div className="flex items-center justify-between">
-      <div>
-        <h2 className="text-lg font-semibold">Game Page Editor</h2>
-        <p className="text-sm text-muted-foreground">
-          Click on any section to edit. Changes are saved per section.
-        </p>
-      </div>
-    </div>
-
-    <EditableCard
-      sectionName="hero"
-      title="Game Info & Links"
-      icon={Tag}
-      editingSection={editingSection}
-      setEditingSection={setEditingSection}
-      onSave={() => handleSave('hero')}
-      onCancel={() => setEditingSection(null)}
-      saving={saving}
-      editContent={
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground">Genre</label>
-              <Input
-                value={heroForm.genre}
-                onChange={(e) => setHeroForm({ ...heroForm, genre: e.target.value })}
-                className="mt-1 rounded-xl"
-                placeholder="RPG, Action, Puzzle..."
-              />
+                  </Button>
+                )}
+                {project.discordUrl && (
+                  <Button size="sm" className="rounded-xl bg-[#5865F2] hover:bg-[#6d79f5] h-7 text-xs">Discord</Button>
+                )}
+                {!project.steamUrl && !project.itchUrl && !project.websiteUrl && !project.discordUrl && (
+                  <span className="text-muted-foreground text-xs italic">No links added yet</span>
+                )}
+              </div>
             </div>
-            <div>
-              <label className="text-sm text-muted-foreground">Tags</label>
-              <div className="flex gap-2 mt-1">
+          </EditableCard>
+
+          <EditableCard
+            sectionName="updates"
+            title="Updates"
+            icon={Activity}
+            editingSection={editingSection}
             setEditingSection={setEditingSection}
             onSave={handlePostAnnouncement}
             onCancel={() => setEditingSection(null)}
@@ -581,7 +773,7 @@ return (
             }
           >
             {updates.length > 0 ? (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {Object.entries(
                   updates.reduce((acc, update) => {
                     const date = new Date(update.createdAt);
@@ -592,45 +784,41 @@ return (
                   }, {} as Record<string, Update[]>)
                 ).map(([month, monthUpdates]) => (
                   <div key={month}>
-                    <h3 className="font-semibold text-sm mb-4">{month}</h3>
-                    <div className="flow-root">
-                      <ul className="-mb-8">
-                        {monthUpdates.map((update, index) => (
-                          <li key={update.id}>
-                            <div className="relative pb-8">
-                              {index !== monthUpdates.length - 1 ? (
-                                <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-muted/30" aria-hidden="true" />
-                              ) : null}
-                              <div className="relative flex space-x-3">
-                                <div className="flex-shrink-0">
-                                  <span className="h-8 w-8 rounded-full bg-muted/50 flex items-center justify-center ring-8 ring-card">
-                                    <Activity className="h-4 w-4 text-muted-foreground" />
-                                  </span>
+                    <h3 className="font-semibold text-sm mb-3">{month}</h3>
+                    <div className="relative">
+                      <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border" />
+                      <div className="space-y-4">
+                        {monthUpdates.map((update) => (
+                          <div key={update.id} className="relative flex gap-3">
+                            <div className="relative z-10 flex-shrink-0 w-6 h-6 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+                              <Activity className="h-3 w-3 text-muted-foreground" />
+                            </div>
+                            <div className="flex-1 min-w-0 pt-0.5">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-foreground">{update.title}</p>
+                                  {update.description && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">{update.description}</p>
+                                  )}
                                 </div>
-                                <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                  <div>
-                                    <p className="text-sm text-foreground">{update.title}</p>
-                                    {update.description && (
-                                      <p className="text-sm text-muted-foreground mt-1">{update.description}</p>
-                                    )}
-                                  </div>
-                                  <div className="text-right text-xs whitespace-nowrap text-muted-foreground">
-                                    <time dateTime={update.createdAt}>{new Date(update.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' })}</time>
-                                  </div>
-                                </div>
+                                <time className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                                  {new Date(update.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' })}
+                                </time>
                               </div>
                             </div>
-                          </li>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm italic">No updates yet. Click &quot;Post Update&quot; to share news with your players.</p>
+              <p className="text-muted-foreground text-sm italic">No updates yet. Click &quot;Edit&quot; to post an announcement.</p>
             )}
           </EditableCard>
         </div>
-      );
-    }
+      </div>
+    </div>
+  );
+}
