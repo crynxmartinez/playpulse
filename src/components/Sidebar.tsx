@@ -166,7 +166,7 @@ export default function Sidebar({ user }: SidebarProps) {
               </button>
             </div>
           ) : (
-            <ul className="space-y-1">
+            <ul className="space-y-1 ml-3">
               {games.map((game) => {
                 const isActive = pathname.startsWith(`/dashboard/projects/${game.id}`)
                 
@@ -174,13 +174,13 @@ export default function Sidebar({ user }: SidebarProps) {
                   <li key={game.id}>
                     <Link
                       href={`/dashboard/projects/${game.id}`}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
                         isActive
-                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
-                          : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                          ? 'bg-purple-600/20 text-purple-400 border-l-2 border-purple-500'
+                          : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
                       }`}
                     >
-                      <Gamepad2 size={18} />
+                      <Gamepad2 size={16} />
                       <span className="font-medium text-sm truncate">{game.name}</span>
                     </Link>
                   </li>
