@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Plus, FileText, Eye, EyeOff, Trash2, Link as LinkIcon, Check, X, ChevronRight, Type, List, ToggleLeft, SlidersHorizontal, MessageSquare, Pencil } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 interface Stat {
   id: string
@@ -356,31 +359,38 @@ export default function FormsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-800">Forms</h2>
-        <button
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-lg font-semibold">Campaigns</div>
+          <div className="text-sm text-muted-foreground">
+            Create feedback forms to collect player responses.
+          </div>
+        </div>
+        <Button
+          className="rounded-2xl"
           onClick={() => setShowWizard(true)}
           disabled={stats.length === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Plus size={20} />
-          Create Form
-        </button>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Campaign
+        </Button>
       </div>
 
       {stats.length === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <p className="text-yellow-800">
-            You need to create stats before creating forms. Go to the Stats tab first.
-          </p>
-        </div>
+        <Card className="rounded-2xl border-yellow-200 bg-yellow-50">
+          <CardContent className="pt-4">
+            <p className="text-yellow-800 text-sm">
+              You need to create stats before creating campaigns. Go to the Stats tab first.
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Forms List */}
