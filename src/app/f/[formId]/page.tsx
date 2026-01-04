@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Gamepad2, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Send } from 'lucide-react'
+import { Gamepad2, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Send, Star } from 'lucide-react'
 
 interface Stat {
   id: string
@@ -23,7 +23,7 @@ interface QuestionOption {
 interface Question {
   id: string
   questionText: string
-  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING'
+  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING' | 'STAR_RATING' | 'NPS'
   stat: Stat | null
   options: QuestionOption[] | null
   minValue: number
@@ -267,7 +267,7 @@ export default function PublicFormPage() {
     const q = form.questions[currentQuestion]
     const ans = answers[q.id]
     
-    if (q.type === 'SLIDER' || q.type === 'TEXT_RATING') {
+    if (q.type === 'SLIDER' || q.type === 'TEXT_RATING' || q.type === 'STAR_RATING' || q.type === 'NPS') {
       return ans?.value !== undefined
     } else if (q.type === 'MULTIPLE_MULTI') {
       return (ans?.selectedIndices?.length || 0) > 0
@@ -500,6 +500,85 @@ export default function PublicFormPage() {
                 </button>
               )
             })}
+          </div>
+        )
+
+      case 'STAR_RATING':
+        const starValue = ans.value || 0
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-center gap-2">
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setAnswers({ ...answers, [question.id]: { value: star } })}
+                  className="p-2 transition-transform hover:scale-110"
+                >
+                  <Star 
+                    size={48} 
+                    className={`transition-colors ${
+                      star <= starValue 
+                        ? 'fill-amber-400 text-amber-400' 
+                        : 'text-white/30 hover:text-amber-300'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="text-center">
+              <span className="text-3xl font-bold" style={{ color: starValue > 0 ? form.themeColor : 'rgba(255,255,255,0.3)' }}>
+                {starValue > 0 ? `${starValue} / 5` : 'Select a rating'}
+              </span>
+            </div>
+          </div>
+        )
+
+      case 'NPS':
+        const npsValue = ans.value
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-center gap-1 flex-wrap">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => {
+                const isSelected = npsValue === num
+                const colorClass = num <= 6 
+                  ? 'bg-red-500/20 hover:bg-red-500/40 border-red-500/50' 
+                  : num <= 8 
+                    ? 'bg-yellow-500/20 hover:bg-yellow-500/40 border-yellow-500/50' 
+                    : 'bg-green-500/20 hover:bg-green-500/40 border-green-500/50'
+                const selectedColorClass = num <= 6 
+                  ? 'bg-red-500 border-red-400' 
+                  : num <= 8 
+                    ? 'bg-yellow-500 border-yellow-400' 
+                    : 'bg-green-500 border-green-400'
+                
+                return (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setAnswers({ ...answers, [question.id]: { value: num } })}
+                    className={`w-10 h-12 md:w-12 md:h-14 rounded-lg border-2 flex items-center justify-center text-lg font-bold transition-all ${
+                      isSelected ? `${selectedColorClass} text-white scale-110` : `${colorClass} text-white/80`
+                    }`}
+                  >
+                    {num}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex justify-between text-xs text-white/50 px-2">
+              <span>Not likely at all</span>
+              <span>Extremely likely</span>
+            </div>
+            {npsValue !== undefined && (
+              <div className="text-center">
+                <span className={`text-lg font-medium ${
+                  npsValue <= 6 ? 'text-red-400' : npsValue <= 8 ? 'text-yellow-400' : 'text-green-400'
+                }`}>
+                  {npsValue <= 6 ? 'Detractor' : npsValue <= 8 ? 'Passive' : 'Promoter'}
+                </span>
+              </div>
+            )}
           </div>
         )
 
