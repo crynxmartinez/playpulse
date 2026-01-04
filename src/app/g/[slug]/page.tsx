@@ -11,11 +11,33 @@ import {
   Tag,
   User,
   Calendar,
-  ArrowLeft
+  ArrowLeft,
+  BookOpen,
+  Sparkles,
+  GitBranch,
+  Activity
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+
+interface Version {
+  id: string
+  version: string
+  title: string
+  content: string
+  changelog: string | null
+  imageUrl: string | null
+  publishedAt: string | null
+}
+
+interface Update {
+  id: string
+  type: string
+  title: string
+  description: string | null
+  createdAt: string
+}
 
 interface Game {
   id: string
@@ -31,6 +53,8 @@ interface Game {
   itchUrl: string | null
   websiteUrl: string | null
   discordUrl: string | null
+  rules: string | null
+  features: string[]
   createdAt: string
   user: {
     displayName: string | null
@@ -43,9 +67,13 @@ interface Game {
     title: string
     slug: string | null
   }[]
+  versions: Version[]
+  updates: Update[]
   _count: {
     forms: number
     stats: number
+    versions: number
+    updates: number
   }
 }
 
@@ -216,6 +244,169 @@ export default function PublicGamePage() {
             </CardHeader>
             <CardContent>
               <p className="text-white/70 whitespace-pre-wrap">{game.description}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Key Features */}
+        {game.features && game.features.length > 0 && (
+          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-white/80 flex items-center gap-2">
+                <Sparkles className="h-4 w-4" /> Key Features
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {game.features.map((feature, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-white/70">
+                    <div className="w-2 h-2 rounded-full bg-purple-500" />
+                    {feature}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Game Rules */}
+        {game.rules && (
+          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-white/80 flex items-center gap-2">
+                <BookOpen className="h-4 w-4" /> How to Play
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-white/70 whitespace-pre-wrap prose prose-invert prose-sm max-w-none">
+                {game.rules}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Updates Timeline (GitHub-style) */}
+        {game.updates && game.updates.length > 0 && (
+          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-white/80 flex items-center gap-2">
+                <Activity className="h-4 w-4" /> Updates
+                <Badge variant="secondary" className="rounded-full bg-white/10 text-white/60 ml-2">
+                  {game._count.updates} total
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Mini contribution graph */}
+              <div className="mb-4 p-3 rounded-xl bg-white/5">
+                <div className="flex gap-0.5 flex-wrap">
+                  {(() => {
+                    const today = new Date()
+                    const days = []
+                    for (let i = 364; i >= 0; i--) {
+                      const date = new Date(today)
+                      date.setDate(date.getDate() - i)
+                      const dateStr = date.toISOString().split('T')[0]
+                      const count = game.updates.filter(u => 
+                        u.createdAt.split('T')[0] === dateStr
+                      ).length
+                      days.push({ date: dateStr, count })
+                    }
+                    // Show last 52 weeks (simplified)
+                    return days.slice(-182).map((day, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-2 h-2 rounded-sm ${
+                          day.count === 0 ? 'bg-white/10' :
+                          day.count === 1 ? 'bg-green-700' :
+                          day.count === 2 ? 'bg-green-600' :
+                          day.count >= 3 ? 'bg-green-500' : 'bg-white/10'
+                        }`}
+                        title={`${day.date}: ${day.count} update${day.count !== 1 ? 's' : ''}`}
+                      />
+                    ))
+                  })()}
+                </div>
+                <div className="flex items-center justify-end gap-1 mt-2 text-xs text-white/40">
+                  <span>Less</span>
+                  <div className="w-2 h-2 rounded-sm bg-white/10" />
+                  <div className="w-2 h-2 rounded-sm bg-green-700" />
+                  <div className="w-2 h-2 rounded-sm bg-green-600" />
+                  <div className="w-2 h-2 rounded-sm bg-green-500" />
+                  <span>More</span>
+                </div>
+              </div>
+
+              {/* Recent updates list */}
+              <div className="space-y-3">
+                {game.updates.slice(0, 10).map((update) => (
+                  <div key={update.id} className="flex items-start gap-3 text-sm">
+                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                      {update.type === 'VERSION_RELEASE' ? <GitBranch className="h-4 w-4 text-green-400" /> :
+                       update.type === 'RULES_UPDATED' ? <BookOpen className="h-4 w-4 text-blue-400" /> :
+                       update.type === 'FORM_CREATED' ? <MessageSquare className="h-4 w-4 text-purple-400" /> :
+                       <Activity className="h-4 w-4 text-white/60" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white/80">{update.title}</div>
+                      {update.description && (
+                        <div className="text-white/50 text-xs truncate">{update.description}</div>
+                      )}
+                    </div>
+                    <div className="text-white/40 text-xs flex-shrink-0">
+                      {new Date(update.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Game Versions */}
+        {game.versions && game.versions.length > 0 && (
+          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-white/80 flex items-center gap-2">
+                <GitBranch className="h-4 w-4" /> Versions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {game.versions.map((version, idx) => (
+                  <div key={version.id} className={`relative pl-6 ${idx !== game.versions.length - 1 ? 'pb-4 border-l-2 border-white/10 ml-3' : 'ml-3'}`}>
+                    {/* Version dot */}
+                    <div className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 rounded-full bg-purple-500 border-2 border-slate-900" />
+                    
+                    <div className="bg-white/5 rounded-2xl p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Badge className="rounded-full bg-purple-500/20 text-purple-300 font-mono">
+                          {version.version}
+                        </Badge>
+                        <span className="font-medium text-white">{version.title}</span>
+                        {version.publishedAt && (
+                          <span className="text-white/40 text-xs ml-auto">
+                            {new Date(version.publishedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {version.content && (
+                        <p className="text-white/60 text-sm mb-2">{version.content}</p>
+                      )}
+                      
+                      {version.changelog && (
+                        <div className="mt-2 pt-2 border-t border-white/10">
+                          <div className="text-xs text-white/40 mb-1">Changelog:</div>
+                          <pre className="text-white/60 text-xs whitespace-pre-wrap font-mono bg-white/5 rounded-lg p-2">
+                            {version.changelog}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}

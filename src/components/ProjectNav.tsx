@@ -9,6 +9,7 @@ import {
   LineChart, 
   Settings,
   Eye,
+  User,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -28,6 +29,7 @@ const formNavItems = [
 // Overview mode nav items
 const overviewNavItems = [
   { href: '', label: 'Overview', icon: Eye },
+  { href: '/profile', label: 'Profile', icon: User },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -36,6 +38,8 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
   const basePath = `/dashboard/projects/${projectId}`
   
   // Determine mode based on URL
+  // Form mode: /forms, /stats, /responses, /analytics
+  // Overview mode: base path, /profile, /settings (but not /forms/settings)
   const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics')
   
   const navItems = isFormMode ? formNavItems : overviewNavItems

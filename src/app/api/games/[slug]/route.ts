@@ -34,6 +34,8 @@ export async function GET(
         itchUrl: true,
         websiteUrl: true,
         discordUrl: true,
+        rules: true,
+        features: true,
         createdAt: true,
         user: {
           select: {
@@ -53,10 +55,42 @@ export async function GET(
             slug: true,
           }
         },
+        versions: {
+          where: {
+            isPublished: true
+          },
+          select: {
+            id: true,
+            version: true,
+            title: true,
+            content: true,
+            changelog: true,
+            imageUrl: true,
+            publishedAt: true,
+          },
+          orderBy: {
+            publishedAt: 'desc'
+          }
+        },
+        updates: {
+          select: {
+            id: true,
+            type: true,
+            title: true,
+            description: true,
+            createdAt: true,
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 50
+        },
         _count: {
           select: {
             forms: true,
             stats: true,
+            versions: true,
+            updates: true,
           }
         }
       }

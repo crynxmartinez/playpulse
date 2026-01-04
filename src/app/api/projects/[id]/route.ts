@@ -84,6 +84,9 @@ export async function PATCH(
       tierLowMsg,
       tierMediumMsg,
       tierHighMsg,
+      // Game profile content
+      rules,
+      features,
     } = body
 
     const existingProject = await prisma.project.findFirst({
@@ -132,6 +135,9 @@ export async function PATCH(
         ...(tierLowMsg !== undefined && { tierLowMsg: tierLowMsg?.trim() || null }),
         ...(tierMediumMsg !== undefined && { tierMediumMsg: tierMediumMsg?.trim() || null }),
         ...(tierHighMsg !== undefined && { tierHighMsg: tierHighMsg?.trim() || null }),
+        // Game profile content
+        ...(rules !== undefined && { rules: rules?.trim() || null }),
+        ...(features !== undefined && { features }),
       },
     })
 

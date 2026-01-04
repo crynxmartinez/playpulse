@@ -15,7 +15,7 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
   
   // Determine active mode based on URL
   // Form mode: /forms, /stats, /responses, /analytics
-  // Overview mode: base path or /settings
+  // Overview mode: base path, /profile, or /settings (but not /forms/settings)
   const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics')
   const isOverviewMode = !isFormMode
   
