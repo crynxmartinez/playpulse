@@ -37,25 +37,13 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     redirect('/dashboard')
   }
 
-  // Fetch forms for this project
-  const forms = await prisma.form.findMany({
-    where: { projectId: id },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      isActive: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  })
-
   return (
     <div className="flex flex-col h-full">
       {/* Project Header with Public View Toggle */}
       <ProjectHeader project={project} />
 
-      {/* Forms Pill Nav */}
-      <ProjectFormNav projectId={id} forms={forms} />
+      {/* Dashboard / Form Toggle */}
+      <ProjectFormNav projectId={id} />
 
       {/* Horizontal Navigation */}
       <ProjectNav projectId={id} />
