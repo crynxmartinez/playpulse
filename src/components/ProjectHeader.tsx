@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { ExternalLink, Eye, EyeOff } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Eye, EyeOff } from 'lucide-react'
 
 interface ProjectHeaderProps {
   project: {
@@ -14,21 +15,12 @@ interface ProjectHeaderProps {
 }
 
 export default function ProjectHeader({ project }: ProjectHeaderProps) {
-  const [viewMode, setViewMode] = useState<'workspace' | 'public'>('workspace')
+  const pathname = usePathname()
   
-  // Generate slug from project name
-  const projectSlug = project.slug || project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-  const publicUrl = `/g/${projectSlug}`
-  
-  // Owner can always preview their page (even when private) to develop it
-  const canPreview = true
-
-  const handleToggle = (mode: 'workspace' | 'public') => {
-    if (mode === 'public' && canPreview) {
-      window.open(publicUrl, '_blank')
-    }
-    setViewMode(mode)
-  }
+  // Determine if we're in public view mode based on URL
+  const isPublicView = pathname.includes('/public')
+  const workspaceUrl = `/dashboard/projects/${project.id}`
+  const publicEditorUrl = `/dashboard/projects/${project.id}/public`
 
   return (
     <div className="rounded-3xl border bg-card p-4 mb-4">
@@ -43,34 +35,26 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
         {/* Workspace / Public View Toggle */}
         <div className="flex items-center gap-3">
           <div className="flex items-center rounded-2xl border bg-muted/50 p-1">
-            <button
-              onClick={() => handleToggle('workspace')}
+            <Link
+              href={workspaceUrl}
               className={`px-4 py-1.5 text-sm font-medium rounded-xl transition-colors ${
-                viewMode === 'workspace'
+                !isPublicView
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Workspace
-            </button>
-            <a
-              href={canPreview ? publicUrl : undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                if (!canPreview) {
-                  e.preventDefault()
-                }
-              }}
+            </Link>
+            <Link
+              href={publicEditorUrl}
               className={`px-4 py-1.5 text-sm font-medium rounded-xl transition-colors flex items-center gap-1.5 ${
-                canPreview
-                  ? 'text-muted-foreground hover:text-foreground hover:bg-background cursor-pointer'
-                  : 'text-muted-foreground/50 cursor-not-allowed pointer-events-none'
+                isPublicView
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background'
               }`}
             >
               Public View
-              {canPreview && <ExternalLink size={12} />}
-            </a>
+            </Link>
           </div>
           
           {/* Visibility Badge */}
