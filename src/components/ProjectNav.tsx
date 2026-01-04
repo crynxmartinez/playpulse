@@ -7,6 +7,7 @@ import {
   FileText, 
   MessageSquare, 
   LineChart, 
+  Camera,
   Settings,
   Eye,
   User,
@@ -23,6 +24,7 @@ const formNavItems = [
   { href: '/forms', label: 'Campaigns', icon: FileText },
   { href: '/responses', label: 'Responses', icon: MessageSquare },
   { href: '/analytics', label: 'Analytics', icon: LineChart },
+  { href: '/snapshots', label: 'Snapshots', icon: Camera },
   { href: '/forms/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -38,9 +40,9 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
   const basePath = `/dashboard/projects/${projectId}`
   
   // Determine mode based on URL
-  // Form mode: /forms, /stats, /responses, /analytics
+  // Form mode: /forms, /stats, /responses, /analytics, /snapshots
   // Overview mode: base path, /profile, /settings (but not /forms/settings)
-  const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics')
+  const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics') || pathname.includes('/snapshots')
   
   const navItems = isFormMode ? formNavItems : overviewNavItems
 

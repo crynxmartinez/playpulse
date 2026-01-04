@@ -36,7 +36,6 @@ const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { id: 'mygames', label: 'My Games', icon: Gamepad2, href: '/dashboard/games' },
   { id: 'discover', label: 'Discover', icon: Compass, href: '/dashboard/discover' },
-  { id: 'snapshots', label: 'Snapshots', icon: Camera, href: '/dashboard/snapshots' },
   { id: 'settings', label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
 
@@ -87,7 +86,6 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
     if (pathname === '/dashboard') return 'dashboard'
     if (pathname.startsWith('/dashboard/games') || pathname.startsWith('/dashboard/projects')) return 'mygames'
     if (pathname.startsWith('/dashboard/discover')) return 'discover'
-    if (pathname.startsWith('/dashboard/snapshots')) return 'snapshots'
     if (pathname.startsWith('/dashboard/settings')) return 'settings'
     return 'dashboard'
   }
