@@ -160,10 +160,16 @@ export default function GamePageEditor() {
         })
 
         if (projectData.project.slug) {
-          const gameRes = await fetch(`/api/games/${projectData.project.slug}`)
-          const gameData = await gameRes.json()
-          if (gameData.game) {
-            setGame(gameData.game)
+          try {
+            const gameRes = await fetch(`/api/games/${projectData.project.slug}`)
+            if (gameRes.ok) {
+              const gameData = await gameRes.json()
+              if (gameData.game) {
+                setGame(gameData.game)
+              }
+            }
+          } catch {
+            // Game API may fail if not public yet, that's ok
           }
         }
       }
