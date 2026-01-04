@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import {
   LayoutDashboard,
@@ -22,11 +22,12 @@ interface Game {
   id: string
   name: string
   description: string | null
+  visibility?: 'PRIVATE' | 'UNLISTED' | 'PUBLIC'
 }
 
 interface NewSidebarProps {
-  selectedGameId: string | null
-  onSelectGame: (id: string) => void
+  selectedGameId?: string | null
+  onSelectGame?: (id: string) => void
 }
 
 const NAV_ITEMS = [
@@ -43,10 +44,15 @@ const VISIBILITY_META = {
   PUBLIC: { label: 'Public', icon: Globe },
 }
 
-export default function NewSidebar({ selectedGameId, onSelectGame }: NewSidebarProps) {
+export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelectGame }: NewSidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Extract project ID from URL if on a project page
+  const urlProjectId = pathname.match(/\/dashboard\/projects\/([^/]+)/)?.[1] || null
+  const selectedGameId = urlProjectId || propSelectedGameId
 
   useEffect(() => {
     fetchGames()
@@ -58,16 +64,20 @@ export default function NewSidebar({ selectedGameId, onSelectGame }: NewSidebarP
       const data = await res.json()
       if (data.projects) {
         setGames(data.projects)
-        // Auto-select first game if none selected
-        if (!selectedGameId && data.projects.length > 0) {
-          onSelectGame(data.projects[0].id)
-        }
       }
     } catch (error) {
       console.error('Failed to fetch games:', error)
     } finally {
       setLoading(false)
     }
+  }
+  
+  const handleSelectGame = (gameId: string) => {
+    if (onSelectGame) {
+      onSelectGame(gameId)
+    }
+    // Navigate to the selected game's project page
+    router.push(`/dashboard/projects/${gameId}`)
   }
 
   const getActiveNav = () => {
@@ -129,7 +139,7 @@ export default function NewSidebar({ selectedGameId, onSelectGame }: NewSidebarP
             <>
               <select
                 value={selectedGameId || ''}
-                onChange={(e) => onSelectGame(e.target.value)}
+                onChange={(e) => handleSelectGame(e.target.value)}
                 className="w-full rounded-2xl border bg-background px-3 py-2 text-sm"
               >
                 {games.map((game) => (
@@ -139,12 +149,20 @@ export default function NewSidebar({ selectedGameId, onSelectGame }: NewSidebarP
                 ))}
               </select>
 
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="rounded-full inline-flex items-center gap-1">
-                  <Lock className="h-3 w-3" />
-                  Private
-                </Badge>
-              </div>
+              {(() => {
+                const selectedGame = games.find(g => g.id === selectedGameId)
+                const visibility = selectedGame?.visibility || 'PRIVATE'
+                const meta = VISIBILITY_META[visibility]
+                const Icon = meta.icon
+                return (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="rounded-full inline-flex items-center gap-1">
+                      <Icon className="h-3 w-3" />
+                      {meta.label}
+                    </Badge>
+                  </div>
+                )
+              })()}
 
               {selectedGameId && (
                 <Button variant="outline" className="w-full rounded-2xl" asChild>

@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import ProjectNav from '@/components/ProjectNav'
 import ProjectHeader from '@/components/ProjectHeader'
+import ProjectFormNav from '@/components/ProjectFormNav'
 
 interface ProjectLayoutProps {
   children: React.ReactNode
@@ -36,10 +37,25 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     redirect('/dashboard')
   }
 
+  // Fetch forms for this project
+  const forms = await prisma.form.findMany({
+    where: { projectId: id },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      isActive: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
   return (
     <div className="flex flex-col h-full">
       {/* Project Header with Public View Toggle */}
       <ProjectHeader project={project} />
+
+      {/* Forms Pill Nav */}
+      <ProjectFormNav projectId={id} forms={forms} />
 
       {/* Horizontal Navigation */}
       <ProjectNav projectId={id} />
