@@ -6,12 +6,14 @@
 
 ## Overview
 
-We'll build PlayPulse in **7 sprints**, each taking approximately 1-2 weeks. Each sprint delivers a working feature that builds on the previous one.
+We'll build PlayPulse in **8 sprints** (Sprint 0-7), each taking approximately 1-2 weeks. Each sprint delivers a working feature that builds on the previous one.
+
+**Design System:** Based on ChatGPT's UI prototype using shadcn/ui components with consistent `rounded-2xl/3xl` styling.
 
 ```
 Current State                    Target State
 ─────────────                    ────────────
-✅ Forms + Stats                 ✅ Forms + Stats (Campaign)
+✅ Forms + Stats                 ✅ Campaigns (Forms + Stats)
 ✅ Responses                     ✅ Responses  
 ✅ Analytics                     ✅ Analytics + Snapshots
 ❌ No profiles                   ✅ User Profiles
@@ -19,7 +21,106 @@ Current State                    Target State
 ❌ No devlogs                    ✅ Timeline Devlog
 ❌ No discovery                  ✅ Discovery Dashboard
 ❌ No sharing                    ✅ Progress Boards + Embeds
+❌ Basic Tailwind UI             ✅ shadcn/ui Design System
 ```
+
+---
+
+## Sprint 0: UI Foundation (NEW)
+**Duration:** 2-3 days
+
+### What We Build
+1. Install shadcn/ui component library
+2. Refactor layout to new design system
+3. Add top bar with search and Workspace/Public toggle
+4. Update sidebar with new navigation structure
+5. Create reusable components (StatPill, TagRow, etc.)
+
+### Dependencies to Install
+```bash
+npx shadcn@latest init
+npx shadcn@latest add card button badge input tabs separator
+npm install recharts lucide-react
+```
+
+### New Layout Structure
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ TOP BAR                                                                 │
+│ ┌─────────┐  [Search games, tags, studios...]  [Workspace|Public] [+]  │
+│ │PlayPulse│                                                    [🔔][👤]│
+│ └─────────┘                                                             │
+├────────────────┬────────────────────────────────────────────────────────┤
+│ SIDEBAR        │ MAIN CONTENT                                          │
+│                │                                                        │
+│ ┌────────────┐ │  Dashboard / My Games / Discover / etc.               │
+│ │ Dashboard  │ │                                                        │
+│ │ My Games   │ │                                                        │
+│ │ Discover   │ │                                                        │
+│ │ Snapshots  │ │                                                        │
+│ │ Settings   │ │                                                        │
+│ └────────────┘ │                                                        │
+│                │                                                        │
+│ ┌────────────┐ │                                                        │
+│ │Selected    │ │                                                        │
+│ │Game        │ │                                                        │
+│ │[Dropdown]  │ │                                                        │
+│ │Visibility  │ │                                                        │
+│ │Tags        │ │                                                        │
+│ └────────────┘ │                                                        │
+└────────────────┴────────────────────────────────────────────────────────┘
+```
+
+### Key Components to Create
+
+```typescript
+// StatPill - Reusable stat display
+function StatPill({ label, value, hint }: { label: string; value: string; hint?: string })
+
+// TagRow - Display tags with badges
+function TagRow({ tags }: { tags: string[] })
+
+// TimelineCard - Update/devlog card
+function TimelineCard({ update, onOpen }: { update: Update; onOpen: (u: Update) => void })
+
+// Modal - Reusable modal component
+function Modal({ open, title, children, onClose })
+
+// VisibilityBadge - Private/Unlisted/Public badge
+function VisibilityBadge({ visibility }: { visibility: 'PRIVATE' | 'UNLISTED' | 'PUBLIC' })
+```
+
+### Navigation Structure
+
+| Nav Item | Description | Existing? |
+|----------|-------------|-----------|
+| **Dashboard** | Command center with stats, timeline, progress board | Partial (needs redesign) |
+| **My Games** | List of user's games with stats | New (replaces project list) |
+| **Discover** | Public games looking for testers | New |
+| **Snapshots** | Exported analytics library | New |
+| **Settings** | Profile and preferences | New |
+
+### What We Keep (Existing Features)
+
+These features remain accessible within each game:
+- ✅ **Stats** - Create/manage metrics (inside game)
+- ✅ **Forms** → **Campaigns** - Form builder with questions (inside game)
+- ✅ **Responses** - View individual responses (inside game)
+- ✅ **Analytics** - Charts and insights (inside game)
+
+### Tasks
+- [ ] Install shadcn/ui and configure
+- [ ] Create new layout with top bar + sidebar
+- [ ] Build StatPill component
+- [ ] Build TagRow component
+- [ ] Build TimelineCard component
+- [ ] Build Modal component
+- [ ] Build VisibilityBadge component
+- [ ] Add Workspace/Public view toggle
+- [ ] Refactor sidebar navigation
+- [ ] Update dashboard page with new design
+- [ ] Keep existing game sub-pages (stats, forms, responses, analytics)
 
 ---
 
@@ -810,28 +911,94 @@ type ChangelogItem = {
 ## Summary Timeline
 
 ```
-Week 1-2:   Sprint 1 - Profile & Game Foundation
-Week 3:     Sprint 2 - Public Game Hub
-Week 4-5:   Sprint 3 - Timeline Devlog
-Week 6:     Sprint 4 - Campaign Integration
-Week 7-8:   Sprint 5 - Snapshots
-Week 9:     Sprint 6 - Progress Board
-Week 10:    Sprint 7 - Discovery Dashboard
+Week 1:     Sprint 0 - UI Foundation (shadcn/ui + new layout)
+Week 2-3:   Sprint 1 - Profile & Game Foundation
+Week 4:     Sprint 2 - Public Game Hub
+Week 5-6:   Sprint 3 - Timeline Devlog
+Week 7:     Sprint 4 - Campaign Integration
+Week 8-9:   Sprint 5 - Snapshots
+Week 10:    Sprint 6 - Progress Board
+Week 11:    Sprint 7 - Discovery Dashboard
 ───────────────────────────────────────────────
-Total:      ~10 weeks to full feature set
+Total:      ~11 weeks to full feature set
 ```
+
+---
+
+## Feature Preservation Map
+
+**IMPORTANT:** Our existing playtest engine (forms, stats, responses, analytics) is the CORE of PlayPulse. All new features wrap around it.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           NEW FEATURES                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │  Profiles   │  │  Game Hub   │  │  Timeline   │  │  Discovery  │    │
+│  │  (Sprint 1) │  │  (Sprint 2) │  │  (Sprint 3) │  │  (Sprint 7) │    │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
+│                                                                         │
+│  ┌─────────────┐  ┌─────────────┐                                       │
+│  │  Snapshots  │  │  Progress   │                                       │
+│  │  (Sprint 5) │  │   Board     │                                       │
+│  └─────────────┘  │  (Sprint 6) │                                       │
+│                   └─────────────┘                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                     EXISTING CORE (KEEP)                                │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                    PLAYTEST ENGINE                              │    │
+│  │  ┌─────────┐  ┌─────────┐  ┌───────────┐  ┌───────────┐        │    │
+│  │  │  Stats  │  │  Forms  │  │ Responses │  │ Analytics │        │    │
+│  │  │ System  │→ │ Builder │→ │   View    │→ │  Charts   │        │    │
+│  │  └─────────┘  └─────────┘  └───────────┘  └───────────┘        │    │
+│  │                                                                 │    │
+│  │  This is what makes PlayPulse unique. Everything else          │    │
+│  │  enhances discoverability and shareability of this data.       │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### How Existing Features Map to New Structure
+
+| Current | New Location | Changes |
+|---------|--------------|---------|
+| `/dashboard/projects/[id]` | `/dashboard/games/[id]` | Rename only |
+| `/dashboard/projects/[id]/stats` | `/dashboard/games/[id]/stats` | Keep as-is |
+| `/dashboard/projects/[id]/forms` | `/dashboard/games/[id]/campaigns` | Rename Form→Campaign |
+| `/dashboard/projects/[id]/responses` | `/dashboard/games/[id]/responses` | Keep as-is |
+| `/dashboard/projects/[id]/analytics` | `/dashboard/games/[id]/analytics` | Add snapshot export |
+| `/dashboard/projects/[id]/settings` | `/dashboard/games/[id]/settings` | Enhance with new fields |
+| `/f/[formId]` | `/f/[formId]` or `/f/[slug]` | Keep as-is |
+
+### Game Sub-Navigation (Inside Each Game)
+
+When a game is selected, these tabs appear:
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ [Overview] [Updates] [Campaigns] [Stats] [Responses] [Analytics] [⚙️]  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+| Tab | Description | Status |
+|-----|-------------|--------|
+| **Overview** | Game dashboard with key metrics | New |
+| **Updates** | Timeline devlog (Sprint 3) | New |
+| **Campaigns** | Form builder + list (existing Forms) | Rename |
+| **Stats** | Metrics management | Existing ✅ |
+| **Responses** | Individual response cards | Existing ✅ |
+| **Analytics** | Charts, trends, insights | Existing ✅ |
+| **Settings** | Game settings + visibility | Enhanced |
 
 ---
 
 ## What's Next?
 
-Ready to start **Sprint 1: Profile & Game Foundation**?
+Ready to start **Sprint 0: UI Foundation**?
 
 This will involve:
-1. Updating the Prisma schema
-2. Creating migration scripts
-3. Building the profile settings page
-4. Enhancing the game settings page
-5. Adding image upload functionality
+1. Installing shadcn/ui component library
+2. Creating new layout with top bar + sidebar
+3. Building reusable components (StatPill, TagRow, TimelineCard, etc.)
+4. Refactoring to new design system
+5. Adding Workspace/Public view toggle
 
 Let me know when you want to begin!
