@@ -1,9 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import ProjectNav from '@/components/ProjectNav'
 import ProjectHeader from '@/components/ProjectHeader'
-import ProjectFormNav from '@/components/ProjectFormNav'
+import ProjectLayoutNav from '@/components/ProjectLayoutNav'
 
 interface ProjectLayoutProps {
   children: React.ReactNode
@@ -39,14 +38,11 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
 
   return (
     <div className="flex flex-col h-full">
-      {/* Project Header with Public View Toggle */}
+      {/* Project Header with Game Page Toggle */}
       <ProjectHeader project={project} />
 
-      {/* Dashboard / Form Toggle */}
-      <ProjectFormNav projectId={id} />
-
-      {/* Horizontal Navigation */}
-      <ProjectNav projectId={id} />
+      {/* Navigation (hidden on Game Page view) */}
+      <ProjectLayoutNav projectId={id} />
 
       {/* Page Content */}
       <div className="flex-1 mt-4">

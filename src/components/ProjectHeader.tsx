@@ -53,7 +53,7 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
                   : 'text-muted-foreground hover:text-foreground hover:bg-background'
               }`}
             >
-              Public View
+              Game Page
             </Link>
           </div>
           
