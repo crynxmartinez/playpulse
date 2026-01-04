@@ -773,21 +773,48 @@ export default function GamePageEditor() {
             }
           >
             {updates.length > 0 ? (
-              <div className="space-y-2">
-                {updates.slice(0, 5).map((update) => (
-                  <div key={update.id} className="flex items-start gap-2 text-sm">
-                    <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-                      <Activity className="h-3 w-3 text-muted-foreground" />
+              <div className="space-y-4">
+                {Object.entries(
+                  updates.reduce((acc, update) => {
+                    const date = new Date(update.createdAt);
+                    const monthKey = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+                    if (!acc[monthKey]) acc[monthKey] = [];
+                    acc[monthKey].push(update);
+                    return acc;
+                  }, {} as Record<string, Update[]>)
+                ).map(([month, monthUpdates]) => (
+                  <div key={month} className="relative">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xs font-medium text-primary">{month.split(' ')[0]}</span>
+                      <span className="text-xs text-muted-foreground">{month.split(' ')[1]}</span>
+                      <div className="flex-1 h-px bg-border" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm">{update.title}</div>
-                      <div className="text-muted-foreground text-xs">{new Date(update.createdAt).toLocaleDateString()}</div>
+                    <div className="relative pl-6 border-l-2 border-muted space-y-3">
+                      {monthUpdates.map((update) => (
+                        <div key={update.id} className="relative">
+                          <div className="absolute -left-[25px] w-3 h-3 rounded-full bg-muted border-2 border-background" />
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center flex-shrink-0">
+                                <Activity className="h-3 w-3 text-muted-foreground" />
+                              </div>
+                              <span className="text-sm font-medium">{update.title}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {new Date(update.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
+                          {update.description && (
+                            <p className="text-xs text-muted-foreground mt-1 ml-8">{update.description}</p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm italic">No updates yet. Click "Post Update" to share news with your players.</p>
+              <p className="text-muted-foreground text-sm italic">No updates yet. Click &quot;Post Update&quot; to share news with your players.</p>
             )}
           </EditableCard>
         </div>
