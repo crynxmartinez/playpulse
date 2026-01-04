@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, FileText, Eye, EyeOff, Trash2, Link as LinkIcon, Check, X, ChevronRight, Type, List, ToggleLeft, SlidersHorizontal, MessageSquare, Pencil } from 'lucide-react'
+import { Plus, FileText, Eye, EyeOff, Trash2, Link as LinkIcon, Check, X, ChevronRight, Type, List, ToggleLeft, SlidersHorizontal, MessageSquare, Pencil, Star, ThumbsUp, ArrowUp, ArrowDown, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -27,7 +27,7 @@ interface QuestionOption {
 interface Question {
   id: string
   questionText: string
-  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING'
+  type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING' | 'STAR_RATING' | 'NPS'
   statId: string | null
   stat: Stat | null
   options: QuestionOption[] | null
@@ -64,10 +64,27 @@ const STAT_CATEGORIES = [
 
 const QUESTION_TYPES = [
   { value: 'SLIDER', label: 'Slider Scale', icon: SlidersHorizontal, description: 'Rate on a scale (1-10)' },
+  { value: 'STAR_RATING', label: 'Star Rating', icon: Star, description: 'Rate with 1-5 stars' },
+  { value: 'NPS', label: 'NPS Score', icon: ThumbsUp, description: 'Net Promoter Score (0-10)' },
   { value: 'YES_NO', label: 'Yes / No', icon: ToggleLeft, description: 'Simple yes/no/maybe choice' },
   { value: 'MULTIPLE_SINGLE', label: 'Multiple Choice', icon: List, description: 'Pick one answer' },
   { value: 'MULTIPLE_MULTI', label: 'Checkboxes', icon: Check, description: 'Pick multiple answers' },
   { value: 'TEXT_RATING', label: 'Text + Rating', icon: MessageSquare, description: 'Open text with rating' },
+]
+
+const QUESTION_TEMPLATES = [
+  { label: 'Overall Experience', question: 'How would you rate your overall experience with the game?', type: 'STAR_RATING' as const },
+  { label: 'Recommend to Friend', question: 'How likely are you to recommend this game to a friend?', type: 'NPS' as const },
+  { label: 'Graphics Quality', question: 'How would you rate the graphics and visual quality?', type: 'SLIDER' as const },
+  { label: 'Gameplay Fun', question: 'How fun and engaging was the gameplay?', type: 'SLIDER' as const },
+  { label: 'Controls', question: 'Were the controls intuitive and responsive?', type: 'YES_NO' as const },
+  { label: 'Difficulty', question: 'How would you describe the difficulty level?', type: 'MULTIPLE_SINGLE' as const, options: [
+    { text: 'Too Easy', points: 3 },
+    { text: 'Just Right', points: 10 },
+    { text: 'Too Hard', points: 3 },
+  ]},
+  { label: 'Bugs Encountered', question: 'Did you encounter any bugs or issues?', type: 'YES_NO' as const },
+  { label: 'What You Liked', question: 'What did you like most about the game?', type: 'TEXT_RATING' as const },
 ]
 
 const WIZARD_STEPS = [
@@ -90,7 +107,7 @@ interface WizardData {
   // Step 3: Questions
   questions: {
     questionText: string
-    type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING'
+    type: 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING' | 'STAR_RATING' | 'NPS'
     statId: string
     options: QuestionOption[]
     minValue: number
@@ -195,14 +212,14 @@ export default function FormsPage() {
     }
   }
 
-  const addQuestion = () => {
+  const addQuestion = (type: typeof wizardData.questions[0]['type'] = 'SLIDER') => {
     const newQuestion = {
       questionText: '',
-      type: 'SLIDER' as const,
+      type,
       statId: wizardData.selectedStatIds[0] || '',
-      options: [],
-      minValue: 1,
-      maxValue: 10,
+      options: type === 'YES_NO' ? [{ text: 'Yes', points: 10 }, { text: 'No', points: 0 }] : [],
+      minValue: type === 'STAR_RATING' ? 1 : type === 'NPS' ? 0 : 1,
+      maxValue: type === 'STAR_RATING' ? 5 : type === 'NPS' ? 10 : 10,
     }
     setWizardData({ ...wizardData, questions: [...wizardData.questions, newQuestion] })
   }
@@ -216,6 +233,30 @@ export default function FormsPage() {
   const removeQuestion = (index: number) => {
     const newQuestions = wizardData.questions.filter((_, i) => i !== index)
     setWizardData({ ...wizardData, questions: newQuestions })
+  }
+
+  const moveQuestion = (index: number, direction: 'up' | 'down') => {
+    const newQuestions = [...wizardData.questions]
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (targetIndex < 0 || targetIndex >= newQuestions.length) return
+    ;[newQuestions[index], newQuestions[targetIndex]] = [newQuestions[targetIndex], newQuestions[index]]
+    setWizardData({ ...wizardData, questions: newQuestions })
+  }
+
+  const addTemplateQuestion = (template: typeof QUESTION_TEMPLATES[0]) => {
+    const newQuestion = {
+      questionText: template.question,
+      type: template.type,
+      statId: wizardData.selectedStatIds[0] || '',
+      options: template.type === 'YES_NO' 
+        ? [{ text: 'Yes', points: 10 }, { text: 'No', points: 0 }]
+        : 'options' in template && template.options 
+          ? template.options 
+          : [],
+      minValue: template.type === 'STAR_RATING' ? 1 : template.type === 'NPS' ? 0 : 1,
+      maxValue: template.type === 'STAR_RATING' ? 5 : template.type === 'NPS' ? 10 : 10,
+    }
+    setWizardData({ ...wizardData, questions: [...wizardData.questions, newQuestion] })
   }
 
   const addOption = (questionIndex: number) => {
@@ -771,7 +812,7 @@ export default function FormsPage() {
                         Create questions for your selected stats. Each question measures one or more stats.
                       </p>
                       <button
-                        onClick={addQuestion}
+                        onClick={() => addQuestion()}
                         className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                       >
                         <Plus size={18} />
@@ -779,17 +820,56 @@ export default function FormsPage() {
                       </button>
                     </div>
 
+                    {/* Quick Templates */}
+                    <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="h-4 w-4 text-purple-600" />
+                        <span className="text-sm font-medium text-purple-700">Quick Templates</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {QUESTION_TEMPLATES.map((template, i) => (
+                          <button
+                            key={i}
+                            onClick={() => addTemplateQuestion(template)}
+                            className="px-3 py-1.5 text-xs bg-white border border-purple-200 rounded-full text-purple-700 hover:bg-purple-100 transition"
+                          >
+                            + {template.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     {wizardData.questions.length === 0 ? (
                       <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl">
                         <Type className="mx-auto text-slate-300 mb-3" size={40} />
-                        <p className="text-slate-500">No questions yet. Click &quot;Add Question&quot; to start.</p>
+                        <p className="text-slate-500">No questions yet. Click a template above or &quot;Add Question&quot; to start.</p>
                       </div>
                     ) : (
                       <div className="space-y-4">
                         {wizardData.questions.map((question, qIndex) => (
                           <div key={qIndex} className="border border-slate-200 rounded-xl p-4">
                             <div className="flex items-start justify-between mb-4">
-                              <span className="text-sm font-medium text-slate-500">Question {qIndex + 1}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-slate-500">Question {qIndex + 1}</span>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => moveQuestion(qIndex, 'up')}
+                                    disabled={qIndex === 0}
+                                    className="p-1 text-slate-400 hover:text-purple-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    title="Move up"
+                                  >
+                                    <ArrowUp size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => moveQuestion(qIndex, 'down')}
+                                    disabled={qIndex === wizardData.questions.length - 1}
+                                    className="p-1 text-slate-400 hover:text-purple-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    title="Move down"
+                                  >
+                                    <ArrowDown size={14} />
+                                  </button>
+                                </div>
+                              </div>
                               <button
                                 onClick={() => removeQuestion(qIndex)}
                                 className="p-1 text-slate-400 hover:text-red-600 transition-colors"
@@ -864,6 +944,45 @@ export default function FormsPage() {
                                       onChange={(e) => updateQuestion(qIndex, { maxValue: parseInt(e.target.value) || 10 })}
                                       className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
                                     />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Star Rating preview */}
+                              {question.type === 'STAR_RATING' && (
+                                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                  <label className="block text-sm font-medium text-amber-700 mb-2">Preview: 5-Star Rating</label>
+                                  <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                      <Star key={star} className="h-8 w-8 text-amber-400 fill-amber-400" />
+                                    ))}
+                                  </div>
+                                  <p className="text-xs text-amber-600 mt-2">Users will rate from 1 to 5 stars</p>
+                                </div>
+                              )}
+
+                              {/* NPS preview */}
+                              {question.type === 'NPS' && (
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                  <label className="block text-sm font-medium text-blue-700 mb-2">Preview: Net Promoter Score (0-10)</label>
+                                  <div className="flex gap-1">
+                                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                                      <div 
+                                        key={num} 
+                                        className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium ${
+                                          num <= 6 ? 'bg-red-100 text-red-700' : 
+                                          num <= 8 ? 'bg-yellow-100 text-yellow-700' : 
+                                          'bg-green-100 text-green-700'
+                                        }`}
+                                      >
+                                        {num}
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="flex justify-between text-xs mt-2">
+                                    <span className="text-red-600">Detractors (0-6)</span>
+                                    <span className="text-yellow-600">Passives (7-8)</span>
+                                    <span className="text-green-600">Promoters (9-10)</span>
                                   </div>
                                 </div>
                               )}

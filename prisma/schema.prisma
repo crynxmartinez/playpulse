@@ -138,6 +138,8 @@ model Question {
 
 enum QuestionType {
   SLIDER          // Rate on a scale (1-10)
+  STAR_RATING     // Rate with 1-5 stars
+  NPS             // Net Promoter Score (0-10)
   YES_NO          // Yes/No/Maybe
   MULTIPLE_SINGLE // Multiple choice, pick one
   MULTIPLE_MULTI  // Multiple choice, pick many
