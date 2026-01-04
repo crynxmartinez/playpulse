@@ -61,9 +61,22 @@ export async function PATCH(
     }
 
     const { id } = await params
+    const body = await request.json()
     const { 
       name, 
       description,
+      // Game Hub fields
+      slug,
+      visibility,
+      bannerUrl,
+      logoUrl,
+      genre,
+      tags,
+      steamUrl,
+      itchUrl,
+      websiteUrl,
+      discordUrl,
+      // Score tier fields
       tierLowMax,
       tierMediumMax,
       tierLowLabel,
@@ -72,7 +85,7 @@ export async function PATCH(
       tierLowMsg,
       tierMediumMsg,
       tierHighMsg,
-    } = await request.json()
+    } = body
 
     const existingProject = await prisma.project.findFirst({
       where: { id, userId: user.id }
@@ -82,11 +95,42 @@ export async function PATCH(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
+    // Validate slug if provided
+    if (slug !== undefined && slug !== null && slug !== '') {
+      const slugRegex = /^[a-z0-9-]{3,50}$/
+      if (!slugRegex.test(slug)) {
+        return NextResponse.json(
+          { error: 'Slug must be 3-50 characters, lowercase letters, numbers, and hyphens only' },
+          { status: 400 }
+        )
+      }
+
+      // Check uniqueness
+      const existingSlug = await prisma.project.findUnique({
+        where: { slug },
+      })
+      if (existingSlug && existingSlug.id !== id) {
+        return NextResponse.json({ error: 'Slug already taken' }, { status: 400 })
+      }
+    }
+
     const project = await prisma.project.update({
       where: { id },
       data: {
         ...(name && { name: name.trim() }),
         ...(description !== undefined && { description: description?.trim() || null }),
+        // Game Hub fields
+        ...(slug !== undefined && { slug: slug ? slug.toLowerCase() : null }),
+        ...(visibility !== undefined && { visibility }),
+        ...(bannerUrl !== undefined && { bannerUrl: bannerUrl?.trim() || null }),
+        ...(logoUrl !== undefined && { logoUrl: logoUrl?.trim() || null }),
+        ...(genre !== undefined && { genre: genre?.trim() || null }),
+        ...(tags !== undefined && { tags }),
+        ...(steamUrl !== undefined && { steamUrl: steamUrl?.trim() || null }),
+        ...(itchUrl !== undefined && { itchUrl: itchUrl?.trim() || null }),
+        ...(websiteUrl !== undefined && { websiteUrl: websiteUrl?.trim() || null }),
+        ...(discordUrl !== undefined && { discordUrl: discordUrl?.trim() || null }),
+        // Score tier fields
         ...(tierLowMax !== undefined && { tierLowMax }),
         ...(tierMediumMax !== undefined && { tierMediumMax }),
         ...(tierLowLabel !== undefined && { tierLowLabel }),

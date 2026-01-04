@@ -2,15 +2,26 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Settings, Trash2, Save, Award } from 'lucide-react'
+import { Settings, Trash2, Save, Award, Globe, Eye, EyeOff, Link as LinkIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 
 interface Project {
   id: string
   name: string
   description: string | null
+  slug: string | null
+  visibility: 'PRIVATE' | 'UNLISTED' | 'PUBLIC'
+  bannerUrl: string | null
+  logoUrl: string | null
+  genre: string | null
+  tags: string[]
+  steamUrl: string | null
+  itchUrl: string | null
+  websiteUrl: string | null
+  discordUrl: string | null
   tierLowMax: number
   tierMediumMax: number
   tierLowLabel: string
@@ -20,6 +31,12 @@ interface Project {
   tierMediumMsg: string | null
   tierHighMsg: string | null
 }
+
+const GENRES = [
+  'Action', 'Adventure', 'RPG', 'Strategy', 'Simulation', 
+  'Puzzle', 'Platformer', 'Shooter', 'Racing', 'Sports',
+  'Horror', 'Roguelike', 'Card Game', 'Fighting', 'Other'
+]
 
 export default function SettingsPage() {
   const params = useParams()
@@ -33,6 +50,16 @@ export default function SettingsPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    slug: '',
+    visibility: 'PRIVATE' as 'PRIVATE' | 'UNLISTED' | 'PUBLIC',
+    bannerUrl: '',
+    logoUrl: '',
+    genre: '',
+    tags: [] as string[],
+    steamUrl: '',
+    itchUrl: '',
+    websiteUrl: '',
+    discordUrl: '',
   })
   const [tierData, setTierData] = useState({
     tierLowMax: 40,
@@ -44,6 +71,7 @@ export default function SettingsPage() {
     tierMediumMsg: '',
     tierHighMsg: '',
   })
+  const [tagInput, setTagInput] = useState('')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
@@ -59,6 +87,16 @@ export default function SettingsPage() {
         setFormData({
           name: data.project.name,
           description: data.project.description || '',
+          slug: data.project.slug || '',
+          visibility: data.project.visibility || 'PRIVATE',
+          bannerUrl: data.project.bannerUrl || '',
+          logoUrl: data.project.logoUrl || '',
+          genre: data.project.genre || '',
+          tags: data.project.tags || [],
+          steamUrl: data.project.steamUrl || '',
+          itchUrl: data.project.itchUrl || '',
+          websiteUrl: data.project.websiteUrl || '',
+          discordUrl: data.project.discordUrl || '',
         })
         setTierData({
           tierLowMax: data.project.tierLowMax || 40,
@@ -78,6 +116,18 @@ export default function SettingsPage() {
     }
   }
 
+  const addTag = () => {
+    const tag = tagInput.trim().toLowerCase()
+    if (tag && !formData.tags.includes(tag) && formData.tags.length < 5) {
+      setFormData({ ...formData, tags: [...formData.tags, tag] })
+      setTagInput('')
+    }
+  }
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData({ ...formData, tags: formData.tags.filter(t => t !== tagToRemove) })
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name.trim()) return
@@ -92,16 +142,16 @@ export default function SettingsPage() {
         body: JSON.stringify({ ...formData, ...tierData }),
       })
 
+      const data = await res.json()
       if (res.ok) {
-        const data = await res.json()
         setProject(data.project)
-        setMessage({ type: 'success', text: 'Project updated successfully!' })
+        setMessage({ type: 'success', text: 'Game settings updated successfully!' })
         router.refresh()
       } else {
-        setMessage({ type: 'error', text: 'Failed to update project' })
+        setMessage({ type: 'error', text: data.error || 'Failed to update settings' })
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update project' })
+      setMessage({ type: 'error', text: 'Failed to update settings' })
       console.error(error)
     } finally {
       setSaving(false)
@@ -161,70 +211,202 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Project Settings */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Settings className="text-purple-600" size={24} />
-          <h3 className="text-lg font-semibold text-slate-800">Project Settings</h3>
-        </div>
+      <form onSubmit={handleSave}>
+        {/* Game Info */}
+        <Card className="rounded-3xl mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Settings className="h-4 w-4" /> Game Info
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-muted-foreground">Game Name *</label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="rounded-2xl mt-1"
+                  placeholder="My Awesome Game"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">URL Slug</label>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-muted-foreground text-sm">/g/</span>
+                  <Input
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                    className="rounded-2xl"
+                    placeholder="my-game"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">3-50 chars, lowercase, hyphens</p>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground">Description</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full rounded-2xl mt-1 px-3 py-2 border bg-background text-sm resize-none"
+                placeholder="A brief description of your game..."
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-muted-foreground">Genre</label>
+                <select
+                  value={formData.genre}
+                  onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                  className="w-full rounded-2xl mt-1 px-3 py-2 border bg-background text-sm"
+                >
+                  <option value="">Select genre...</option>
+                  {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">Tags (max 5)</label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                    className="rounded-2xl"
+                    placeholder="Add tag..."
+                  />
+                  <Button type="button" variant="outline" className="rounded-2xl" onClick={addTag}>Add</Button>
+                </div>
+                {formData.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {formData.tags.map(tag => (
+                      <Badge key={tag} variant="secondary" className="rounded-full cursor-pointer" onClick={() => removeTag(tag)}>
+                        {tag} ×
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <form onSubmit={handleSave} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Project Name *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
-              placeholder="My Awesome Game"
-              required
-            />
-          </div>
+        {/* Visibility */}
+        <Card className="rounded-3xl mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Globe className="h-4 w-4" /> Visibility
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { value: 'PRIVATE', label: 'Private', desc: 'Only you can see', icon: EyeOff },
+                { value: 'UNLISTED', label: 'Unlisted', desc: 'Anyone with link', icon: LinkIcon },
+                { value: 'PUBLIC', label: 'Public', desc: 'Listed in discovery', icon: Eye },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, visibility: opt.value as typeof formData.visibility })}
+                  className={`p-4 rounded-2xl border text-left transition ${
+                    formData.visibility === opt.value 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <opt.icon className={`h-5 w-5 mb-2 ${formData.visibility === opt.value ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className="font-medium text-sm">{opt.label}</div>
+                  <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
-              placeholder="A brief description of your game..."
-              rows={3}
-            />
-          </div>
+        {/* Links */}
+        <Card className="rounded-3xl mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <LinkIcon className="h-4 w-4" /> Links & Media
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-muted-foreground">Banner Image URL</label>
+                <Input
+                  value={formData.bannerUrl}
+                  onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
+                  className="rounded-2xl mt-1"
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">Logo URL</label>
+                <Input
+                  value={formData.logoUrl}
+                  onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                  className="rounded-2xl mt-1"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-muted-foreground">Steam URL</label>
+                <Input
+                  value={formData.steamUrl}
+                  onChange={(e) => setFormData({ ...formData, steamUrl: e.target.value })}
+                  className="rounded-2xl mt-1"
+                  placeholder="https://store.steampowered.com/..."
+                />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">Itch.io URL</label>
+                <Input
+                  value={formData.itchUrl}
+                  onChange={(e) => setFormData({ ...formData, itchUrl: e.target.value })}
+                  className="rounded-2xl mt-1"
+                  placeholder="https://itch.io/..."
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-muted-foreground">Website</label>
+                <Input
+                  value={formData.websiteUrl}
+                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                  className="rounded-2xl mt-1"
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">Discord Server</label>
+                <Input
+                  value={formData.discordUrl}
+                  onChange={(e) => setFormData({ ...formData, discordUrl: e.target.value })}
+                  className="rounded-2xl mt-1"
+                  placeholder="https://discord.gg/..."
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
-          >
-            {saving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save size={18} />
-                Save Changes
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-
-      {/* Score Tiers Configuration */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Award className="text-purple-600" size={24} />
-          <h3 className="text-lg font-semibold text-slate-800">Score Tiers</h3>
-        </div>
-        
-        <p className="text-slate-500 text-sm mb-6">
-          Configure how scores are categorized and what messages players see after submitting feedback.
+        {/* Score Tiers Configuration */}
+        <Card className="rounded-3xl mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Award className="h-4 w-4" /> Score Tiers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-sm mb-4">
+              Configure how scores are categorized and what messages players see after submitting feedback.
         </p>
 
         {/* Tier Ranges */}
@@ -342,55 +524,54 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Preview */}
-        <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-          <h4 className="font-medium text-slate-700 mb-3">Preview</h4>
-          <div className="flex gap-2">
-            <div className="flex-1 text-center p-3 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 text-white">
-              <div className="text-xs opacity-80">0-{tierData.tierLowMax}%</div>
-              <div className="font-semibold">{tierData.tierLowLabel || 'Low'}</div>
+            {/* Preview */}
+            <div className="mt-4 p-4 rounded-2xl border">
+              <h4 className="font-medium text-sm mb-3">Preview</h4>
+              <div className="flex gap-2">
+                <div className="flex-1 text-center p-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white">
+                  <div className="text-xs opacity-80">0-{tierData.tierLowMax}%</div>
+                  <div className="font-semibold text-sm">{tierData.tierLowLabel || 'Low'}</div>
+                </div>
+                <div className="flex-1 text-center p-3 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-500 text-white">
+                  <div className="text-xs opacity-80">{tierData.tierLowMax + 1}-{tierData.tierMediumMax}%</div>
+                  <div className="font-semibold text-sm">{tierData.tierMediumLabel || 'Medium'}</div>
+                </div>
+                <div className="flex-1 text-center p-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+                  <div className="text-xs opacity-80">{tierData.tierMediumMax + 1}-100%</div>
+                  <div className="font-semibold text-sm">{tierData.tierHighLabel || 'High'}</div>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 text-center p-3 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-500 text-white">
-              <div className="text-xs opacity-80">{tierData.tierLowMax + 1}-{tierData.tierMediumMax}%</div>
-              <div className="font-semibold">{tierData.tierMediumLabel || 'Medium'}</div>
-            </div>
-            <div className="flex-1 text-center p-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-              <div className="text-xs opacity-80">{tierData.tierMediumMax + 1}-100%</div>
-              <div className="font-semibold">{tierData.tierHighLabel || 'High'}</div>
-            </div>
-          </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+
+        {/* Save Button */}
+        <Button type="submit" className="rounded-2xl w-full md:w-auto" disabled={saving}>
+          {saving ? 'Saving...' : 'Save All Changes'}
+        </Button>
+      </form>
 
       {/* Danger Zone */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-red-200">
-        <div className="flex items-center gap-2 mb-4">
-          <Trash2 className="text-red-600" size={24} />
-          <h3 className="text-lg font-semibold text-red-600">Danger Zone</h3>
-        </div>
-
-        <p className="text-slate-600 mb-4">
-          Once you delete a project, there is no going back. All forms, stats, and responses will be permanently deleted.
-        </p>
-
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-        >
-          {deleting ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              Deleting...
-            </>
-          ) : (
-            <>
-              <Trash2 size={18} />
-              Delete Project
-            </>
-          )}
-        </button>
-      </div>
+      <Card className="rounded-3xl border-destructive/50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2 text-destructive">
+            <Trash2 className="h-4 w-4" /> Danger Zone
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-sm mb-4">
+            Once you delete a game, there is no going back. All campaigns, stats, and responses will be permanently deleted.
+          </p>
+          <Button
+            variant="destructive"
+            className="rounded-2xl"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting...' : 'Delete Game'}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }

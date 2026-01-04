@@ -21,6 +21,17 @@ model User {
   role      Role      @default(USER)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  
+  // Profile fields (Sprint 1)
+  username    String?   @unique  // @handle for public profile
+  displayName String?            // Display name (can differ from name)
+  bio         String?            // Short bio
+  avatarUrl   String?            // Profile picture URL
+  studioName  String?            // Studio/team name
+  website     String?            // Personal/studio website
+  twitter     String?            // Twitter handle
+  discord     String?            // Discord username
+  
   projects  Project[]
 }
 
@@ -37,6 +48,19 @@ model Project {
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+  
+  // Game Hub fields (Sprint 1)
+  slug          String?    @unique  // Custom URL slug for public page
+  visibility    Visibility @default(PRIVATE)
+  bannerUrl     String?              // Banner image for game hub
+  logoUrl       String?              // Game logo
+  genre         String?              // Primary genre
+  tags          String[]   @default([])  // Tags for discovery
+  steamUrl      String?              // Steam store link
+  itchUrl       String?              // Itch.io link
+  websiteUrl    String?              // Game website
+  discordUrl    String?              // Discord server invite
+  
   // Score tier configuration
   tierLowMax    Int        @default(40)   // 0-40% = low tier
   tierMediumMax Int        @default(70)   // 41-70% = medium tier (71-100% = high)
@@ -48,6 +72,12 @@ model Project {
   tierHighMsg   String?    // Custom message for high scorers
   stats         Stat[]
   forms         Form[]
+}
+
+enum Visibility {
+  PRIVATE   // Only owner can see
+  UNLISTED  // Anyone with link can see
+  PUBLIC    // Listed in discovery
 }
 
 model Stat {
