@@ -7,7 +7,8 @@ import {
   FileText, 
   MessageSquare, 
   LineChart, 
-  Settings 
+  Settings,
+  Eye,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -15,7 +16,8 @@ interface ProjectNavProps {
   projectId: string
 }
 
-const navItems = [
+// Form mode nav items
+const formNavItems = [
   { href: '/stats', label: 'Stats', icon: BarChart2 },
   { href: '/forms', label: 'Campaigns', icon: FileText },
   { href: '/responses', label: 'Responses', icon: MessageSquare },
@@ -23,20 +25,33 @@ const navItems = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
+// Overview mode nav items
+const overviewNavItems = [
+  { href: '', label: 'Overview', icon: Eye },
+  { href: '/settings', label: 'Settings', icon: Settings },
+]
+
 export default function ProjectNav({ projectId }: ProjectNavProps) {
   const pathname = usePathname()
   const basePath = `/dashboard/projects/${projectId}`
+  
+  // Determine mode based on URL
+  const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics')
+  
+  const navItems = isFormMode ? formNavItems : overviewNavItems
 
   return (
     <nav className="rounded-2xl border bg-card p-1 flex items-center gap-1 overflow-x-auto">
       {navItems.map((item) => {
         const href = `${basePath}${item.href}`
-        const isActive = pathname.startsWith(href)
+        const isActive = item.href === '' 
+          ? pathname === basePath || pathname === `${basePath}/`
+          : pathname.startsWith(href)
         const Icon = item.icon
 
         return (
           <Link
-            key={item.href}
+            key={item.href || 'overview'}
             href={href}
             className={cn(
               "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap",
