@@ -83,7 +83,7 @@ interface Game {
   }
 }
 
-type EditingSection = 'hero' | 'about' | 'rules' | 'updates' | null
+type EditingSection = 'banner' | 'hero' | 'about' | 'rules' | 'updates' | null
 
 export default function GamePageEditor() {
   const params = useParams()
@@ -188,10 +188,13 @@ export default function GamePageEditor() {
     try {
       let updateData = {}
       
-      if (section === 'hero') {
+      if (section === 'banner') {
         updateData = {
           bannerUrl: heroForm.bannerUrl || null,
           logoUrl: heroForm.logoUrl || null,
+        }
+      } else if (section === 'hero') {
+        updateData = {
           genre: heroForm.genre || null,
           tags: heroForm.tags,
           steamUrl: heroForm.steamUrl || null,
@@ -332,256 +335,287 @@ export default function GamePageEditor() {
         </div>
       )}
 
-      {/* Preview with Editable Sections */}
-      <div className="rounded-3xl border overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Preview with Editable Sections - Light Theme */}
+      <div className="rounded-3xl border overflow-hidden bg-card">
         
-        {/* SECTION 1: Hero */}
+        {/* SECTION: Banner & Logo */}
         <div className="relative group">
-          {/* Edit overlay button */}
-          {editingSection !== 'hero' && (
+          {editingSection !== 'banner' && (
             <button
-              onClick={() => setEditingSection('hero')}
-              className="absolute top-4 right-4 z-20 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => setEditingSection('banner')}
+              className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <Pencil className="h-3 w-3" /> Edit Hero
+              <Pencil className="h-3 w-3" /> Edit Banner
             </button>
           )}
 
-          {editingSection === 'hero' ? (
-            // Hero Edit Mode
-            <div className="p-6 bg-slate-800/50">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-semibold flex items-center gap-2">
-                  <Image className="h-4 w-4" /> Edit Hero Section
-                </h3>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" className="text-white" onClick={() => setEditingSection(null)}>
-                    <X className="h-4 w-4" />
+          {editingSection === 'banner' ? (
+            <Card className="m-4 rounded-2xl">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Image className="h-4 w-4" /> Edit Banner & Logo
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => setEditingSection(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" onClick={() => handleSave('banner')} disabled={saving}>
+                      <Save className="h-4 w-4 mr-1" /> {saving ? 'Saving...' : 'Save'}
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground">Banner Image URL</label>
+                  <Input
+                    value={heroForm.bannerUrl}
+                    onChange={(e) => setHeroForm({ ...heroForm, bannerUrl: e.target.value })}
+                    className="mt-1 rounded-xl"
+                    placeholder="https://example.com/banner.jpg"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Recommended: 1200x400px</p>
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Logo Image URL</label>
+                  <Input
+                    value={heroForm.logoUrl}
+                    onChange={(e) => setHeroForm({ ...heroForm, logoUrl: e.target.value })}
+                    className="mt-1 rounded-xl"
+                    placeholder="https://example.com/logo.jpg"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Recommended: 200x200px square</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="relative h-48 overflow-hidden bg-muted">
+              {project.bannerUrl ? (
+                <img src={project.bannerUrl} alt={project.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-gray-200 to-gray-300">
+                  <span className="text-muted-foreground text-sm">Click "Edit Banner" to add a banner image</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Game Info Header */}
+        <div className="px-6 py-4 border-b">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden bg-muted border-2 shadow-lg flex-shrink-0 -mt-12 relative z-10">
+              {project.logoUrl ? (
+                <img src={project.logoUrl} alt={project.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/40">
+                  <Gamepad2 className="h-8 w-8 text-primary" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold mb-1">{project.name}</h1>
+              <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
+                <span className="flex items-center gap-1">
+                  <User className="h-3 w-3" /> {developerName}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> {new Date().toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION: Hero Info (Genre, Tags, Links) */}
+        <Card className={`mx-4 mt-4 rounded-2xl relative group ${editingSection === 'hero' ? 'ring-2 ring-primary' : ''}`}>
+          {editingSection !== 'hero' && (
+            <button
+              onClick={() => setEditingSection('hero')}
+              className="absolute top-3 right-3 z-10 bg-muted hover:bg-muted/80 px-2 py-1 rounded-lg text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Pencil className="h-3 w-3" /> Edit
+            </button>
+          )}
+          
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Tag className="h-4 w-4" /> Game Info & Links
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {editingSection === 'hero' ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-muted-foreground">Genre</label>
+                    <Input
+                      value={heroForm.genre}
+                      onChange={(e) => setHeroForm({ ...heroForm, genre: e.target.value })}
+                      className="mt-1 rounded-xl"
+                      placeholder="RPG, Action, Puzzle..."
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Tags</label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        value={heroForm.tagInput}
+                        onChange={(e) => setHeroForm({ ...heroForm, tagInput: e.target.value })}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                        className="rounded-xl"
+                        placeholder="Add tag..."
+                      />
+                      <Button size="sm" variant="outline" className="rounded-xl" onClick={addTag}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {heroForm.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {heroForm.tags.map(tag => (
+                          <Badge key={tag} variant="secondary" className="cursor-pointer rounded-full" onClick={() => removeTag(tag)}>
+                            {tag} ×
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Steam URL</label>
+                    <Input
+                      value={heroForm.steamUrl}
+                      onChange={(e) => setHeroForm({ ...heroForm, steamUrl: e.target.value })}
+                      className="mt-1 rounded-xl"
+                      placeholder="https://store.steampowered.com/..."
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Itch.io URL</label>
+                    <Input
+                      value={heroForm.itchUrl}
+                      onChange={(e) => setHeroForm({ ...heroForm, itchUrl: e.target.value })}
+                      className="mt-1 rounded-xl"
+                      placeholder="https://itch.io/..."
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Website URL</label>
+                    <Input
+                      value={heroForm.websiteUrl}
+                      onChange={(e) => setHeroForm({ ...heroForm, websiteUrl: e.target.value })}
+                      className="mt-1 rounded-xl"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Discord URL</label>
+                    <Input
+                      value={heroForm.discordUrl}
+                      onChange={(e) => setHeroForm({ ...heroForm, discordUrl: e.target.value })}
+                      className="mt-1 rounded-xl"
+                      placeholder="https://discord.gg/..."
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button size="sm" variant="ghost" onClick={() => setEditingSection(null)}>
+                    Cancel
                   </Button>
                   <Button size="sm" onClick={() => handleSave('hero')} disabled={saving}>
                     <Save className="h-4 w-4 mr-1" /> {saving ? 'Saving...' : 'Save'}
                   </Button>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-white/70 text-sm">Banner Image URL</label>
-                  <Input
-                    value={heroForm.bannerUrl}
-                    onChange={(e) => setHeroForm({ ...heroForm, bannerUrl: e.target.value })}
-                    className="mt-1 bg-white/10 border-white/20 text-white"
-                    placeholder="https://..."
-                  />
+            ) : (
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  {project.genre ? (
+                    <Badge variant="secondary" className="rounded-full">{project.genre}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground text-sm italic">No genre set</span>
+                  )}
+                  {project.tags.map(tag => (
+                    <Badge key={tag} variant="outline" className="rounded-full">
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
-                <div>
-                  <label className="text-white/70 text-sm">Logo Image URL</label>
-                  <Input
-                    value={heroForm.logoUrl}
-                    onChange={(e) => setHeroForm({ ...heroForm, logoUrl: e.target.value })}
-                    className="mt-1 bg-white/10 border-white/20 text-white"
-                    placeholder="https://..."
-                  />
-                </div>
-                <div>
-                  <label className="text-white/70 text-sm">Genre</label>
-                  <Input
-                    value={heroForm.genre}
-                    onChange={(e) => setHeroForm({ ...heroForm, genre: e.target.value })}
-                    className="mt-1 bg-white/10 border-white/20 text-white"
-                    placeholder="RPG, Action, Puzzle..."
-                  />
-                </div>
-                <div>
-                  <label className="text-white/70 text-sm">Tags</label>
-                  <div className="flex gap-2 mt-1">
-                    <Input
-                      value={heroForm.tagInput}
-                      onChange={(e) => setHeroForm({ ...heroForm, tagInput: e.target.value })}
-                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                      className="bg-white/10 border-white/20 text-white"
-                      placeholder="Add tag..."
-                    />
-                    <Button size="sm" variant="secondary" onClick={addTag}>
-                      <Plus className="h-4 w-4" />
+                <div className="flex flex-wrap gap-2">
+                  {project.steamUrl && (
+                    <Button size="sm" className="rounded-xl bg-[#1b2838] hover:bg-[#2a475e] h-7 text-xs">Steam</Button>
+                  )}
+                  {project.itchUrl && (
+                    <Button size="sm" className="rounded-xl bg-[#fa5c5c] hover:bg-[#ff7676] h-7 text-xs">Itch.io</Button>
+                  )}
+                  {project.websiteUrl && (
+                    <Button size="sm" variant="outline" className="rounded-xl h-7 text-xs">
+                      <Globe className="h-3 w-3 mr-1" /> Website
                     </Button>
-                  </div>
-                  {heroForm.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {heroForm.tags.map(tag => (
-                        <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                          {tag} ×
-                        </Badge>
-                      ))}
-                    </div>
+                  )}
+                  {project.discordUrl && (
+                    <Button size="sm" className="rounded-xl bg-[#5865F2] hover:bg-[#6d79f5] h-7 text-xs">Discord</Button>
+                  )}
+                  {!project.steamUrl && !project.itchUrl && !project.websiteUrl && !project.discordUrl && (
+                    <span className="text-muted-foreground text-xs italic">No links added yet</span>
                   )}
                 </div>
-                <div>
-                  <label className="text-white/70 text-sm">Steam URL</label>
-                  <Input
-                    value={heroForm.steamUrl}
-                    onChange={(e) => setHeroForm({ ...heroForm, steamUrl: e.target.value })}
-                    className="mt-1 bg-white/10 border-white/20 text-white"
-                    placeholder="https://store.steampowered.com/..."
-                  />
-                </div>
-                <div>
-                  <label className="text-white/70 text-sm">Itch.io URL</label>
-                  <Input
-                    value={heroForm.itchUrl}
-                    onChange={(e) => setHeroForm({ ...heroForm, itchUrl: e.target.value })}
-                    className="mt-1 bg-white/10 border-white/20 text-white"
-                    placeholder="https://itch.io/..."
-                  />
-                </div>
-                <div>
-                  <label className="text-white/70 text-sm">Website URL</label>
-                  <Input
-                    value={heroForm.websiteUrl}
-                    onChange={(e) => setHeroForm({ ...heroForm, websiteUrl: e.target.value })}
-                    className="mt-1 bg-white/10 border-white/20 text-white"
-                    placeholder="https://..."
-                  />
-                </div>
-                <div>
-                  <label className="text-white/70 text-sm">Discord URL</label>
-                  <Input
-                    value={heroForm.discordUrl}
-                    onChange={(e) => setHeroForm({ ...heroForm, discordUrl: e.target.value })}
-                    className="mt-1 bg-white/10 border-white/20 text-white"
-                    placeholder="https://discord.gg/..."
-                  />
-                </div>
               </div>
-            </div>
-          ) : (
-            // Hero Preview Mode
-            <>
-              <div className="relative h-48 overflow-hidden">
-                {project.bannerUrl ? (
-                  <img src={project.bannerUrl} alt={project.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center">
-                    <span className="text-white/50 text-sm">Click "Edit Hero" to add a banner</span>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
-              </div>
-
-              <div className="px-6 -mt-16 relative z-10 pb-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="w-24 h-24 rounded-2xl overflow-hidden bg-slate-800 border-4 border-slate-900 shadow-xl flex-shrink-0">
-                    {project.logoUrl ? (
-                      <img src={project.logoUrl} alt={project.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-indigo-600">
-                        <Gamepad2 className="h-10 w-10 text-white/80" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 pt-2">
-                    <h1 className="text-2xl font-bold text-white mb-1">{project.name}</h1>
-                    <div className="flex flex-wrap items-center gap-2 text-white/60 text-sm mb-3">
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" /> {developerName}
-                      </span>
-                      {project.genre && (
-                        <Badge variant="secondary" className="rounded-full bg-white/10 text-white/80 text-xs">
-                          {project.genre}
-                        </Badge>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" /> {new Date().toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    {project.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {project.tags.map(tag => (
-                          <Badge key={tag} variant="outline" className="rounded-full border-white/20 text-white/70 text-xs">
-                            <Tag className="h-2 w-2 mr-1" /> {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap gap-2">
-                      {project.steamUrl && (
-                        <Button size="sm" className="rounded-xl bg-[#1b2838] h-7 text-xs">Steam</Button>
-                      )}
-                      {project.itchUrl && (
-                        <Button size="sm" className="rounded-xl bg-[#fa5c5c] h-7 text-xs">Itch.io</Button>
-                      )}
-                      {project.websiteUrl && (
-                        <Button size="sm" variant="outline" className="rounded-xl border-white/20 text-white h-7 text-xs">
-                          <Globe className="h-3 w-3 mr-1" /> Website
-                        </Button>
-                      )}
-                      {project.discordUrl && (
-                        <Button size="sm" className="rounded-xl bg-[#5865F2] h-7 text-xs">Discord</Button>
-                      )}
-                      {!project.steamUrl && !project.itchUrl && !project.websiteUrl && !project.discordUrl && (
-                        <span className="text-white/40 text-xs">No links added yet</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Content Sections */}
-        <div className="px-6 pb-8 space-y-4">
+        <div className="p-4 space-y-4">
           
           {/* SECTION 2: About */}
-          <Card className={`rounded-2xl bg-white/5 border-white/10 relative group ${editingSection === 'about' ? 'ring-2 ring-purple-500' : ''}`}>
+          <Card className={`rounded-2xl relative group ${editingSection === 'about' ? 'ring-2 ring-primary' : ''}`}>
             {editingSection !== 'about' && (
               <button
                 onClick={() => setEditingSection('about')}
-                className="absolute top-3 right-3 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-3 right-3 z-10 bg-muted hover:bg-muted/80 px-2 py-1 rounded-lg text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Pencil className="h-3 w-3" /> Edit
               </button>
             )}
             
-            <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-sm text-white/80 flex items-center gap-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <Sparkles className="h-4 w-4" /> About & Features
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
+            <CardContent>
               {editingSection === 'about' ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="text-white/70 text-sm">Description</label>
+                    <label className="text-sm text-muted-foreground">Description</label>
                     <textarea
                       value={aboutForm.description}
                       onChange={(e) => setAboutForm({ ...aboutForm, description: e.target.value })}
-                      className="w-full mt-1 bg-white/10 border border-white/20 text-white rounded-xl px-3 py-2 text-sm resize-none"
+                      className="w-full mt-1 border rounded-xl px-3 py-2 text-sm resize-none"
                       rows={4}
                       placeholder="Describe your game..."
                     />
                   </div>
                   <div>
-                    <label className="text-white/70 text-sm">Key Features</label>
+                    <label className="text-sm text-muted-foreground">Key Features</label>
                     <div className="flex gap-2 mt-1">
                       <Input
                         value={aboutForm.featureInput}
                         onChange={(e) => setAboutForm({ ...aboutForm, featureInput: e.target.value })}
                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
-                        className="bg-white/10 border-white/20 text-white"
+                        className="rounded-xl"
                         placeholder="Add feature..."
                       />
-                      <Button size="sm" variant="secondary" onClick={addFeature}>
+                      <Button size="sm" variant="outline" className="rounded-xl" onClick={addFeature}>
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                     {aboutForm.features.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {aboutForm.features.map(f => (
-                          <Badge key={f} variant="secondary" className="cursor-pointer" onClick={() => removeFeature(f)}>
+                          <Badge key={f} variant="secondary" className="cursor-pointer rounded-full" onClick={() => removeFeature(f)}>
                             {f} ×
                           </Badge>
                         ))}
@@ -589,7 +623,7 @@ export default function GamePageEditor() {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" className="text-white" onClick={() => setEditingSection(null)}>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingSection(null)}>
                       Cancel
                     </Button>
                     <Button size="sm" onClick={() => handleSave('about')} disabled={saving}>
@@ -600,21 +634,21 @@ export default function GamePageEditor() {
               ) : (
                 <div>
                   {project.description ? (
-                    <p className="text-white/70 text-sm mb-3">{project.description}</p>
+                    <p className="text-muted-foreground text-sm mb-3">{project.description}</p>
                   ) : (
-                    <p className="text-white/40 text-sm mb-3 italic">No description yet. Click Edit to add one.</p>
+                    <p className="text-muted-foreground text-sm mb-3 italic">No description yet. Click Edit to add one.</p>
                   )}
                   {project.features.length > 0 ? (
                     <div className="space-y-1">
                       {project.features.map((f, i) => (
-                        <div key={i} className="flex items-center gap-2 text-white/70 text-sm">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                           {f}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-white/40 text-xs italic">No features listed</p>
+                    <p className="text-muted-foreground text-xs italic">No features listed</p>
                   )}
                 </div>
               )}
@@ -622,36 +656,36 @@ export default function GamePageEditor() {
           </Card>
 
           {/* SECTION 3: How to Play */}
-          <Card className={`rounded-2xl bg-white/5 border-white/10 relative group ${editingSection === 'rules' ? 'ring-2 ring-purple-500' : ''}`}>
+          <Card className={`rounded-2xl relative group ${editingSection === 'rules' ? 'ring-2 ring-primary' : ''}`}>
             {editingSection !== 'rules' && (
               <button
                 onClick={() => setEditingSection('rules')}
-                className="absolute top-3 right-3 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-3 right-3 z-10 bg-muted hover:bg-muted/80 px-2 py-1 rounded-lg text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Pencil className="h-3 w-3" /> Edit
               </button>
             )}
             
-            <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-sm text-white/80 flex items-center gap-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <BookOpen className="h-4 w-4" /> How to Play
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
+            <CardContent>
               {editingSection === 'rules' ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="text-white/70 text-sm">Rules / Instructions (Markdown supported)</label>
+                    <label className="text-sm text-muted-foreground">Rules / Instructions (Markdown supported)</label>
                     <textarea
                       value={rulesForm.rules}
                       onChange={(e) => setRulesForm({ ...rulesForm, rules: e.target.value })}
-                      className="w-full mt-1 bg-white/10 border border-white/20 text-white rounded-xl px-3 py-2 text-sm resize-none font-mono"
+                      className="w-full mt-1 border rounded-xl px-3 py-2 text-sm resize-none font-mono"
                       rows={8}
                       placeholder="# How to Play&#10;&#10;1. First step...&#10;2. Second step..."
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" className="text-white" onClick={() => setEditingSection(null)}>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingSection(null)}>
                       Cancel
                     </Button>
                     <Button size="sm" onClick={() => handleSave('rules')} disabled={saving}>
@@ -662,9 +696,9 @@ export default function GamePageEditor() {
               ) : (
                 <div>
                   {project.rules ? (
-                    <pre className="text-white/70 text-sm whitespace-pre-wrap font-sans">{project.rules}</pre>
+                    <pre className="text-muted-foreground text-sm whitespace-pre-wrap font-sans">{project.rules}</pre>
                   ) : (
-                    <p className="text-white/40 text-sm italic">No rules or instructions yet. Click Edit to add them.</p>
+                    <p className="text-muted-foreground text-sm italic">No rules or instructions yet. Click Edit to add them.</p>
                   )}
                 </div>
               )}
@@ -672,48 +706,48 @@ export default function GamePageEditor() {
           </Card>
 
           {/* SECTION 4: Updates Timeline */}
-          <Card className={`rounded-2xl bg-white/5 border-white/10 relative group ${editingSection === 'updates' ? 'ring-2 ring-purple-500' : ''}`}>
+          <Card className={`rounded-2xl relative group ${editingSection === 'updates' ? 'ring-2 ring-primary' : ''}`}>
             {editingSection !== 'updates' && (
               <button
                 onClick={() => setEditingSection('updates')}
-                className="absolute top-3 right-3 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-3 right-3 z-10 bg-muted hover:bg-muted/80 px-2 py-1 rounded-lg text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Plus className="h-3 w-3" /> Post Update
               </button>
             )}
             
-            <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-sm text-white/80 flex items-center gap-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <Activity className="h-4 w-4" /> Updates
-                <Badge variant="secondary" className="rounded-full bg-white/10 text-white/60 text-xs ml-1">
+                <Badge variant="secondary" className="rounded-full text-xs ml-1">
                   {game?._count.updates || 0}
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
+            <CardContent>
               {editingSection === 'updates' ? (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="p-4 rounded-xl bg-muted/50 border">
                     <div className="flex items-center gap-2 mb-3">
-                      <Megaphone className="h-4 w-4 text-purple-400" />
-                      <span className="text-white/80 text-sm font-medium">Post an Announcement</span>
+                      <Megaphone className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">Post an Announcement</span>
                     </div>
                     <Input
                       value={announcementForm.title}
                       onChange={(e) => setAnnouncementForm({ ...announcementForm, title: e.target.value })}
-                      className="bg-white/10 border-white/20 text-white mb-2"
+                      className="rounded-xl mb-2"
                       placeholder="Announcement title..."
                     />
                     <textarea
                       value={announcementForm.description}
                       onChange={(e) => setAnnouncementForm({ ...announcementForm, description: e.target.value })}
-                      className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-3 py-2 text-sm resize-none"
+                      className="w-full border rounded-xl px-3 py-2 text-sm resize-none"
                       rows={2}
                       placeholder="Optional description..."
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" className="text-white" onClick={() => setEditingSection(null)}>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingSection(null)}>
                       Cancel
                     </Button>
                     <Button size="sm" onClick={handlePostAnnouncement} disabled={saving || !announcementForm.title.trim()}>
@@ -725,7 +759,7 @@ export default function GamePageEditor() {
                 <div>
                   {/* Mini activity graph */}
                   {game && game.updates.length > 0 && (
-                    <div className="mb-3 p-2 rounded-lg bg-white/5">
+                    <div className="mb-3 p-2 rounded-lg bg-muted/50">
                       <div className="flex gap-0.5 flex-wrap">
                         {(() => {
                           const today = new Date()
@@ -741,9 +775,9 @@ export default function GamePageEditor() {
                             <div
                               key={idx}
                               className={`w-2 h-2 rounded-sm ${
-                                day.count === 0 ? 'bg-white/10' :
-                                day.count === 1 ? 'bg-green-700' :
-                                day.count >= 2 ? 'bg-green-500' : 'bg-white/10'
+                                day.count === 0 ? 'bg-muted' :
+                                day.count === 1 ? 'bg-green-400' :
+                                day.count >= 2 ? 'bg-green-600' : 'bg-muted'
                               }`}
                               title={`${day.date}: ${day.count} update${day.count !== 1 ? 's' : ''}`}
                             />
@@ -757,18 +791,18 @@ export default function GamePageEditor() {
                     <div className="space-y-2">
                       {game.updates.slice(0, 5).map((update) => (
                         <div key={update.id} className="flex items-start gap-2 text-sm">
-                          <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0">
-                            <Activity className="h-3 w-3 text-white/60" />
+                          <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                            <Activity className="h-3 w-3 text-muted-foreground" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-white/80 text-sm">{update.title}</div>
-                            <div className="text-white/40 text-xs">{new Date(update.createdAt).toLocaleDateString()}</div>
+                            <div className="text-sm">{update.title}</div>
+                            <div className="text-muted-foreground text-xs">{new Date(update.createdAt).toLocaleDateString()}</div>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-white/40 text-sm italic">No updates yet. Click "Post Update" to share news with your players.</p>
+                    <p className="text-muted-foreground text-sm italic">No updates yet. Click "Post Update" to share news with your players.</p>
                   )}
                 </div>
               )}
