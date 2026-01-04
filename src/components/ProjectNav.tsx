@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
-  LayoutDashboard, 
   BarChart2, 
   FileText, 
   MessageSquare, 
@@ -17,7 +16,6 @@ interface ProjectNavProps {
 }
 
 const navItems = [
-  { href: '', label: 'Overview', icon: LayoutDashboard },
   { href: '/stats', label: 'Stats', icon: BarChart2 },
   { href: '/forms', label: 'Campaigns', icon: FileText },
   { href: '/responses', label: 'Responses', icon: MessageSquare },
@@ -33,9 +31,7 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
     <nav className="rounded-2xl border bg-card p-1 flex items-center gap-1 overflow-x-auto">
       {navItems.map((item) => {
         const href = `${basePath}${item.href}`
-        const isActive = item.href === '' 
-          ? pathname === basePath
-          : pathname.startsWith(href)
+        const isActive = pathname.startsWith(href)
         const Icon = item.icon
 
         return (
