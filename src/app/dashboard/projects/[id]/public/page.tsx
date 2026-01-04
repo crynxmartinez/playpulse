@@ -145,6 +145,7 @@ export default function GamePageEditor() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [game, setGame] = useState<Game | null>(null);
+  const [updates, setUpdates] = useState<Update[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingSection, setEditingSection] = useState<EditingSection>(null);
@@ -216,6 +217,19 @@ export default function GamePageEditor() {
           rules: projectData.project.rules || '',
           rulesPdfUrl: projectData.project.rulesPdfUrl || '',
         });
+
+        // Fetch updates directly
+        try {
+          const updatesRes = await fetch(`/api/projects/${projectId}/updates`);
+          if (updatesRes.ok) {
+            const updatesData = await updatesRes.json();
+            if (updatesData.updates) {
+              setUpdates(updatesData.updates);
+            }
+          }
+        } catch {
+          // Updates fetch may fail, that's ok
+        }
 
         if (projectData.project.slug) {
           try {
@@ -758,9 +772,9 @@ export default function GamePageEditor() {
               </div>
             }
           >
-            {game && game.updates.length > 0 ? (
+            {updates.length > 0 ? (
               <div className="space-y-2">
-                {game.updates.slice(0, 5).map((update) => (
+                {updates.slice(0, 5).map((update) => (
                   <div key={update.id} className="flex items-start gap-2 text-sm">
                     <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
                       <Activity className="h-3 w-3 text-muted-foreground" />
