@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Plus, Edit2, Trash2, BarChart2, Sparkles, X } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Modal } from '@/components/ui/modal'
 
 interface Stat {
   id: string
@@ -242,36 +247,38 @@ export default function StatsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-800">Stats</h2>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-lg font-semibold">Stats</div>
+          <div className="text-sm text-muted-foreground">
+            Metrics to track in your campaigns. Example: Fun Rating, Difficulty.
+          </div>
+        </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="outline"
+            className="rounded-2xl"
             onClick={() => setShowTemplates(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
           >
-            <Sparkles size={20} />
+            <Sparkles className="mr-2 h-4 w-4" />
             Use Template
-          </button>
-          <button
+          </Button>
+          <Button
+            className="rounded-2xl"
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
-            <Plus size={20} />
+            <Plus className="mr-2 h-4 w-4" />
             Add Stat
-          </button>
+          </Button>
         </div>
       </div>
-
-      <p className="text-slate-500 mb-6">
-        Stats are the metrics you want to track in your feedback forms. For example: &quot;Fun Rating&quot;, &quot;Difficulty&quot;, &quot;Graphics Quality&quot;.
-      </p>
 
       {/* Templates Modal */}
       {showTemplates && (
