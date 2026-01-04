@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Settings, Trash2, Save, Award } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface Project {
   id: string
@@ -134,14 +137,19 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">Settings</h2>
+    <div className="space-y-4">
+      <div>
+        <div className="text-lg font-semibold">Settings</div>
+        <div className="text-sm text-muted-foreground">
+          Configure your game settings and score tiers.
+        </div>
+      </div>
 
       {message && (
         <div className={`mb-6 p-4 rounded-lg ${

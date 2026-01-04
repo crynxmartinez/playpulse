@@ -6,6 +6,8 @@ import {
   LineChart, BarChart2, TrendingUp, TrendingDown, FileText, MessageSquare, 
   Lightbulb, PieChart, Filter, Calendar, Target, ArrowUp, ArrowDown, Minus
 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface StatAverage {
   id: string
@@ -430,7 +432,7 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -438,7 +440,7 @@ export default function AnalyticsPage() {
   if (!data) {
     return (
       <div className="text-center py-12">
-        <p className="text-slate-500">Failed to load analytics</p>
+        <p className="text-muted-foreground">Failed to load analytics</p>
       </div>
     )
   }
@@ -447,10 +449,15 @@ export default function AnalyticsPage() {
   const statsWithData = data.statAverages.filter(s => s.count > 0)
 
   return (
-    <div>
+    <div className="space-y-4">
       {/* Header with Filters */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-slate-800">Analytics</h2>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="text-lg font-semibold">Analytics</div>
+          <div className="text-sm text-muted-foreground">
+            Track performance across your campaigns.
+          </div>
+        </div>
         
         <div className="flex flex-wrap items-center gap-3">
           {/* Form Filter */}

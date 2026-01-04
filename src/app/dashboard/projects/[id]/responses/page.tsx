@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { MessageSquare, Calendar, Star, Search, Filter, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 
 interface Answer {
   id: string
@@ -144,19 +146,21 @@ export default function ResponsesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Responses</h2>
-        <p className="text-slate-500">
-          {filteredResponses.length} of {responses.length} responses
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-lg font-semibold">Responses</div>
+          <div className="text-sm text-muted-foreground">
+            {filteredResponses.length} of {responses.length} responses
+          </div>
+        </div>
       </div>
 
       {/* Search & Filters Bar */}
