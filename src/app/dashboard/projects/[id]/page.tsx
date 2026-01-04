@@ -1,7 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { BarChart2, FileText, MessageSquare, TrendingUp } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { StatPill } from '@/components/ui/stat-pill'
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>
@@ -36,106 +40,74 @@ export default async function ProjectOverviewPage({ params }: ProjectPageProps) 
   )
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">Overview</h2>
-
+    <div className="space-y-4">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-              <BarChart2 className="text-purple-600" size={20} />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-800">{project._count.stats}</p>
-              <p className="text-sm text-slate-500">Stats</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <FileText className="text-blue-600" size={20} />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-800">{project._count.forms}</p>
-              <p className="text-sm text-slate-500">Forms</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-              <MessageSquare className="text-green-600" size={20} />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-800">{totalResponses}</p>
-              <p className="text-sm text-slate-500">Responses</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-              <TrendingUp className="text-orange-600" size={20} />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-800">
-                {project.forms.filter(f => f.isActive).length}
-              </p>
-              <p className="text-sm text-slate-500">Active Forms</p>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatPill label="Stats" value={String(project._count.stats)} />
+        <StatPill label="Campaigns" value={String(project._count.forms)} />
+        <StatPill label="Responses" value={String(totalResponses)} />
+        <StatPill label="Active" value={String(project.forms.filter(f => f.isActive).length)} hint="campaigns" />
       </div>
 
       {/* Quick Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Recent Stats */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Stats</h3>
-          {project.stats.length === 0 ? (
-            <p className="text-slate-500 text-sm">No stats created yet. Go to Stats tab to create some.</p>
-          ) : (
-            <div className="space-y-3">
-              {project.stats.slice(0, 5).map((stat) => (
-                <div key={stat.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <span className="font-medium text-slate-700">{stat.name}</span>
-                  <span className="text-sm text-slate-500">{stat.minValue} - {stat.maxValue}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Recent Forms */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Forms</h3>
-          {project.forms.length === 0 ? (
-            <p className="text-slate-500 text-sm">No forms created yet. Go to Forms tab to create some.</p>
-          ) : (
-            <div className="space-y-3">
-              {project.forms.slice(0, 5).map((form) => (
-                <div key={form.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <span className="font-medium text-slate-700">{form.title}</span>
-                    <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-                      form.isActive 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-slate-200 text-slate-600'
-                    }`}>
-                      {form.isActive ? 'Active' : 'Inactive'}
-                    </span>
+        <Card className="rounded-3xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <BarChart2 className="h-4 w-4" /> Stats
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {project.stats.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No stats created yet. Go to Stats tab to create some.</p>
+            ) : (
+              <div className="space-y-2">
+                {project.stats.slice(0, 5).map((stat) => (
+                  <div key={stat.id} className="flex items-center justify-between p-3 rounded-2xl border bg-background/60">
+                    <span className="font-medium">{stat.name}</span>
+                    <Badge variant="outline" className="rounded-full">{stat.minValue} - {stat.maxValue}</Badge>
                   </div>
-                  <span className="text-sm text-slate-500">{form._count.responses} responses</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Campaigns */}
+        <Card className="rounded-3xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FileText className="h-4 w-4" /> Campaigns
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {project.forms.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No campaigns created yet. Go to Campaigns tab to create some.</p>
+            ) : (
+              <div className="space-y-2">
+                {project.forms.slice(0, 5).map((form) => (
+                  <Link
+                    key={form.id}
+                    href={`/dashboard/projects/${id}/forms`}
+                    className="flex items-center justify-between p-3 rounded-2xl border bg-background/60 hover:bg-muted/50 transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{form.title}</span>
+                      <Badge 
+                        variant={form.isActive ? "default" : "secondary"} 
+                        className="rounded-full"
+                      >
+                        {form.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                    <span className="text-sm text-muted-foreground">{form._count.responses} responses</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
