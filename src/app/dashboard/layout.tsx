@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import Sidebar from '@/components/Sidebar'
+import DashboardLayoutClient from '@/components/DashboardLayout'
 
 export default async function DashboardLayout({
   children,
@@ -14,13 +14,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <Sidebar user={user} />
-      <main className="ml-64 min-h-screen">
-        <div className="p-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <DashboardLayoutClient user={user}>
+      {children}
+    </DashboardLayoutClient>
   )
 }
