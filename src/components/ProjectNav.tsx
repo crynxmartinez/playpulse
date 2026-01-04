@@ -22,7 +22,7 @@ const formNavItems = [
   { href: '/forms', label: 'Campaigns', icon: FileText },
   { href: '/responses', label: 'Responses', icon: MessageSquare },
   { href: '/analytics', label: 'Analytics', icon: LineChart },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/forms/settings', label: 'Settings', icon: Settings },
 ]
 
 // Overview mode nav items
