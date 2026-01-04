@@ -52,20 +52,24 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
             >
               Workspace
             </button>
-            <button
-              onClick={() => handleToggle('public')}
-              disabled={!canPreview}
+            <a
+              href={canPreview ? publicUrl : undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                if (!canPreview) {
+                  e.preventDefault()
+                }
+              }}
               className={`px-4 py-1.5 text-sm font-medium rounded-xl transition-colors flex items-center gap-1.5 ${
-                viewMode === 'public'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : canPreview
-                    ? 'text-muted-foreground hover:text-foreground'
-                    : 'text-muted-foreground/50 cursor-not-allowed'
+                canPreview
+                  ? 'text-muted-foreground hover:text-foreground hover:bg-background cursor-pointer'
+                  : 'text-muted-foreground/50 cursor-not-allowed pointer-events-none'
               }`}
             >
               Public View
               {canPreview && <ExternalLink size={12} />}
-            </button>
+            </a>
           </div>
           
           {/* Visibility Badge */}
