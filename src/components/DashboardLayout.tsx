@@ -14,16 +14,11 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ user, children }: DashboardLayoutProps) {
-  const [viewMode, setViewMode] = useState<'workspace' | 'public'>('workspace')
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <TopBar 
-        user={user} 
-        viewMode={viewMode} 
-        onViewModeChange={setViewMode} 
-      />
+      <TopBar user={user} />
       
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[240px_1fr]">
         {/* Sidebar */}

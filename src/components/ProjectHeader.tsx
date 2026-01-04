@@ -14,7 +14,7 @@ interface ProjectHeaderProps {
 }
 
 export default function ProjectHeader({ project }: ProjectHeaderProps) {
-  const [isPublicView, setIsPublicView] = useState(false)
+  const [viewMode, setViewMode] = useState<'workspace' | 'public'>('workspace')
   
   // Generate slug from project name
   const projectSlug = project.slug || project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -22,13 +22,11 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
   
   const canPreview = project.visibility === 'PUBLIC' || project.visibility === 'UNLISTED'
 
-  const handleToggle = () => {
-    if (isPublicView) {
-      setIsPublicView(false)
-    } else if (canPreview) {
-      // Open public view in new tab
+  const handleToggle = (mode: 'workspace' | 'public') => {
+    if (mode === 'public' && canPreview) {
       window.open(publicUrl, '_blank')
     }
+    setViewMode(mode)
   }
 
   return (
@@ -41,23 +39,52 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
           )}
         </div>
         
-        {/* Public View Toggle */}
+        {/* Workspace / Public View Toggle */}
         <div className="flex items-center gap-3">
-          {canPreview ? (
-            <a
-              href={publicUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+          <div className="flex items-center rounded-2xl border bg-muted/50 p-1">
+            <button
+              onClick={() => handleToggle('workspace')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-xl transition-colors ${
+                viewMode === 'workspace'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              <Eye size={16} />
-              <span className="text-sm font-medium">Public View</span>
-              <ExternalLink size={14} />
-            </a>
-          ) : (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-muted-foreground">
-              <EyeOff size={16} />
-              <span className="text-sm font-medium">Private</span>
+              Workspace
+            </button>
+            <button
+              onClick={() => handleToggle('public')}
+              disabled={!canPreview}
+              className={`px-4 py-1.5 text-sm font-medium rounded-xl transition-colors flex items-center gap-1.5 ${
+                viewMode === 'public'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : canPreview
+                    ? 'text-muted-foreground hover:text-foreground'
+                    : 'text-muted-foreground/50 cursor-not-allowed'
+              }`}
+            >
+              Public View
+              {canPreview && <ExternalLink size={12} />}
+            </button>
+          </div>
+          
+          {/* Visibility Badge */}
+          {project.visibility === 'PRIVATE' && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-sm">
+              <EyeOff size={14} />
+              Private
+            </div>
+          )}
+          {project.visibility === 'PUBLIC' && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-sm">
+              <Eye size={14} />
+              Public
+            </div>
+          )}
+          {project.visibility === 'UNLISTED' && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700 text-sm">
+              <Eye size={14} />
+              Unlisted
             </div>
           )}
         </div>

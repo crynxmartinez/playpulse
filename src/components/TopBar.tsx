@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { Bell, Plus, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface TopBarProps {
   user: {
@@ -14,11 +13,9 @@ interface TopBarProps {
     email: string
     name: string | null
   }
-  viewMode: 'workspace' | 'public'
-  onViewModeChange: (mode: 'workspace' | 'public') => void
 }
 
-export default function TopBar({ user, viewMode, onViewModeChange }: TopBarProps) {
+export default function TopBar({ user }: TopBarProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -53,15 +50,8 @@ export default function TopBar({ user, viewMode, onViewModeChange }: TopBarProps
           />
         </form>
 
-        {/* View Toggle + Actions */}
+        {/* Actions */}
         <div className="flex items-center gap-2">
-          <Tabs value={viewMode} onValueChange={(v) => onViewModeChange(v as 'workspace' | 'public')}>
-            <TabsList className="rounded-2xl">
-              <TabsTrigger value="workspace" className="rounded-2xl">Workspace</TabsTrigger>
-              <TabsTrigger value="public" className="rounded-2xl">Public View</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
           <Button className="rounded-2xl" variant="default" asChild>
             <Link href="/dashboard/games/new">
               <Plus className="mr-2 h-4 w-4" /> Create
