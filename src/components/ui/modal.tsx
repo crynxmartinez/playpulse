@@ -29,3 +29,4 @@ export function Modal({ open, title, children, onClose }: ModalProps) {
     </div>
   )
 }
+

@@ -5,9 +5,6 @@ import { Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { StatPill } from '@/components/ui/stat-pill'
-import { TagRow } from '@/components/ui/tag-row'
-import { VisibilityBadge } from '@/components/ui/visibility-badge'
 
 export default async function MyGamesPage() {
   const user = await getCurrentUser()
@@ -84,20 +81,24 @@ export default async function MyGamesPage() {
                         {game.description || 'No description'}
                       </div>
                     </div>
-                    <VisibilityBadge visibility="PRIVATE" />
+                    <Badge variant={game.visibility === 'PUBLIC' ? 'default' : 'secondary'} className="rounded-full text-xs">{game.visibility}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <StatPill label="Stats" value={String(game._count.stats)} />
-                    <StatPill label="Campaigns" value={String(game._count.forms)} />
-                    <StatPill label="Responses" value={String(game.totalResponses)} />
-                    <StatPill 
-                      label="Active" 
-                      value={String(game.activeCampaigns)} 
-                      hint="campaigns"
-                    />
+                  {/* Stats Row */}
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-foreground">{game._count.stats}</span>
+                      <span>Stats</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-foreground">{game._count.forms}</span>
+                      <span>Campaigns</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-foreground">{game.totalResponses}</span>
+                      <span>Responses</span>
+                    </div>
                   </div>
 
                   {/* Footer */}

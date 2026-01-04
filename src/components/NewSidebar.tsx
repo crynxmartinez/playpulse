@@ -12,6 +12,8 @@ import {
   Lock,
   Link as LinkIcon,
   Globe,
+  ChevronDown,
+  Check,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -49,6 +51,7 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
   const router = useRouter()
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(true)
+  const [isGameSelectorOpen, setIsGameSelectorOpen] = useState(false)
   
   // Extract project ID from URL if on a project page
   const urlProjectId = pathname.match(/\/dashboard\/projects\/([^/]+)/)?.[1] || null
@@ -106,13 +109,13 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
                   key={item.id}
                   href={item.href}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
+                    "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:bg-muted"
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-muted/50"
                   )}
                 >
-                  <Icon className={cn("h-4 w-4", isActive ? "" : "opacity-80")} />
+                  <Icon className="h-4 w-4" />
                   <span className="font-medium">{item.label}</span>
                 </Link>
               )
@@ -136,42 +139,47 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
               No games yet
             </div>
           ) : (
-            <>
-              <select
-                value={selectedGameId || ''}
-                onChange={(e) => handleSelectGame(e.target.value)}
-                className="w-full rounded-2xl border bg-background px-3 py-2 text-sm"
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                className="w-full justify-between rounded-2xl" 
+                onClick={() => setIsGameSelectorOpen(!isGameSelectorOpen)}
               >
-                {games.map((game) => (
-                  <option key={game.id} value={game.id}>
-                    {game.name}
-                  </option>
-                ))}
-              </select>
-
-              {(() => {
-                const selectedGame = games.find(g => g.id === selectedGameId)
-                const visibility = selectedGame?.visibility || 'PRIVATE'
-                const meta = VISIBILITY_META[visibility]
-                const Icon = meta.icon
-                return (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="rounded-full inline-flex items-center gap-1">
-                      <Icon className="h-3 w-3" />
-                      {meta.label}
-                    </Badge>
-                  </div>
-                )
-              })()}
-
-              {selectedGameId && (
-                <Button variant="outline" className="w-full rounded-2xl" asChild>
-                  <Link href={`/dashboard/projects/${selectedGameId}`}>
-                    Open Game Page
-                  </Link>
-                </Button>
+                <span>{games.find(g => g.id === selectedGameId)?.name || 'Select a game'}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isGameSelectorOpen ? 'rotate-180' : ''}`} />
+              </Button>
+              {isGameSelectorOpen && (
+                <Card className="absolute z-10 mt-2 w-full rounded-2xl border bg-card shadow-lg">
+                  <CardContent className="p-2">
+                    {games.map((game) => {
+                      const isSelected = game.id === selectedGameId
+                      const visibility = game.visibility || 'PRIVATE'
+                      const meta = VISIBILITY_META[visibility]
+                      const Icon = meta.icon
+                      return (
+                        <div
+                          key={game.id}
+                          onClick={() => {
+                            handleSelectGame(game.id)
+                            setIsGameSelectorOpen(false)
+                          }}
+                          className="flex cursor-pointer items-center justify-between rounded-xl p-2 text-sm hover:bg-muted"
+                        >
+                          <div className="flex flex-col">
+                            <span>{game.name}</span>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Icon className="h-3 w-3" />
+                              {meta.label}
+                            </div>
+                          </div>
+                          {isSelected && <Check className="h-4 w-4" />}
+                        </div>
+                      )
+                    })}
+                  </CardContent>
+                </Card>
               )}
-            </>
+            </div>
           )}
         </CardContent>
       </Card>

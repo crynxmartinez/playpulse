@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Globe, Link as LinkIcon } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 interface ProjectHeaderProps {
   project: {
@@ -58,24 +59,33 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
           </div>
           
           {/* Visibility Badge */}
-          {project.visibility === 'PRIVATE' && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-sm">
-              <EyeOff size={14} />
-              Private
-            </div>
-          )}
-          {project.visibility === 'PUBLIC' && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-sm">
-              <Eye size={14} />
-              Public
-            </div>
-          )}
-          {project.visibility === 'UNLISTED' && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700 text-sm">
-              <Eye size={14} />
-              Unlisted
-            </div>
-          )}
+          {(() => {
+            const visibilityMeta = {
+              PUBLIC: {
+                label: 'Public',
+                icon: Globe,
+                className: 'text-green-600 border-green-200 bg-green-50',
+              },
+              UNLISTED: {
+                label: 'Unlisted',
+                icon: LinkIcon,
+                className: 'text-yellow-600 border-yellow-200 bg-yellow-50',
+              },
+              PRIVATE: {
+                label: 'Private',
+                icon: EyeOff,
+                className: 'bg-muted',
+              },
+            };
+            const meta = visibilityMeta[project.visibility];
+            const Icon = meta.icon;
+            return (
+              <Badge variant="outline" className={`rounded-full text-sm font-medium ${meta.className}`}>
+                <Icon className="h-3 w-3 mr-1.5" />
+                {meta.label}
+              </Badge>
+            );
+          })()}
         </div>
       </div>
     </div>

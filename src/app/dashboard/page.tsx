@@ -5,7 +5,6 @@ import { Plus, Camera, BarChart3, Link as LinkIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { StatPill } from '@/components/ui/stat-pill'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -67,22 +66,34 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <StatPill 
-          label="Total Games" 
-          value={String(totalGames)} 
-          hint={totalGames === 1 ? 'game' : 'games'} 
-        />
-        <StatPill 
-          label="Responses (14d)" 
-          value={String(recentResponses)} 
-          hint="across campaigns" 
-        />
-        <StatPill 
-          label="Total Responses" 
-          value={String(totalResponses)} 
-          hint="all time" 
-        />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card className="rounded-3xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Games</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalGames}</div>
+            <p className="text-xs text-muted-foreground">{totalGames === 1 ? 'game' : 'games'} created</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-3xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Responses (14d)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{recentResponses}</div>
+            <p className="text-xs text-muted-foreground">from all campaigns</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-3xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Responses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalResponses}</div>
+            <p className="text-xs text-muted-foreground">across all time</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content Grid */}

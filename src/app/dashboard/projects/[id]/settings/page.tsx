@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Modal } from '@/components/ui/modal'
 
 interface Project {
   id: string
@@ -47,6 +48,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -138,11 +140,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone. All forms, stats, and responses will be permanently deleted.')) {
-      return
-    }
-
+  const confirmDelete = async () => {
     setDeleting(true)
 
     try {
@@ -155,6 +153,7 @@ export default function SettingsPage() {
         router.refresh()
       } else {
         setMessage({ type: 'error', text: 'Failed to delete project' })
+        setDeleteModalOpen(false)
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to delete project' })
@@ -191,148 +190,110 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <form onSubmit={handleSave}>
-        {/* Game Info */}
-        <Card className="rounded-3xl mb-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Settings className="h-4 w-4" /> Game Info
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-muted-foreground">Game Name *</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="rounded-2xl mt-1"
-                  placeholder="My Awesome Game"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm text-muted-foreground">URL Slug</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-muted-foreground text-sm">/g/</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <form onSubmit={handleSave}>
+            <Card className="rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Settings className="h-4 w-4" /> General
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Game Name *</label>
                   <Input
-                    value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    className="rounded-2xl"
-                    placeholder="my-game"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="rounded-xl"
+                    placeholder="My Awesome Game"
+                    required
                   />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">3-50 chars, lowercase, hyphens</p>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground">Description</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full rounded-2xl mt-1 px-3 py-2 border bg-background text-sm resize-none"
-                placeholder="A brief description of your game..."
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-muted-foreground">Genre</label>
-                <select
-                  value={formData.genre}
-                  onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-                  className="w-full rounded-2xl mt-1 px-3 py-2 border bg-background text-sm"
-                >
-                  <option value="">Select genre...</option>
-                  {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm text-muted-foreground">Tags (max 5)</label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                    className="rounded-2xl"
-                    placeholder="Add tag..."
-                  />
-                  <Button type="button" variant="outline" className="rounded-2xl" onClick={addTag}>Add</Button>
-                </div>
-                {formData.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {formData.tags.map(tag => (
-                      <Badge key={tag} variant="secondary" className="rounded-full cursor-pointer" onClick={() => removeTag(tag)}>
-                        {tag} ×
-                      </Badge>
-                    ))}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">URL Slug</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-sm p-2 bg-muted rounded-l-xl border border-r-0">/g/</span>
+                    <Input
+                      value={formData.slug}
+                      onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                      className="rounded-r-xl rounded-l-none"
+                      placeholder="my-game"
+                    />
                   </div>
-                )}
-              </div>
+                  <p className="text-xs text-muted-foreground">3-50 chars, lowercase, hyphens</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Globe className="h-4 w-4" /> Visibility
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { value: 'PRIVATE', label: 'Private', desc: 'Only you can see', icon: EyeOff },
+                    { value: 'UNLISTED', label: 'Unlisted', desc: 'Anyone with link', icon: LinkIcon },
+                    { value: 'PUBLIC', label: 'Public', desc: 'Listed in discovery', icon: Eye },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, visibility: opt.value as typeof formData.visibility })}
+                      className={`p-4 rounded-xl border text-left transition-all duration-200 ${formData.visibility === opt.value ? 'border-primary ring-2 ring-primary/50 bg-primary/5' : 'hover:border-muted-foreground/50'}`}
+                    >
+                      <opt.icon className={`h-5 w-5 mb-2 ${formData.visibility === opt.value ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <div className="font-semibold text-sm">{opt.label}</div>
+                      <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button type="submit" className="rounded-xl" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </form>
+        </div>
+
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="rounded-3xl border-destructive/50">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2 text-destructive">
+                <Trash2 className="h-4 w-4" /> Danger Zone
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm mb-4">
+                Once you delete a game, there is no going back. All campaigns, stats, and responses will be permanently deleted.
+              </p>
+              <Button
+                variant="destructive"
+                className="rounded-xl w-full"
+                onClick={() => setDeleteModalOpen(true)}
+                disabled={deleting}
+              >
+                Delete Game
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      <Modal open={isDeleteModalOpen} onClose={() => setDeleteModalOpen(false)} title="Confirm Deletion">
+        <div className="space-y-4">
+            <p>Are you sure you want to delete this project? This action is irreversible and will permanently delete all associated data, including forms, stats, and responses.</p>
+            <div className="flex justify-end gap-2">
+                <Button variant="ghost" className="rounded-xl" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
+                <Button variant="destructive" className="rounded-xl" onClick={confirmDelete} disabled={deleting}>
+                    {deleting ? 'Deleting...' : 'Confirm Delete'}
+                </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Visibility */}
-        <Card className="rounded-3xl mb-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Globe className="h-4 w-4" /> Visibility
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: 'PRIVATE', label: 'Private', desc: 'Only you can see', icon: EyeOff },
-                { value: 'UNLISTED', label: 'Unlisted', desc: 'Anyone with link', icon: LinkIcon },
-                { value: 'PUBLIC', label: 'Public', desc: 'Listed in discovery', icon: Eye },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, visibility: opt.value as typeof formData.visibility })}
-                  className={`p-4 rounded-2xl border text-left transition ${
-                    formData.visibility === opt.value 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <opt.icon className={`h-5 w-5 mb-2 ${formData.visibility === opt.value ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <div className="font-medium text-sm">{opt.label}</div>
-                  <div className="text-xs text-muted-foreground">{opt.desc}</div>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Save Button */}
-        <Button type="submit" className="rounded-2xl w-full md:w-auto" disabled={saving}>
-          {saving ? 'Saving...' : 'Save All Changes'}
-        </Button>
-      </form>
-
-      {/* Danger Zone */}
-      <Card className="rounded-3xl border-destructive/50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2 text-destructive">
-            <Trash2 className="h-4 w-4" /> Danger Zone
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm mb-4">
-            Once you delete a game, there is no going back. All campaigns, stats, and responses will be permanently deleted.
-          </p>
-          <Button
-            variant="destructive"
-            className="rounded-2xl"
-            onClick={handleDelete}
-            disabled={deleting}
-          >
-            {deleting ? 'Deleting...' : 'Delete Game'}
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </Modal>
     </div>
   )
 }

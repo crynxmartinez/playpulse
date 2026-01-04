@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { BarChart2, FileText, MessageSquare, TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { StatPill } from '@/components/ui/stat-pill'
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>
@@ -42,11 +41,43 @@ export default async function ProjectOverviewPage({ params }: ProjectPageProps) 
   return (
     <div className="space-y-4">
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatPill label="Stats" value={String(project._count.stats)} />
-        <StatPill label="Campaigns" value={String(project._count.forms)} />
-        <StatPill label="Responses" value={String(totalResponses)} />
-        <StatPill label="Active" value={String(project.forms.filter(f => f.isActive).length)} hint="campaigns" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="rounded-3xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Stats</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{project._count.stats}</div>
+            <p className="text-xs text-muted-foreground">Total stats created</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-3xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Campaigns</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{project._count.forms}</div>
+            <p className="text-xs text-muted-foreground">Total campaigns</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-3xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Responses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalResponses}</div>
+            <p className="text-xs text-muted-foreground">Across all campaigns</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-3xl">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{project.forms.filter(f => f.isActive).length}</div>
+            <p className="text-xs text-muted-foreground">Currently running</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Info */}
