@@ -86,6 +86,7 @@ export async function PATCH(
       tierHighMsg,
       // Game profile content
       rules,
+      rulesPdfUrl,
       features,
     } = body
 
@@ -137,6 +138,7 @@ export async function PATCH(
         ...(tierHighMsg !== undefined && { tierHighMsg: tierHighMsg?.trim() || null }),
         // Game profile content
         ...(rules !== undefined && { rules: rules?.trim() || null }),
+        ...(rulesPdfUrl !== undefined && { rulesPdfUrl: rulesPdfUrl?.trim() || null }),
         ...(features !== undefined && { features }),
       },
     })

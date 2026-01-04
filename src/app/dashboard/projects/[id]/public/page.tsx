@@ -18,7 +18,8 @@ import {
   Save,
   Plus,
   Image,
-  Megaphone
+  Megaphone,
+  FileText
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -48,6 +49,7 @@ interface Project {
   websiteUrl: string | null
   discordUrl: string | null
   rules: string | null
+  rulesPdfUrl: string | null
   features: string[]
 }
 
@@ -66,6 +68,7 @@ interface Game {
   websiteUrl: string | null
   discordUrl: string | null
   rules: string | null
+  rulesPdfUrl: string | null
   features: string[]
   createdAt: string
   user: {
@@ -134,6 +137,7 @@ const EditableCard: React.FC<EditableCardProps> = ({ sectionName, title, icon: I
       </CardContent>
     </Card>
   );
+};
 
 export default function GamePageEditor() {
   const params = useParams();
@@ -167,7 +171,10 @@ export default function GamePageEditor() {
 
   const [rulesForm, setRulesForm] = useState({
     rules: '',
+    rulesPdfUrl: '',
   });
+
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
 
   const [announcementForm, setAnnouncementForm] = useState({
     title: '',
@@ -207,6 +214,7 @@ export default function GamePageEditor() {
         
         setRulesForm({
           rules: projectData.project.rules || '',
+          rulesPdfUrl: projectData.project.rulesPdfUrl || '',
         });
 
         if (projectData.project.slug) {
@@ -260,6 +268,7 @@ export default function GamePageEditor() {
       } else if (section === 'rules') {
         updateData = {
           rules: rulesForm.rules || null,
+          rulesPdfUrl: rulesForm.rulesPdfUrl || null,
         };
       }
 
@@ -530,7 +539,7 @@ export default function GamePageEditor() {
 
           <EditableCard
             sectionName="rules"
-            title="Rules"
+            title="How to Play"
             icon={BookOpen}
             editingSection={editingSection}
             setEditingSection={setEditingSection}
@@ -538,28 +547,68 @@ export default function GamePageEditor() {
             onCancel={() => setEditingSection(null)}
             saving={saving}
             editContent={
-              <div>
-                <label className="text-sm text-muted-foreground">Rules / Instructions (Markdown supported)</label>
-                <textarea
-                  value={rulesForm.rules}
-                  onChange={(e) => setRulesForm({ ...rulesForm, rules: e.target.value })}
-                  className="w-full mt-1 border rounded-xl px-3 py-2 text-sm resize-none font-mono"
-                  rows={8}
-                  placeholder="# How to Play&#10;&#10;1. First step...&#10;2. Second step..."
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground">Rules / Instructions (Rich text)</label>
+                  <textarea
+                    value={rulesForm.rules}
+                    onChange={(e) => setRulesForm({ ...rulesForm, rules: e.target.value })}
+                    className="w-full mt-1 border rounded-xl px-3 py-2 text-sm resize-none"
+                    rows={8}
+                    placeholder="Write your game rules and instructions here..."
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">PDF Rules Link (optional)</label>
+                  <Input
+                    value={rulesForm.rulesPdfUrl}
+                    onChange={(e) => setRulesForm({ ...rulesForm, rulesPdfUrl: e.target.value })}
+                    className="mt-1 rounded-xl"
+                    placeholder="https://example.com/rules.pdf"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Link to a PDF document with detailed rules</p>
+                </div>
               </div>
             }
           >
             {project.rules ? (
-              <pre className="text-muted-foreground text-sm whitespace-pre-wrap font-sans">{project.rules}</pre>
+              <p className="text-muted-foreground text-sm whitespace-pre-wrap">{project.rules}</p>
             ) : (
               <p className="text-muted-foreground text-sm italic">No rules or instructions yet. Click Edit to add them.</p>
             )}
+            {project.rulesPdfUrl && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3 rounded-xl"
+                onClick={() => setPdfModalOpen(true)}
+              >
+                <FileText className="h-4 w-4 mr-2" /> View Rules PDF
+              </Button>
+            )}
           </EditableCard>
-        </div>
 
-        {/* Right Column */}
-        <div className="md:col-span-1 space-y-4">
+          {/* PDF Modal */}
+          {pdfModalOpen && project.rulesPdfUrl && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <h3 className="font-semibold">Rules PDF</h3>
+                  <Button size="sm" variant="ghost" onClick={() => setPdfModalOpen(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 p-4">
+                  <iframe
+                    src={project.rulesPdfUrl}
+                    className="w-full h-full rounded-xl border"
+                    title="Rules PDF"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <EditableCard
             sectionName="hero"
             title="Game Info & Links"

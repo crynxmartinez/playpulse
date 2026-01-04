@@ -78,7 +78,8 @@ model Project {
   tierHighMsg   String?    // Custom message for high scorers
   
   // Game profile content
-  rules         String?    @db.Text  // Game rules/how to play (markdown)
+  rules         String?    @db.Text  // Game rules/how to play (rich text)
+  rulesPdfUrl   String?              // PDF link for rules document
   features      String[]   @default([])  // Key features list
   
   stats         Stat[]
