@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUser } from '@/lib/auth'
 
 // GET /api/games/[slug] - Get public game by slug
 export async function GET(
@@ -8,20 +9,20 @@ export async function GET(
 ) {
   try {
     const { slug } = await params
+    const user = await getCurrentUser()
 
     if (!slug) {
       return NextResponse.json({ error: 'Slug is required' }, { status: 400 })
     }
 
+    // First try to find the project
     const project = await prisma.project.findFirst({
       where: {
         slug: slug,
-        visibility: {
-          in: ['PUBLIC', 'UNLISTED']
-        }
       },
       select: {
         id: true,
+        userId: true,
         name: true,
         description: true,
         slug: true,
@@ -100,7 +101,15 @@ export async function GET(
       return NextResponse.json({ error: 'Game not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ game: project })
+    // Check access: owner can always view, others need PUBLIC or UNLISTED
+    const isOwner = user && project.userId === user.id
+    const isPubliclyVisible = project.visibility === 'PUBLIC' || project.visibility === 'UNLISTED'
+    
+    if (!isOwner && !isPubliclyVisible) {
+      return NextResponse.json({ error: 'Game not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ game: project, isOwner })
   } catch (error) {
     console.error('Failed to fetch game:', error)
     return NextResponse.json({ error: 'Failed to fetch game' }, { status: 500 })

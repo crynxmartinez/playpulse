@@ -20,7 +20,8 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
   const projectSlug = project.slug || project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
   const publicUrl = `/g/${projectSlug}`
   
-  const canPreview = project.visibility === 'PUBLIC' || project.visibility === 'UNLISTED'
+  // Owner can always preview their page (even when private) to develop it
+  const canPreview = true
 
   const handleToggle = (mode: 'workspace' | 'public') => {
     if (mode === 'public' && canPreview) {
