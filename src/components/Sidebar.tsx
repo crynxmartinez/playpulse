@@ -7,10 +7,11 @@ import {
   LogOut,
   Plus,
   Gamepad2,
-  FolderOpen
+  FolderOpen,
+  LayoutDashboard
 } from 'lucide-react'
 
-interface Project {
+interface Game {
   id: string
   name: string
   description: string | null
@@ -28,48 +29,48 @@ interface SidebarProps {
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const [projects, setProjects] = useState<Project[]>([])
+  const [games, setGames] = useState<Game[]>([])
   const [isCreating, setIsCreating] = useState(false)
-  const [newProjectName, setNewProjectName] = useState('')
+  const [newGameName, setNewGameName] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchProjects()
+    fetchGames()
   }, [])
 
-  const fetchProjects = async () => {
+  const fetchGames = async () => {
     try {
       const res = await fetch('/api/projects')
       const data = await res.json()
       if (data.projects) {
-        setProjects(data.projects)
+        setGames(data.projects)
       }
     } catch (error) {
-      console.error('Failed to fetch projects:', error)
+      console.error('Failed to fetch games:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCreateProject = async (e: React.FormEvent) => {
+  const handleCreateGame = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newProjectName.trim()) return
+    if (!newGameName.trim()) return
 
     try {
       const res = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newProjectName }),
+        body: JSON.stringify({ name: newGameName }),
       })
       const data = await res.json()
       if (data.project) {
-        setProjects([data.project, ...projects])
-        setNewProjectName('')
+        setGames([data.project, ...games])
+        setNewGameName('')
         setIsCreating(false)
         router.push(`/dashboard/projects/${data.project.id}`)
       }
     } catch (error) {
-      console.error('Failed to create project:', error)
+      console.error('Failed to create game:', error)
     }
   }
 
@@ -90,11 +91,26 @@ export default function Sidebar({ user }: SidebarProps) {
         </Link>
       </div>
 
-      {/* Projects Section */}
+      {/* Dashboard Link */}
+      <div className="p-4 border-b border-slate-700">
+        <Link
+          href="/dashboard"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+            pathname === '/dashboard'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
+              : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+          }`}
+        >
+          <LayoutDashboard size={18} />
+          <span className="font-medium text-sm">Dashboard</span>
+        </Link>
+      </div>
+
+      {/* Games Section */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="p-4 border-b border-slate-700">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Projects</span>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Games</span>
             <button
               onClick={() => setIsCreating(!isCreating)}
               className="p-1 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
@@ -104,12 +120,12 @@ export default function Sidebar({ user }: SidebarProps) {
           </div>
 
           {isCreating && (
-            <form onSubmit={handleCreateProject} className="mb-3">
+            <form onSubmit={handleCreateGame} className="mb-3">
               <input
                 type="text"
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                placeholder="Project name..."
+                value={newGameName}
+                onChange={(e) => setNewGameName(e.target.value)}
+                placeholder="Game name..."
                 className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 autoFocus
               />
@@ -122,7 +138,7 @@ export default function Sidebar({ user }: SidebarProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setIsCreating(false); setNewProjectName('') }}
+                  onClick={() => { setIsCreating(false); setNewGameName('') }}
                   className="px-3 py-1.5 text-slate-400 text-sm hover:text-white transition-colors"
                 >
                   Cancel
@@ -132,32 +148,32 @@ export default function Sidebar({ user }: SidebarProps) {
           )}
         </div>
 
-        {/* Projects List */}
+        {/* Games List */}
         <nav className="flex-1 p-2 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ) : projects.length === 0 ? (
+          ) : games.length === 0 ? (
             <div className="text-center py-8 px-4">
               <FolderOpen className="mx-auto text-slate-500 mb-2" size={32} />
-              <p className="text-sm text-slate-400">No projects yet</p>
+              <p className="text-sm text-slate-400">No games yet</p>
               <button
                 onClick={() => setIsCreating(true)}
                 className="mt-2 text-sm text-purple-400 hover:text-purple-300"
               >
-                Create your first project
+                Create your first game
               </button>
             </div>
           ) : (
             <ul className="space-y-1">
-              {projects.map((project) => {
-                const isActive = pathname.startsWith(`/dashboard/projects/${project.id}`)
+              {games.map((game) => {
+                const isActive = pathname.startsWith(`/dashboard/projects/${game.id}`)
                 
                 return (
-                  <li key={project.id}>
+                  <li key={game.id}>
                     <Link
-                      href={`/dashboard/projects/${project.id}`}
+                      href={`/dashboard/projects/${game.id}`}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
                         isActive
                           ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
@@ -165,7 +181,7 @@ export default function Sidebar({ user }: SidebarProps) {
                       }`}
                     >
                       <Gamepad2 size={18} />
-                      <span className="font-medium text-sm truncate">{project.name}</span>
+                      <span className="font-medium text-sm truncate">{game.name}</span>
                     </Link>
                   </li>
                 )
