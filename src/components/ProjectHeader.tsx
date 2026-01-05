@@ -37,9 +37,8 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
   const pathname = usePathname()
   
   // Determine if we're in public view mode based on URL
-  const isPublicView = pathname.includes('/public')
   const workspaceUrl = `/dashboard/projects/${project.id}`
-  const publicEditorUrl = `/dashboard/projects/${project.id}/public`
+  const gamePageUrl = `/game/${project.id}`
   
   const meta = VISIBILITY_META[project.visibility]
   const VisibilityIcon = meta.icon
@@ -73,21 +72,13 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
           <div className="flex items-center rounded-2xl border bg-muted/50 p-1">
             <Link
               href={workspaceUrl}
-              className={`px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors ${
-                !isPublicView
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className="px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors bg-background text-foreground shadow-sm"
             >
               Workspace
             </Link>
             <Link
-              href={publicEditorUrl}
-              className={`px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors ${
-                isPublicView
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              href={gamePageUrl}
+              className="px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors text-muted-foreground hover:text-foreground"
             >
               Game Page
             </Link>
