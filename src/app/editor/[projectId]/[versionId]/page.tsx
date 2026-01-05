@@ -190,6 +190,7 @@ export default function VersionEditorPage() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['layout', 'text', 'game'])
   const [showElementPicker, setShowElementPicker] = useState(false)
   const [insertPosition, setInsertPosition] = useState<{ rowIndex: number; colIndex: number } | null>(null)
+  const [isPreviewMode, setIsPreviewMode] = useState(false)
 
   // Fetch version and page data
   useEffect(() => {
@@ -389,9 +390,14 @@ export default function VersionEditorPage() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white transition-colors">
+          <button 
+            onClick={() => setIsPreviewMode(!isPreviewMode)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              isPreviewMode ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
+            }`}
+          >
             <Eye size={18} />
-            <span className="text-sm">Preview</span>
+            <span className="text-sm">{isPreviewMode ? 'Edit' : 'Preview'}</span>
           </button>
           <button
             onClick={saveContent}
@@ -406,7 +412,8 @@ export default function VersionEditorPage() {
 
       {/* Main Editor */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Elements */}
+        {/* Left Sidebar - Elements (hidden in preview mode) */}
+        {!isPreviewMode && (
         <div className="w-64 bg-[#1a1a2e] border-r border-[#2a2a3e] flex flex-col overflow-hidden shrink-0">
           <div className="p-3 border-b border-[#2a2a3e]">
             <div className="text-sm font-medium text-white">Elements</div>
@@ -456,6 +463,7 @@ export default function VersionEditorPage() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Center Canvas */}
         <div className="flex-1 bg-[#0d0d15] overflow-y-auto p-6">
@@ -495,9 +503,10 @@ export default function VersionEditorPage() {
                 {content.rows.map((row, rowIndex) => (
                   <div
                     key={row.id}
-                    className="group relative border border-transparent hover:border-purple-500/50 rounded-lg transition-colors"
+                    className={`group relative border border-transparent rounded-lg transition-colors ${!isPreviewMode ? 'hover:border-purple-500/50' : ''}`}
                   >
-                    {/* Row Controls */}
+                    {/* Row Controls (hidden in preview mode) */}
+                    {!isPreviewMode && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <div className="flex items-center gap-1 bg-[#2a2a3e] rounded-lg px-2 py-1">
                         <button className="p-1 text-slate-400 hover:text-white">
@@ -514,6 +523,7 @@ export default function VersionEditorPage() {
                         </button>
                       </div>
                     </div>
+                    )}
 
                     {/* Columns */}
                     <div 
@@ -523,10 +533,11 @@ export default function VersionEditorPage() {
                       {row.columns.map((col, colIndex) => (
                         <div
                           key={col.id}
-                          className="flex-1 min-h-[100px] border border-dashed border-[#3a3a4e] rounded-lg p-2"
+                          className={`flex-1 min-h-[100px] rounded-lg p-2 ${!isPreviewMode ? 'border border-dashed border-[#3a3a4e]' : ''}`}
                           style={{ width: col.width }}
                         >
                           {col.elements.length === 0 ? (
+                            !isPreviewMode ? (
                             <button
                               onClick={() => {
                                 setInsertPosition({ rowIndex, colIndex })
@@ -537,23 +548,26 @@ export default function VersionEditorPage() {
                               <Plus size={20} />
                               <span className="text-xs mt-1">Add Element</span>
                             </button>
+                            ) : null
                           ) : (
                             <div className="space-y-2">
                               {col.elements.map((element) => (
                                 <div
                                   key={element.id}
-                                  onClick={() => setSelectedElementId(element.id)}
-                                  className={`relative p-3 rounded-lg cursor-pointer transition-all ${
-                                    selectedElementId === element.id
+                                  onClick={() => !isPreviewMode && setSelectedElementId(element.id)}
+                                  className={`relative p-3 rounded-lg transition-all ${
+                                    !isPreviewMode ? 'cursor-pointer' : ''
+                                  } ${
+                                    !isPreviewMode && selectedElementId === element.id
                                       ? 'ring-2 ring-purple-500 bg-purple-500/10'
-                                      : 'hover:bg-[#2a2a3e]'
+                                      : !isPreviewMode ? 'hover:bg-[#2a2a3e]' : ''
                                   }`}
                                 >
                                   {/* Element Renderer */}
                                   <ElementRenderer element={element} />
                                   
-                                  {/* Element Controls */}
-                                  {selectedElementId === element.id && (
+                                  {/* Element Controls (hidden in preview mode) */}
+                                  {!isPreviewMode && selectedElementId === element.id && (
                                     <div className="absolute -top-2 -right-2 flex items-center gap-1 bg-purple-600 rounded-lg px-1 py-0.5">
                                       <button className="p-1 text-white/80 hover:text-white">
                                         <Move size={12} />
@@ -571,6 +585,7 @@ export default function VersionEditorPage() {
                                   )}
                                 </div>
                               ))}
+                              {!isPreviewMode && (
                               <button
                                 onClick={() => {
                                   setInsertPosition({ rowIndex, colIndex })
@@ -581,6 +596,7 @@ export default function VersionEditorPage() {
                                 <Plus size={14} />
                                 Add Element
                               </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -589,7 +605,8 @@ export default function VersionEditorPage() {
                   </div>
                 ))}
 
-                {/* Add Row Button */}
+                {/* Add Row Button (hidden in preview mode) */}
+                {!isPreviewMode && (
                 <div className="flex justify-center gap-2 py-4">
                   <button
                     onClick={() => addRow(1)}
@@ -610,12 +627,14 @@ export default function VersionEditorPage() {
                     + 3 Columns
                   </button>
                 </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Sidebar - Properties */}
+        {/* Right Sidebar - Properties (hidden in preview mode) */}
+        {!isPreviewMode && (
         <div className="w-72 bg-[#1a1a2e] border-l border-[#2a2a3e] flex flex-col overflow-hidden shrink-0">
           <div className="p-3 border-b border-[#2a2a3e] flex items-center gap-2">
             <Settings size={16} className="text-slate-400" />
@@ -639,6 +658,7 @@ export default function VersionEditorPage() {
             )}
           </div>
         </div>
+        )}
       </div>
 
       {/* Element Picker Modal */}
