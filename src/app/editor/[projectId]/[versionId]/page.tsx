@@ -29,7 +29,9 @@ import {
   X,
   Settings,
   Palette,
-  Move
+  Move,
+  Share2,
+  Check
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -191,6 +193,15 @@ export default function VersionEditorPage() {
   const [showElementPicker, setShowElementPicker] = useState(false)
   const [insertPosition, setInsertPosition] = useState<{ rowIndex: number; colIndex: number } | null>(null)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  // Copy share link
+  const copyShareLink = () => {
+    const url = `${window.location.origin}/updates/${projectId}/${versionId}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   // Fetch version and page data
   useEffect(() => {
@@ -390,6 +401,15 @@ export default function VersionEditorPage() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
+          <button 
+            onClick={copyShareLink}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              copied ? 'bg-green-600 text-white' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            {copied ? <Check size={18} /> : <Share2 size={18} />}
+            <span className="text-sm">{copied ? 'Copied!' : 'Share'}</span>
+          </button>
           <button 
             onClick={() => setIsPreviewMode(!isPreviewMode)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
