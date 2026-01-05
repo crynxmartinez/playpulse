@@ -10,7 +10,6 @@ import {
   Camera,
   Settings,
   Eye,
-  User,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -31,7 +30,6 @@ const formNavItems = [
 // Overview mode nav items
 const overviewNavItems = [
   { href: '', label: 'Overview', icon: Eye },
-  { href: '/profile', label: 'Profile', icon: User },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -41,7 +39,7 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
   
   // Determine mode based on URL
   // Form mode: /forms, /stats, /responses, /analytics, /snapshots
-  // Overview mode: base path, /profile, /settings (but not /forms/settings)
+  // Overview mode: base path, /settings (but not /forms/settings)
   const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics') || pathname.includes('/snapshots')
   
   const navItems = isFormMode ? formNavItems : overviewNavItems
