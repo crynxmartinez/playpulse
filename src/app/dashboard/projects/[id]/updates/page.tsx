@@ -38,8 +38,11 @@ export default function UpdatesPage() {
     try {
       const res = await fetch(`/api/projects/${projectId}/versions`)
       const data = await res.json()
+      console.log('Versions API response:', data)
       if (data.versions) {
         setVersions(data.versions)
+      } else if (data.error) {
+        console.error('API error:', data.error)
       }
     } catch (error) {
       console.error('Failed to fetch versions:', error)
@@ -70,13 +73,18 @@ export default function UpdatesPage() {
           body: JSON.stringify(formData),
         })
         const data = await res.json()
+        console.log('Create version response:', data)
         if (data.version) {
           setVersions([data.version, ...versions])
+        } else if (data.error) {
+          console.error('Create error:', data.error)
+          alert(`Error: ${data.error}`)
         }
       }
       resetForm()
     } catch (error) {
       console.error('Failed to save version:', error)
+      alert('Failed to save version. Check console for details.')
     }
   }
 
