@@ -374,12 +374,12 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
       <div className="relative">
         <div className="h-52 w-full border-b bg-muted/30" />
         <div className="pointer-events-none absolute inset-0">
-          <div className="mx-auto h-full max-w-5xl px-6 lg:px-8">
+          <div className="mx-auto h-full max-w-6xl px-4">
             <div className="h-full rounded-3xl border bg-background/40 shadow-sm backdrop-blur md:mt-6 md:h-[240px]" />
           </div>
         </div>
 
-        <div className="mx-auto max-w-5xl px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4">
           <div className="relative -mt-14 flex flex-col gap-4 md:-mt-10 md:flex-row md:items-end md:justify-between">
             <div className="flex items-end gap-4">
               <div className="grid h-20 w-20 place-items-center rounded-2xl border bg-background shadow-sm">
