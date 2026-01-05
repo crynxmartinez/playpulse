@@ -773,58 +773,52 @@ export default function GamePageEditor() {
             }
           >
             {updates.length > 0 ? (
-              <div className="relative">
+              <div className="relative pl-6">
                 {/* Continuous vertical timeline line */}
-                <div className="absolute left-[11px] top-0 bottom-0 w-0.5 bg-border" />
+                <div className="absolute left-[11px] top-0 bottom-0 w-[2px] bg-muted-foreground/30" />
                 
-                <div className="space-y-0">
-                  {Object.entries(
-                    updates.reduce((acc, update) => {
-                      const date = new Date(update.createdAt);
-                      const monthKey = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-                      if (!acc[monthKey]) acc[monthKey] = [];
-                      acc[monthKey].push(update);
-                      return acc;
-                    }, {} as Record<string, Update[]>)
-                  ).map(([month, monthUpdates], groupIndex) => (
-                    <div key={month}>
-                      {/* Month header with horizontal line */}
-                      <div className="relative flex items-center gap-3 py-3">
-                        <div className="relative z-10 flex-shrink-0 w-6 flex justify-center">
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                        </div>
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className="text-xs font-semibold text-primary">{month}</span>
-                          <div className="flex-1 h-px bg-border" />
-                        </div>
+                {Object.entries(
+                  updates.reduce((acc, update) => {
+                    const date = new Date(update.createdAt);
+                    const monthKey = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+                    if (!acc[monthKey]) acc[monthKey] = [];
+                    acc[monthKey].push(update);
+                    return acc;
+                  }, {} as Record<string, Update[]>)
+                ).map(([month, monthUpdates]) => (
+                  <div key={month} className="relative">
+                    {/* Month header with horizontal line */}
+                    <div className="flex items-center gap-3 pb-3 pt-1">
+                      <div className="absolute left-[-18px] w-5 h-5 rounded-md bg-muted border border-border flex items-center justify-center z-10">
+                        <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                       </div>
-                      
-                      {/* Updates for this month */}
-                      <div className="space-y-0">
-                        {monthUpdates.map((update) => (
-                          <div key={update.id} className="relative flex gap-3 py-2">
-                            <div className="relative z-10 flex-shrink-0 w-6 h-6 rounded-md bg-muted flex items-center justify-center">
-                              <Activity className="h-3 w-3 text-muted-foreground" />
-                            </div>
-                            <div className="flex-1 min-w-0 pt-0.5">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0">
-                                  <p className="text-sm text-foreground">{update.title}</p>
-                                  {update.description && (
-                                    <p className="text-xs text-muted-foreground mt-0.5">{update.description}</p>
-                                  )}
-                                </div>
-                                <time className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
-                                  {new Date(update.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' })}
-                                </time>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      <span className="text-xs font-semibold text-muted-foreground">{month}</span>
+                      <div className="flex-1 h-px bg-border" />
                     </div>
-                  ))}
-                </div>
+                    
+                    {/* Updates for this month */}
+                    {monthUpdates.map((update) => (
+                      <div key={update.id} className="relative flex items-start gap-3 pb-4">
+                        <div className="absolute left-[-18px] w-5 h-5 rounded-md bg-muted border border-border flex items-center justify-center z-10">
+                          <Activity className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-sm text-foreground">{update.title}</p>
+                              {update.description && (
+                                <p className="text-xs text-muted-foreground mt-0.5">{update.description}</p>
+                              )}
+                            </div>
+                            <time className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                              {new Date(update.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' })}
+                            </time>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="text-muted-foreground text-sm italic">No updates yet. Click &quot;Edit&quot; to post an announcement.</p>
