@@ -79,9 +79,9 @@ function formatDelta(n: number) {
 
 function SmallKpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-2xl border bg-background/60 p-3 shadow-sm">
+    <div className="rounded-xl bg-muted/40 p-3">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 text-lg font-semibold tracking-tight">{value}</div>
+      <div className="mt-1 text-xl font-semibold tracking-tight">{value || "-"}</div>
       {hint ? <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div> : null}
     </div>
   );
@@ -104,45 +104,44 @@ function Heatmap({ weeks = 26 }: { weeks?: number }) {
   };
 
   return (
-    <div className="rounded-2xl border bg-background/60 p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="text-sm font-semibold">Activity</div>
-          <div className="text-xs text-muted-foreground">Devlogs + playtests published</div>
+    <Card className="rounded-3xl">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base">Activity</CardTitle>
+            <CardDescription className="text-xs">Devlogs + playtests published</CardDescription>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Less</span>
+            <div className="flex items-center gap-0.5">
+              {[0, 1, 2, 3, 4].map((v) => (
+                <span
+                  key={v}
+                  className="h-2.5 w-2.5 rounded-sm"
+                  style={{ background: shade(v) }}
+                  aria-label={`activity level ${v}`}
+                />
+              ))}
+            </div>
+            <span>More</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>Less</span>
-          <div className="flex items-center gap-1">
-            {[0, 1, 2, 3, 4].map((v) => (
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <div className="inline-grid grid-flow-col grid-rows-7 gap-[3px]">
+            {data.map((v, i) => (
               <span
-                key={v}
-                className="h-3 w-3 rounded-[6px] border"
+                key={i}
+                className="h-2.5 w-2.5 rounded-sm"
                 style={{ background: shade(v) }}
-                aria-label={`activity level ${v}`}
+                title={`Activity level: ${v}`}
               />
             ))}
           </div>
-          <span>More</span>
         </div>
-      </div>
-
-      <div className="mt-4 overflow-x-auto">
-        <div className="inline-grid grid-flow-col grid-rows-7 gap-1">
-          {data.map((v, i) => (
-            <span
-              key={i}
-              className="h-3 w-3 rounded-[6px] border"
-              style={{ background: shade(v) }}
-              title={`Activity level: ${v}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-3 text-xs text-muted-foreground">
-        Tip: higher activity usually correlates with faster iteration on feedback.
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -224,97 +223,62 @@ function UpdateCard({ u, expanded, onToggle }: { u: Update; expanded: boolean; o
       {expanded && (
         <div className="overflow-hidden">
             <Separator />
-            <div className="space-y-4 p-4">
+            <div className="p-4 space-y-4">
               <div className="flex flex-wrap gap-2">
                 {u.highlights.map((h, i) => (
-                  <Badge key={i} variant="outline" className="rounded-xl">
+                  <Badge key={i} variant="secondary" className="rounded-lg">
                     {h}
                   </Badge>
                 ))}
               </div>
 
-              <div className="grid gap-3 lg:grid-cols-2">
-                <Card className="rounded-2xl">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Patch Notes</CardTitle>
-                    <CardDescription>Readable, shareable, and easy to scan</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {(u.blocks || []).filter((b) => b.kind === "changelog").map((b, idx) => {
-                      const bl = b as { kind: "changelog"; added: string[]; fixed: string[]; removed: string[] };
-                      return (
-                        <div key={idx} className="space-y-3">
+              {/* Simplified single-column layout */}
+              <div className="space-y-4">
+                {/* Patch Notes */}
+                <div className="rounded-xl bg-muted/30 p-4">
+                  <div className="text-sm font-semibold mb-2">Patch Notes</div>
+                  {(u.blocks || []).filter((b) => b.kind === "changelog").map((b, idx) => {
+                    const bl = b as { kind: "changelog"; added: string[]; fixed: string[]; removed: string[] };
+                    return (
+                      <div key={idx} className="space-y-2 text-sm">
+                        {bl.added?.length > 0 && (
                           <div>
-                            <div className="text-xs font-semibold">Added</div>
-                            <ul className="mt-1 list-disc pl-5 text-sm text-muted-foreground">
-                              {(bl.added || []).map((x: string, i2: number) => (
-                                <li key={i2}>{x}</li>
-                              ))}
-                            </ul>
+                            <span className="text-green-600 font-medium">Added:</span>{" "}
+                            <span className="text-muted-foreground">{bl.added.join(", ")}</span>
                           </div>
+                        )}
+                        {bl.fixed?.length > 0 && (
                           <div>
-                            <div className="text-xs font-semibold">Fixed</div>
-                            <ul className="mt-1 list-disc pl-5 text-sm text-muted-foreground">
-                              {(bl.fixed || []).map((x: string, i2: number) => (
-                                <li key={i2}>{x}</li>
-                              ))}
-                            </ul>
+                            <span className="text-blue-600 font-medium">Fixed:</span>{" "}
+                            <span className="text-muted-foreground">{bl.fixed.join(", ")}</span>
                           </div>
+                        )}
+                        {bl.removed?.length > 0 && (
                           <div>
-                            <div className="text-xs font-semibold">Removed</div>
-                            <ul className="mt-1 list-disc pl-5 text-sm text-muted-foreground">
-                              {(bl.removed || []).map((x: string, i2: number) => (
-                                <li key={i2}>{x}</li>
-                              ))}
-                            </ul>
+                            <span className="text-red-600 font-medium">Removed:</span>{" "}
+                            <span className="text-muted-foreground">{bl.removed.join(", ")}</span>
                           </div>
-                        </div>
-                      );
-                    })}
-                    {(u.blocks || []).filter((b) => b.kind !== "changelog").length === 0 ? (
-                      <div className="text-sm text-muted-foreground">
-                        No patch notes blocks yet — dev can add them from the block builder.
+                        )}
                       </div>
-                    ) : null}
-                  </CardContent>
-                </Card>
+                    );
+                  })}
+                  {(u.blocks || []).filter((b) => b.kind === "changelog").length === 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      No patch notes yet — add them from the block builder.
+                    </div>
+                  )}
+                </div>
 
-                <div className="space-y-3">
-                  <Card className="rounded-2xl">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Playtest CTA</CardTitle>
-                      <CardDescription>One-click join for testers</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <div className="text-sm font-semibold">Join the latest playtest</div>
-                        <div className="text-xs text-muted-foreground">Takes ~4 minutes</div>
-                      </div>
-                      <Button className="gap-2 rounded-2xl">
-                        Start Playtest <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="rounded-2xl">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Snapshot</CardTitle>
-                      <CardDescription>Shareable analytics widget</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="rounded-xl border bg-muted/30 p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm font-semibold">Fun vs Difficulty</div>
-                          <Button variant="secondary" size="sm" className="rounded-xl">
-                            Save Snapshot
-                          </Button>
-                        </div>
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          Export to WebP/PNG or embed live.
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                {/* Actions row */}
+                <div className="flex flex-wrap gap-3">
+                  <Button className="gap-2 rounded-xl">
+                    <ArrowRight className="h-4 w-4" />
+                    Start Playtest
+                  </Button>
+                  <Button variant="secondary" className="gap-2 rounded-xl">
+                    <Sparkles className="h-4 w-4" />
+                    Save Snapshot
+                  </Button>
                 </div>
               </div>
             </div>
@@ -464,9 +428,9 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
             ))}
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
+          <div className="mt-8 grid gap-8 lg:grid-cols-[300px_1fr]">
             {/* Left column */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <Card className="rounded-3xl">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Game Profile</CardTitle>
@@ -553,12 +517,12 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
                   <CardDescription className="text-xs">Quick glance highlights</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="rounded-2xl border bg-background/60 p-3">
+                  <div className="rounded-xl bg-muted/40 p-3">
                     <div className="text-xs text-muted-foreground">Latest update</div>
-                    <div className="mt-1 text-sm font-semibold">{updates[0]?.title}</div>
+                    <div className="mt-1 text-sm font-semibold">{updates[0]?.title || "No updates yet"}</div>
                     <div className="mt-1 text-xs text-muted-foreground">{updates[0]?.date}</div>
                   </div>
-                  <div className="rounded-2xl border bg-background/60 p-3">
+                  <div className="rounded-xl bg-muted/40 p-3">
                     <div className="text-xs text-muted-foreground">Open playtest</div>
                     <div className="mt-1 text-sm font-semibold">No active playtest</div>
                     <div className="mt-1 text-xs text-muted-foreground">Create one from Workspace</div>
@@ -568,7 +532,7 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
             </div>
 
             {/* Main column */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <Card className="rounded-3xl">
                 <CardHeader>
                   <CardTitle className="text-base">README</CardTitle>
@@ -577,35 +541,35 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <div className="rounded-2xl border bg-background/60 p-3">
-                      <div className="text-xs font-semibold">What we need</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="rounded-xl bg-muted/30 p-4">
+                      <div className="text-sm font-semibold">What we need</div>
+                      <div className="mt-2 text-sm text-muted-foreground">
                         Feel free to be blunt — we prefer actionable feedback.
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Badge variant="outline" className="rounded-xl">
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="rounded-lg">
                           pacing
                         </Badge>
-                        <Badge variant="outline" className="rounded-xl">
+                        <Badge variant="secondary" className="rounded-lg">
                           difficulty
                         </Badge>
-                        <Badge variant="outline" className="rounded-xl">
+                        <Badge variant="secondary" className="rounded-lg">
                           onboarding
                         </Badge>
                       </div>
                     </div>
-                    <div className="rounded-2xl border bg-background/60 p-3">
-                      <div className="text-xs font-semibold">How to help</div>
-                      <ol className="mt-1 list-decimal pl-5 text-xs text-muted-foreground">
+                    <div className="rounded-xl bg-muted/30 p-4">
+                      <div className="text-sm font-semibold">How to help</div>
+                      <ol className="mt-2 list-decimal pl-5 text-sm text-muted-foreground space-y-1">
                         <li>Play 1 run (10–15 min)</li>
                         <li>Answer the campaign form</li>
                         <li>Optional: leave a comment</li>
                       </ol>
                     </div>
-                    <div className="rounded-2xl border bg-background/60 p-3">
-                      <div className="text-xs font-semibold">Privacy</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
+                    <div className="rounded-xl bg-muted/30 p-4">
+                      <div className="text-sm font-semibold">Privacy</div>
+                      <div className="mt-2 text-sm text-muted-foreground">
                         Submissions are anonymous by default. Creators see raw responses; public views show
                         aggregates.
                       </div>
@@ -614,7 +578,7 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
 
                   <Separator />
 
-                  <div className="grid gap-3 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-3">
                     <SmallKpi label="Open issues" value="0" hint="clustered from responses" />
                     <SmallKpi label="Top theme" value="-" hint="No data yet" />
                     <SmallKpi label="Next goal" value="-" hint="Set in Workspace" />
@@ -639,7 +603,7 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
                 </TabsList>
 
                 {/* Updates */}
-                <TabsContent value="updates" className="mt-4 space-y-4">
+                <TabsContent value="updates" className="mt-6 space-y-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-lg font-semibold tracking-tight">Timeline</div>
