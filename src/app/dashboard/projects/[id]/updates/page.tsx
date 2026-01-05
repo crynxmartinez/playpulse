@@ -10,8 +10,7 @@ interface Version {
   id: string
   version: string
   title: string
-  content: string
-  changelog: string | null
+  description: string | null
   isPublished: boolean
   publishedAt: string | null
   createdAt: string
@@ -28,8 +27,7 @@ export default function UpdatesPage() {
   const [formData, setFormData] = useState({
     version: '',
     title: '',
-    content: '',
-    changelog: '',
+    description: '',
   })
 
   useEffect(() => {
@@ -100,8 +98,7 @@ export default function UpdatesPage() {
     setFormData({
       version: version.version,
       title: version.title,
-      content: version.content || '',
-      changelog: version.changelog || '',
+      description: version.description || '',
     })
     setIsCreating(true)
   }
@@ -109,7 +106,7 @@ export default function UpdatesPage() {
   const resetForm = () => {
     setIsCreating(false)
     setEditingVersion(null)
-    setFormData({ version: '', title: '', content: '', changelog: '' })
+    setFormData({ version: '', title: '', description: '' })
   }
 
   const formatDate = (dateString: string) => {
@@ -186,8 +183,8 @@ export default function UpdatesPage() {
                 Description
               </label>
               <textarea
-                value={formData.changelog}
-                onChange={(e) => setFormData({ ...formData, changelog: e.target.value })}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-slate-800 bg-white resize-none"
                 placeholder="Brief description of this version..."
                 rows={3}
@@ -248,8 +245,8 @@ export default function UpdatesPage() {
                   <td className="px-4 py-3">
                     <div>
                       <div className="text-sm font-medium text-slate-800">{version.title}</div>
-                      {version.changelog && (
-                        <div className="text-xs text-slate-500 line-clamp-1">{version.changelog}</div>
+                      {version.description && (
+                        <div className="text-xs text-slate-500 line-clamp-1">{version.description}</div>
                       )}
                     </div>
                   </td>
@@ -262,7 +259,7 @@ export default function UpdatesPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <Link
-                        href={`/dashboard/projects/${projectId}/updates/${version.id}`}
+                        href={`/dashboard/projects/${projectId}/updates/${version.id}/editor`}
                         className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                         title="Edit Page"
                       >

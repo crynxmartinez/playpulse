@@ -48,7 +48,7 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { version, title, content, changelog, imageUrl, isPublished } = body
+    const { version, title, description, imageUrl, isPublished } = body
 
     if (!version || !title) {
       return NextResponse.json(
@@ -62,8 +62,7 @@ export async function POST(
         projectId: id,
         version,
         title,
-        content: content || '',
-        changelog,
+        description,
         imageUrl,
         isPublished: isPublished || false,
         publishedAt: isPublished ? new Date() : null,

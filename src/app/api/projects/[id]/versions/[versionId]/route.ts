@@ -51,7 +51,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { version, title, content, changelog, imageUrl, isPublished } = body
+    const { version, title, description, imageUrl, isPublished } = body
 
     const existingVersion = await prisma.projectVersion.findFirst({
       where: { id: versionId, projectId: id },
@@ -66,8 +66,7 @@ export async function PATCH(
       data: {
         ...(version && { version }),
         ...(title && { title }),
-        ...(content !== undefined && { content }),
-        ...(changelog !== undefined && { changelog }),
+        ...(description !== undefined && { description }),
         ...(imageUrl !== undefined && { imageUrl }),
         ...(isPublished !== undefined && { 
           isPublished,
