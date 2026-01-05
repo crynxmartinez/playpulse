@@ -267,7 +267,7 @@ export default function UpdatesPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <Link
-                        href={`/dashboard/projects/${projectId}/updates/${version.id}/editor`}
+                        href={`/editor/${projectId}/${version.id}`}
                         className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                         title="Edit Page"
                       >
