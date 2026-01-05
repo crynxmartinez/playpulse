@@ -337,6 +337,96 @@ export default function VersionEditorPage() {
     )
   }
 
+  // Drag and drop for rows
+  const [draggedRowIndex, setDraggedRowIndex] = useState<number | null>(null)
+  const [dragOverRowIndex, setDragOverRowIndex] = useState<number | null>(null)
+
+  const handleRowDragStart = (e: React.DragEvent, rowIndex: number) => {
+    setDraggedRowIndex(rowIndex)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', `row-${rowIndex}`)
+  }
+
+  const handleRowDragOver = (e: React.DragEvent, rowIndex: number) => {
+    e.preventDefault()
+    if (draggedRowIndex !== null && draggedRowIndex !== rowIndex) {
+      setDragOverRowIndex(rowIndex)
+    }
+  }
+
+  const handleRowDragLeave = () => {
+    setDragOverRowIndex(null)
+  }
+
+  const handleRowDrop = (e: React.DragEvent, targetRowIndex: number) => {
+    e.preventDefault()
+    if (draggedRowIndex !== null && draggedRowIndex !== targetRowIndex) {
+      const newRows = [...content.rows]
+      const [draggedRow] = newRows.splice(draggedRowIndex, 1)
+      newRows.splice(targetRowIndex, 0, draggedRow)
+      setContent({ ...content, rows: newRows })
+    }
+    setDraggedRowIndex(null)
+    setDragOverRowIndex(null)
+  }
+
+  const handleRowDragEnd = () => {
+    setDraggedRowIndex(null)
+    setDragOverRowIndex(null)
+  }
+
+  // Drag and drop for elements
+  const [draggedElement, setDraggedElement] = useState<{ rowIndex: number; colIndex: number; elementIndex: number } | null>(null)
+  const [dragOverElement, setDragOverElement] = useState<{ rowIndex: number; colIndex: number; elementIndex: number } | null>(null)
+
+  const handleElementDragStart = (e: React.DragEvent, rowIndex: number, colIndex: number, elementIndex: number) => {
+    e.stopPropagation()
+    setDraggedElement({ rowIndex, colIndex, elementIndex })
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', `element-${rowIndex}-${colIndex}-${elementIndex}`)
+  }
+
+  const handleElementDragOver = (e: React.DragEvent, rowIndex: number, colIndex: number, elementIndex: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (draggedElement !== null) {
+      setDragOverElement({ rowIndex, colIndex, elementIndex })
+    }
+  }
+
+  const handleElementDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation()
+    setDragOverElement(null)
+  }
+
+  const handleElementDrop = (e: React.DragEvent, targetRowIndex: number, targetColIndex: number, targetElementIndex: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (draggedElement !== null) {
+      const { rowIndex: srcRowIndex, colIndex: srcColIndex, elementIndex: srcElementIndex } = draggedElement
+      
+      // Get the element being dragged
+      const newRows = [...content.rows]
+      const srcCol = newRows[srcRowIndex].columns[srcColIndex]
+      const [movedElement] = srcCol.elements.splice(srcElementIndex, 1)
+      
+      // Insert at target position
+      const targetCol = newRows[targetRowIndex].columns[targetColIndex]
+      targetCol.elements.splice(targetElementIndex, 0, movedElement)
+      
+      setContent({ ...content, rows: newRows })
+    }
+    
+    setDraggedElement(null)
+    setDragOverElement(null)
+  }
+
+  const handleElementDragEnd = () => {
+    setDraggedElement(null)
+    setDragOverElement(null)
+  }
+
   const selectedElement = findSelectedElement()
 
   if (loading) {
@@ -523,13 +613,25 @@ export default function VersionEditorPage() {
                 {content.rows.map((row, rowIndex) => (
                   <div
                     key={row.id}
-                    className={`group relative border border-transparent rounded-lg transition-colors ${!isPreviewMode ? 'hover:border-purple-500/50' : ''}`}
+                    draggable={!isPreviewMode}
+                    onDragStart={(e) => handleRowDragStart(e, rowIndex)}
+                    onDragOver={(e) => handleRowDragOver(e, rowIndex)}
+                    onDragLeave={handleRowDragLeave}
+                    onDrop={(e) => handleRowDrop(e, rowIndex)}
+                    onDragEnd={handleRowDragEnd}
+                    className={`group relative border-2 rounded-lg transition-all ${
+                      !isPreviewMode ? 'hover:border-purple-500/50 cursor-grab active:cursor-grabbing' : ''
+                    } ${
+                      dragOverRowIndex === rowIndex ? 'border-purple-500 bg-purple-500/10' : 'border-transparent'
+                    } ${
+                      draggedRowIndex === rowIndex ? 'opacity-50' : ''
+                    }`}
                   >
                     {/* Row Controls (hidden in preview mode) */}
                     {!isPreviewMode && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <div className="flex items-center gap-1 bg-[#2a2a3e] rounded-lg px-2 py-1">
-                        <button className="p-1 text-slate-400 hover:text-white">
+                        <button className="p-1 text-slate-400 hover:text-white cursor-grab">
                           <GripVertical size={14} />
                         </button>
                         <button className="p-1 text-slate-400 hover:text-white">
@@ -571,25 +673,45 @@ export default function VersionEditorPage() {
                             ) : null
                           ) : (
                             <div className="space-y-2">
-                              {col.elements.map((element) => (
+                              {col.elements.map((element, elementIndex) => (
                                 <div
                                   key={element.id}
+                                  draggable={!isPreviewMode}
+                                  onDragStart={(e) => handleElementDragStart(e, rowIndex, colIndex, elementIndex)}
+                                  onDragOver={(e) => handleElementDragOver(e, rowIndex, colIndex, elementIndex)}
+                                  onDragLeave={handleElementDragLeave}
+                                  onDrop={(e) => handleElementDrop(e, rowIndex, colIndex, elementIndex)}
+                                  onDragEnd={handleElementDragEnd}
                                   onClick={() => !isPreviewMode && setSelectedElementId(element.id)}
                                   className={`relative p-3 rounded-lg transition-all ${
-                                    !isPreviewMode ? 'cursor-pointer' : ''
+                                    !isPreviewMode ? 'cursor-grab active:cursor-grabbing' : ''
                                   } ${
                                     !isPreviewMode && selectedElementId === element.id
                                       ? 'ring-2 ring-purple-500 bg-purple-500/10'
                                       : !isPreviewMode ? 'hover:bg-[#2a2a3e]' : ''
+                                  } ${
+                                    dragOverElement?.rowIndex === rowIndex && 
+                                    dragOverElement?.colIndex === colIndex && 
+                                    dragOverElement?.elementIndex === elementIndex 
+                                      ? 'border-t-2 border-purple-500' : ''
+                                  } ${
+                                    draggedElement?.rowIndex === rowIndex && 
+                                    draggedElement?.colIndex === colIndex && 
+                                    draggedElement?.elementIndex === elementIndex 
+                                      ? 'opacity-50' : ''
                                   }`}
                                 >
-                                  {/* Element Renderer */}
-                                  <ElementRenderer element={element} />
+                                  {/* Element Renderer with inline editing */}
+                                  <ElementRenderer 
+                                    element={element} 
+                                    isEditing={!isPreviewMode}
+                                    onUpdate={(data) => updateElementData(element.id, data)}
+                                  />
                                   
                                   {/* Element Controls (hidden in preview mode) */}
                                   {!isPreviewMode && selectedElementId === element.id && (
                                     <div className="absolute -top-2 -right-2 flex items-center gap-1 bg-purple-600 rounded-lg px-1 py-0.5">
-                                      <button className="p-1 text-white/80 hover:text-white">
+                                      <button className="p-1 text-white/80 hover:text-white cursor-grab">
                                         <Move size={12} />
                                       </button>
                                       <button 
@@ -717,9 +839,65 @@ export default function VersionEditorPage() {
   )
 }
 
-// Element Renderer Component
-function ElementRenderer({ element }: { element: Element }) {
+// Inline Editable Text Component
+function InlineEditableText({ 
+  value, 
+  onChange, 
+  isEditing,
+  className,
+  placeholder = 'Enter text...',
+  multiline = false
+}: { 
+  value: string
+  onChange: (value: string) => void
+  isEditing: boolean
+  className?: string
+  placeholder?: string
+  multiline?: boolean
+}) {
+  if (!isEditing) {
+    return <span className={className}>{value || placeholder}</span>
+  }
+
+  if (multiline) {
+    return (
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onClick={(e) => e.stopPropagation()}
+        className={`${className} bg-transparent border-none outline-none resize-none w-full focus:ring-1 focus:ring-purple-500 rounded px-1`}
+        placeholder={placeholder}
+        rows={3}
+      />
+    )
+  }
+
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      className={`${className} bg-transparent border-none outline-none w-full focus:ring-1 focus:ring-purple-500 rounded px-1`}
+      placeholder={placeholder}
+    />
+  )
+}
+
+// Element Renderer Component with inline editing support
+function ElementRenderer({ 
+  element, 
+  isEditing = false,
+  onUpdate
+}: { 
+  element: Element
+  isEditing?: boolean
+  onUpdate?: (data: Record<string, unknown>) => void
+}) {
   const { type, data } = element
+  const handleUpdate = (newData: Record<string, unknown>) => {
+    if (onUpdate) onUpdate(newData)
+  }
 
   switch (type) {
     case 'heading':
@@ -730,15 +908,26 @@ function ElementRenderer({ element }: { element: Element }) {
           HeadingTag === 'h2' ? 'text-2xl' :
           'text-xl'
         }`}>
-          {(data.text as string) || 'Heading'}
+          <InlineEditableText
+            value={(data.text as string) || ''}
+            onChange={(text) => handleUpdate({ text })}
+            isEditing={isEditing}
+            placeholder="Heading"
+          />
         </div>
       )
 
     case 'paragraph':
       return (
-        <p className="text-slate-300 text-sm">
-          {(data.text as string) || 'Enter your text here...'}
-        </p>
+        <div className="text-slate-300 text-sm">
+          <InlineEditableText
+            value={(data.text as string) || ''}
+            onChange={(text) => handleUpdate({ text })}
+            isEditing={isEditing}
+            placeholder="Enter your text here..."
+            multiline
+          />
+        </div>
       )
 
     case 'section-header':
@@ -747,7 +936,12 @@ function ElementRenderer({ element }: { element: Element }) {
           className="py-2 px-4 rounded-lg text-white font-bold uppercase tracking-wider text-sm"
           style={{ backgroundColor: (data.color as string) || '#c23a2b' }}
         >
-          {(data.text as string) || 'SECTION TITLE'}
+          <InlineEditableText
+            value={(data.text as string) || ''}
+            onChange={(text) => handleUpdate({ text })}
+            isEditing={isEditing}
+            placeholder="SECTION TITLE"
+          />
         </div>
       )
 
@@ -755,16 +949,30 @@ function ElementRenderer({ element }: { element: Element }) {
       return (
         <div className="bg-[#0d0d15] rounded-lg p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-[#2a2a3e] rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-[#2a2a3e] rounded-lg flex items-center justify-center cursor-pointer hover:bg-[#3a3a4e] transition-colors">
               {data.icon ? (
                 <img src={data.icon as string} alt="" className="w-10 h-10" />
               ) : (
                 <Square size={24} className="text-slate-500" />
               )}
             </div>
-            <div>
-              <div className="font-bold text-white">{(data.title as string) || 'Item Name'}</div>
-              {typeof data.subtitle === 'string' && data.subtitle && <div className="text-xs text-slate-400">{data.subtitle}</div>}
+            <div className="flex-1">
+              <div className="font-bold text-white">
+                <InlineEditableText
+                  value={(data.title as string) || ''}
+                  onChange={(title) => handleUpdate({ title })}
+                  isEditing={isEditing}
+                  placeholder="Item Name"
+                />
+              </div>
+              <div className="text-xs text-slate-400">
+                <InlineEditableText
+                  value={(data.subtitle as string) || ''}
+                  onChange={(subtitle) => handleUpdate({ subtitle })}
+                  isEditing={isEditing}
+                  placeholder="Subtitle (optional)"
+                />
+              </div>
             </div>
           </div>
           <div className="space-y-1">
