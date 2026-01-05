@@ -405,7 +405,7 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
   }, [updates, search]);
 
   return (
-    <div className="min-h-screen bg-background -mx-4 sm:-mx-6 -mt-4">
+    <div className="bg-background">
       {/* Cover */}
       <div className="relative">
         <div className="h-52 w-full border-b bg-muted/30" />

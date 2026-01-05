@@ -41,7 +41,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       {/* Project Header with Game Page Toggle */}
       <ProjectHeader project={project} />
 
-      {/* Navigation (hidden on Game Page view) */}
+      {/* Navigation */}
       <ProjectLayoutNav projectId={id} />
 
       {/* Page Content */}

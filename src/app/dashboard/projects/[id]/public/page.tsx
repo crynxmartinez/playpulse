@@ -1,7 +1,7 @@
 ﻿import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import PublicGamePage from '@/components/PublicGamePage'
+import GamePageWrapper from '@/components/GamePageWrapper'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -34,5 +34,5 @@ export default async function GamePageView({ params }: PageProps) {
     redirect('/dashboard')
   }
 
-  return <PublicGamePage project={project} />
+  return <GamePageWrapper project={project} user={user} />
 }
