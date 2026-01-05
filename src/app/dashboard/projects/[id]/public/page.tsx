@@ -773,9 +773,9 @@ export default function GamePageEditor() {
             }
           >
             {updates.length > 0 ? (
-              <div className="relative pl-6">
-                {/* Continuous vertical timeline line */}
-                <div className="absolute left-[11px] top-0 bottom-0 w-[2px] bg-muted-foreground/30" />
+              <div className="relative">
+                {/* Continuous vertical timeline line - positioned at center of icons (12px from left) */}
+                <div className="absolute left-[9px] top-0 bottom-0 w-[2px] bg-muted-foreground/40" />
                 
                 {Object.entries(
                   updates.reduce((acc, update) => {
@@ -786,10 +786,10 @@ export default function GamePageEditor() {
                     return acc;
                   }, {} as Record<string, Update[]>)
                 ).map(([month, monthUpdates]) => (
-                  <div key={month} className="relative">
+                  <div key={month}>
                     {/* Month header with horizontal line */}
                     <div className="flex items-center gap-3 pb-3 pt-1">
-                      <div className="absolute left-[-18px] w-5 h-5 rounded-md bg-muted border border-border flex items-center justify-center z-10">
+                      <div className="w-5 h-5 rounded-md bg-muted border border-border flex items-center justify-center z-10 flex-shrink-0">
                         <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                       </div>
                       <span className="text-xs font-semibold text-muted-foreground">{month}</span>
@@ -798,8 +798,8 @@ export default function GamePageEditor() {
                     
                     {/* Updates for this month */}
                     {monthUpdates.map((update) => (
-                      <div key={update.id} className="relative flex items-start gap-3 pb-4">
-                        <div className="absolute left-[-18px] w-5 h-5 rounded-md bg-muted border border-border flex items-center justify-center z-10">
+                      <div key={update.id} className="flex items-start gap-3 pb-4">
+                        <div className="w-5 h-5 rounded-md bg-muted border border-border flex items-center justify-center z-10 flex-shrink-0">
                           <Activity className="h-3 w-3 text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
