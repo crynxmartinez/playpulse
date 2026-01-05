@@ -3,13 +3,10 @@
 import { useState, useEffect } from 'react'
 import TopBar from '@/components/TopBar'
 import NewSidebar from '@/components/NewSidebar'
+import { User } from '@/types'
 
 interface DashboardLayoutProps {
-  user: {
-    id: string
-    email: string
-    name: string | null
-  }
+  user: User
   children: React.ReactNode
 }
 

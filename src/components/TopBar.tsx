@@ -6,13 +6,10 @@ import { useRouter } from 'next/navigation'
 import { Bell, Plus, Sparkles, Menu, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { User } from '@/types'
 
 interface TopBarProps {
-  user: {
-    id: string
-    email: string
-    name: string | null
-  }
+  user: User
   onMenuToggle?: () => void
   isSidebarOpen?: boolean
 }

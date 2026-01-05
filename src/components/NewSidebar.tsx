@@ -17,13 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-
-interface Game {
-  id: string
-  name: string
-  description: string | null
-  visibility?: 'PRIVATE' | 'UNLISTED' | 'PUBLIC'
-}
+import { Game, VISIBILITY_CONFIG } from '@/types'
 
 interface NewSidebarProps {
   selectedGameId?: string | null
@@ -37,10 +31,10 @@ const NAV_ITEMS = [
   { id: 'settings', label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
 
-const VISIBILITY_META = {
-  PRIVATE: { label: 'Private', icon: Lock },
-  UNLISTED: { label: 'Unlisted', icon: LinkIcon },
-  PUBLIC: { label: 'Public', icon: Globe },
+const VISIBILITY_ICONS = {
+  PRIVATE: Lock,
+  UNLISTED: LinkIcon,
+  PUBLIC: Globe,
 }
 
 export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelectGame }: NewSidebarProps) {
@@ -150,8 +144,8 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
                     {games.map((game) => {
                       const isSelected = game.id === selectedGameId
                       const visibility = game.visibility || 'PRIVATE'
-                      const meta = VISIBILITY_META[visibility]
-                      const Icon = meta.icon
+                      const config = VISIBILITY_CONFIG[visibility]
+                      const Icon = VISIBILITY_ICONS[visibility]
                       return (
                         <div
                           key={game.id}
@@ -165,7 +159,7 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
                             <span>{game.name}</span>
                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Icon className="h-3 w-3" />
-                              {meta.label}
+                              {config.label}
                             </div>
                           </div>
                           {isSelected && <Check className="h-4 w-4" />}

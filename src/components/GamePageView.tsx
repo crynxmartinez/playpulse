@@ -4,23 +4,15 @@ import Link from 'next/link'
 import { Bell, Plus, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ViewToggle } from '@/components/ui/view-toggle'
 import PublicGamePage from '@/components/PublicGamePage'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Project, User } from '@/types'
 
 interface GamePageViewProps {
-  project: {
-    id: string
-    name: string
-    slug: string | null
-    description: string | null
-    visibility: 'PRIVATE' | 'UNLISTED' | 'PUBLIC'
-  }
-  user: {
-    id: string
-    email: string
-    name: string | null
-  }
+  project: Project
+  user: User
 }
 
 export default function GamePageView({ project, user }: GamePageViewProps) {
@@ -67,21 +59,11 @@ export default function GamePageView({ project, user }: GamePageViewProps) {
 
           {/* Right Section - Toggle + Actions */}
           <div className="flex items-center gap-2">
-            {/* Workspace / Game Page Toggle */}
-            <div className="flex items-center rounded-2xl border bg-muted/50 p-1">
-              <Link
-                href={workspaceUrl}
-                className="px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors text-muted-foreground hover:text-foreground"
-              >
-                Workspace
-              </Link>
-              <Link
-                href={gamePageUrl}
-                className="px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors bg-background text-foreground shadow-sm"
-              >
-                Game Page
-              </Link>
-            </div>
+            <ViewToggle 
+              workspaceUrl={workspaceUrl}
+              gamePageUrl={gamePageUrl}
+              activeView="gamepage"
+            />
 
             {/* Create Button */}
             <Button className="rounded-2xl hidden sm:flex" variant="default" asChild>

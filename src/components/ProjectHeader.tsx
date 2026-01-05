@@ -1,52 +1,29 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { EyeOff, Globe, Link as LinkIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { ViewToggle } from '@/components/ui/view-toggle'
+import { Project, VISIBILITY_CONFIG } from '@/types'
 
 interface ProjectHeaderProps {
-  project: {
-    id: string
-    name: string
-    slug: string | null
-    description: string | null
-    visibility: 'PRIVATE' | 'UNLISTED' | 'PUBLIC'
-  }
+  project: Project
 }
 
-const VISIBILITY_META = {
-  PUBLIC: {
-    label: 'Public',
-    icon: Globe,
-    className: 'text-green-600 border-green-200 bg-green-50',
-  },
-  UNLISTED: {
-    label: 'Unlisted',
-    icon: LinkIcon,
-    className: 'text-yellow-600 border-yellow-200 bg-yellow-50',
-  },
-  PRIVATE: {
-    label: 'Private',
-    icon: EyeOff,
-    className: 'bg-muted',
-  },
+const VISIBILITY_ICONS = {
+  PUBLIC: Globe,
+  UNLISTED: LinkIcon,
+  PRIVATE: EyeOff,
 }
 
 export default function ProjectHeader({ project }: ProjectHeaderProps) {
-  const pathname = usePathname()
-  
-  // Determine if we're in public view mode based on URL
   const workspaceUrl = `/dashboard/projects/${project.id}`
   const gamePageUrl = `/game/${project.id}`
   
-  const meta = VISIBILITY_META[project.visibility]
-  const VisibilityIcon = meta.icon
+  const config = VISIBILITY_CONFIG[project.visibility]
+  const VisibilityIcon = VISIBILITY_ICONS[project.visibility]
 
   return (
     <div className="rounded-3xl border bg-card p-4 mb-4">
-      {/* Desktop: Single row spread apart */}
-      {/* Mobile: Stack vertically */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Left - Title & Description */}
         <div className="min-w-0 flex-1">
@@ -55,10 +32,10 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
             {/* Visibility Badge - Inline on mobile */}
             <Badge 
               variant="outline" 
-              className={`rounded-full text-xs font-medium sm:hidden ${meta.className}`}
+              className={`rounded-full text-xs font-medium sm:hidden ${config.className}`}
             >
               <VisibilityIcon className="h-3 w-3 mr-1" />
-              {meta.label}
+              {config.label}
             </Badge>
           </div>
           {project.description && (
@@ -68,29 +45,19 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
         
         {/* Right - Controls */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          {/* Workspace / Game Page Toggle */}
-          <div className="flex items-center rounded-2xl border bg-muted/50 p-1">
-            <Link
-              href={workspaceUrl}
-              className="px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors bg-background text-foreground shadow-sm"
-            >
-              Workspace
-            </Link>
-            <Link
-              href={gamePageUrl}
-              className="px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors text-muted-foreground hover:text-foreground"
-            >
-              Game Page
-            </Link>
-          </div>
+          <ViewToggle 
+            workspaceUrl={workspaceUrl}
+            gamePageUrl={gamePageUrl}
+            activeView="workspace"
+          />
           
           {/* Visibility Badge - Hidden on mobile (shown inline with title) */}
           <Badge 
             variant="outline" 
-            className={`hidden sm:flex rounded-full text-sm font-medium ${meta.className}`}
+            className={`hidden sm:flex rounded-full text-sm font-medium ${config.className}`}
           >
             <VisibilityIcon className="h-3 w-3 mr-1.5" />
-            {meta.label}
+            {config.label}
           </Badge>
         </div>
       </div>
