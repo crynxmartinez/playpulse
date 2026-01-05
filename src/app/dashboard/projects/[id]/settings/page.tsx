@@ -211,6 +211,17 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <label className="text-sm font-medium">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[80px] resize-none"
+                    placeholder="A short description of your game..."
+                    maxLength={200}
+                  />
+                  <p className="text-xs text-muted-foreground">{formData.description.length}/200 characters</p>
+                </div>
+                <div className="space-y-2">
                   <label className="text-sm font-medium">URL Slug</label>
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground text-sm p-2 bg-muted rounded-l-xl border border-r-0">/g/</span>
