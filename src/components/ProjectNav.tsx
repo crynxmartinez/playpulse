@@ -10,6 +10,7 @@ import {
   Camera,
   Settings,
   Eye,
+  GitBranch,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -33,16 +34,20 @@ const overviewNavItems = [
   { href: '/settings', label: 'Settings', shortLabel: 'Settings', icon: Settings },
 ]
 
+// Updates mode nav items
+const updatesNavItems = [
+  { href: '/updates', label: 'Versions', shortLabel: 'Versions', icon: GitBranch },
+]
+
 export default function ProjectNav({ projectId }: ProjectNavProps) {
   const pathname = usePathname()
   const basePath = `/dashboard/projects/${projectId}`
   
   // Determine mode based on URL
-  // Form mode: /forms, /stats, /responses, /analytics, /snapshots
-  // Overview mode: base path, /settings (but not /forms/settings)
   const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics') || pathname.includes('/snapshots')
+  const isUpdatesMode = pathname.includes('/updates')
   
-  const navItems = isFormMode ? formNavItems : overviewNavItems
+  const navItems = isUpdatesMode ? updatesNavItems : isFormMode ? formNavItems : overviewNavItems
 
   return (
     <nav className="rounded-2xl border bg-card p-1 flex items-center gap-1 overflow-x-auto scrollbar-hide">

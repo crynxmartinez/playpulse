@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Eye, FileText } from 'lucide-react'
+import { Eye, FileText, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ProjectFormNavProps {
@@ -14,10 +14,9 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
   const basePath = `/dashboard/projects/${projectId}`
   
   // Determine active mode based on URL
-  // Form mode: /forms, /stats, /responses, /analytics
-  // Overview mode: base path or /settings (but not /forms/settings)
-  const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics')
-  const isOverviewMode = !isFormMode
+  const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics') || pathname.includes('/snapshots')
+  const isUpdatesMode = pathname.includes('/updates')
+  const isOverviewMode = !isFormMode && !isUpdatesMode
   
   return (
     <div className="mb-3">
@@ -45,6 +44,18 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
         >
           <FileText size={14} />
           <span>Form</span>
+        </Link>
+        <Link
+          href={`${basePath}/updates`}
+          className={cn(
+            "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
+            isUpdatesMode
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Megaphone size={14} />
+          <span>Updates</span>
         </Link>
       </div>
     </div>
