@@ -124,6 +124,34 @@ model ProjectVersion {
   publishedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  sections    VersionSection[]
+}
+
+// Version page sections (containers for blocks)
+model VersionSection {
+  id              String   @id @default(cuid())
+  versionId       String
+  version         ProjectVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  order           Int      @default(0)
+  title           String?
+  layout          String   @default("single")  // single, two-col, three-col, masonry, cards
+  backgroundColor String?
+  accentColor     String?
+  padding         String   @default("normal")  // compact, normal, spacious
+  blocks          VersionBlock[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Version page blocks (content units within sections)
+model VersionBlock {
+  id        String   @id @default(cuid())
+  sectionId String
+  section   VersionSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  type      String   // change-item, comparison, text, image, gallery, video, divider, stat-change, spotlight
+  data      Json     // Block-specific data
+  createdAt DateTime @default(now())
 }
 
 model Stat {

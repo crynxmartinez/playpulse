@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, Edit2, Trash2, GitBranch, Calendar } from 'lucide-react'
+import { Plus, Edit2, Trash2, GitBranch, Calendar, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 interface Version {
@@ -182,13 +183,13 @@ export default function UpdatesPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Changelog
+                Description
               </label>
               <textarea
                 value={formData.changelog}
                 onChange={(e) => setFormData({ ...formData, changelog: e.target.value })}
                 className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-slate-800 bg-white resize-none"
-                placeholder="What's new in this version..."
+                placeholder="Brief description of this version..."
                 rows={3}
               />
             </div>
@@ -260,10 +261,17 @@ export default function UpdatesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/dashboard/projects/${projectId}/updates/${version.id}`}
+                        className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        title="Edit Page"
+                      >
+                        <ExternalLink size={16} />
+                      </Link>
                       <button
                         onClick={() => handleEdit(version)}
                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit"
+                        title="Edit Details"
                       >
                         <Edit2 size={16} />
                       </button>
