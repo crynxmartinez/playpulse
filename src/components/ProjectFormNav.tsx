@@ -25,26 +25,26 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
         <Link
           href={basePath}
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-full transition-colors",
+            "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
             isOverviewMode
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
           <Eye size={14} />
-          Overview
+          <span>Overview</span>
         </Link>
         <Link
           href={`${basePath}/forms`}
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-full transition-colors",
+            "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
             isFormMode
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
           <FileText size={14} />
-          Form
+          <span>Form</span>
         </Link>
       </div>
     </div>

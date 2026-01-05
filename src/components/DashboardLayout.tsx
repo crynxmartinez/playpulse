@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import TopBar from '@/components/TopBar'
 import NewSidebar from '@/components/NewSidebar'
 
@@ -15,24 +15,75 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ user, children }: DashboardLayoutProps) {
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  // Close sidebar when resizing to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isSidebarOpen])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <TopBar user={user} />
+      <TopBar 
+        user={user} 
+        onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
+      />
       
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[240px_1fr]">
-        {/* Sidebar */}
-        <div className="hidden md:block">
-          <NewSidebar 
-            selectedGameId={selectedGameId}
-            onSelectGame={setSelectedGameId}
+      <div className="flex">
+        {/* Mobile Sidebar Overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
           />
-        </div>
+        )}
 
-        {/* Main Content */}
-        <div className="space-y-4">
-          {children}
-        </div>
+        {/* Sidebar - Fixed on desktop, overlay on mobile */}
+        <aside className={`
+          fixed top-[57px] left-0 z-40 h-[calc(100vh-57px)] w-64 
+          transform transition-transform duration-300 ease-in-out
+          lg:sticky lg:top-[57px] lg:translate-x-0 lg:block
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          bg-background lg:bg-transparent
+          border-r lg:border-r-0
+          overflow-y-auto
+        `}>
+          <div className="p-4">
+            <NewSidebar 
+              selectedGameId={selectedGameId}
+              onSelectGame={(id) => {
+                setSelectedGameId(id)
+                setIsSidebarOpen(false)
+              }}
+            />
+          </div>
+        </aside>
+
+        {/* Main Content - Full width with proper padding */}
+        <main className="flex-1 min-w-0 p-4 lg:p-6">
+          <div className="space-y-4">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   )

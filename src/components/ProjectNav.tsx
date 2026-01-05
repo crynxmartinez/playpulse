@@ -19,18 +19,18 @@ interface ProjectNavProps {
 
 // Form mode nav items
 const formNavItems = [
-  { href: '/stats', label: 'Stats', icon: BarChart2 },
-  { href: '/forms', label: 'Campaigns', icon: FileText },
-  { href: '/responses', label: 'Responses', icon: MessageSquare },
-  { href: '/analytics', label: 'Analytics', icon: LineChart },
-  { href: '/snapshots', label: 'Snapshots', icon: Camera },
-  { href: '/forms/settings', label: 'Settings', icon: Settings },
+  { href: '/stats', label: 'Stats', shortLabel: 'Stats', icon: BarChart2 },
+  { href: '/forms', label: 'Campaigns', shortLabel: 'Forms', icon: FileText },
+  { href: '/responses', label: 'Responses', shortLabel: 'Resp.', icon: MessageSquare },
+  { href: '/analytics', label: 'Analytics', shortLabel: 'Stats', icon: LineChart },
+  { href: '/snapshots', label: 'Snapshots', shortLabel: 'Snaps', icon: Camera },
+  { href: '/forms/settings', label: 'Settings', shortLabel: 'Set.', icon: Settings },
 ]
 
 // Overview mode nav items
 const overviewNavItems = [
-  { href: '', label: 'Overview', icon: Eye },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '', label: 'Overview', shortLabel: 'Overview', icon: Eye },
+  { href: '/settings', label: 'Settings', shortLabel: 'Settings', icon: Settings },
 ]
 
 export default function ProjectNav({ projectId }: ProjectNavProps) {
@@ -45,7 +45,7 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
   const navItems = isFormMode ? formNavItems : overviewNavItems
 
   return (
-    <nav className="rounded-2xl border bg-card p-1 flex items-center gap-1 overflow-x-auto">
+    <nav className="rounded-2xl border bg-card p-1 flex items-center gap-1 overflow-x-auto scrollbar-hide">
       {navItems.map((item) => {
         const href = `${basePath}${item.href}`
         const isActive = item.href === '' 
@@ -58,14 +58,15 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
             key={item.href || 'overview'}
             href={href}
             className={cn(
-              "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap",
+              "flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-xl transition-colors whitespace-nowrap",
               isActive
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            <Icon size={16} />
-            {item.label}
+            <Icon size={16} className="flex-shrink-0" />
+            <span className="sm:hidden">{item.shortLabel}</span>
+            <span className="hidden sm:inline">{item.label}</span>
           </Link>
         )
       })}
