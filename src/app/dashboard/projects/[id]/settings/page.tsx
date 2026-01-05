@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
+import { Toast } from '@/components/ui/toast'
 
 interface Project {
   id: string
@@ -181,13 +182,11 @@ export default function SettingsPage() {
       </div>
 
       {message && (
-        <div className={`mb-6 p-4 rounded-lg ${
-          message.type === 'success' 
-            ? 'bg-green-50 border border-green-200 text-green-700' 
-            : 'bg-red-50 border border-red-200 text-red-700'
-        }`}>
-          {message.text}
-        </div>
+        <Toast
+          message={message.text}
+          type={message.type}
+          onClose={() => setMessage(null)}
+        />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
