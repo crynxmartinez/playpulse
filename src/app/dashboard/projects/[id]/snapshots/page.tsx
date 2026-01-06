@@ -1,14 +1,116 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { Camera } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Link from 'next/link'
+import { Camera, Trash2, Download, ExternalLink, Loader2, Calendar, Tag } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+
+interface Snapshot {
+  id: string
+  name: string
+  type: string
+  imageData: string
+  formId: string | null
+  metadata: {
+    timeRange?: string
+    formFilter?: string
+    capturedAt?: string
+  } | null
+  createdAt: string
+  updatedAt: string
+}
+
+const SNAPSHOT_TYPE_LABELS: Record<string, { label: string; icon: string }> = {
+  'overall-score': { label: 'Overall Score', icon: '🎯' },
+  'insights': { label: 'Key Insights', icon: '💡' },
+  'stat-performance': { label: 'Stat Performance', icon: '📊' },
+  'category-breakdown': { label: 'Category Breakdown', icon: '🥧' },
+  'all-stats': { label: 'All Stats', icon: '📈' },
+  'response-trend': { label: 'Response Trend', icon: '📉' },
+}
 
 export default function ProjectSnapshotsPage() {
   const params = useParams()
   const projectId = params.id as string
+
+  const [snapshots, setSnapshots] = useState<Snapshot[]>([])
+  const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [selectedSnapshot, setSelectedSnapshot] = useState<Snapshot | null>(null)
+
+  const fetchSnapshots = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/projects/${projectId}/snapshots`)
+      const data = await res.json()
+      if (data.snapshots) {
+        setSnapshots(data.snapshots)
+      }
+    } catch (error) {
+      console.error('Failed to fetch snapshots:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [projectId])
+
+  useEffect(() => {
+    fetchSnapshots()
+  }, [fetchSnapshots])
+
+  const handleDelete = async (snapshotId: string) => {
+    if (!confirm('Are you sure you want to delete this snapshot?')) return
+    
+    setDeleting(snapshotId)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/snapshots/${snapshotId}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        setSnapshots(snapshots.filter(s => s.id !== snapshotId))
+        if (selectedSnapshot?.id === snapshotId) {
+          setSelectedSnapshot(null)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete snapshot:', error)
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const handleDownload = (snapshot: Snapshot) => {
+    const link = document.createElement('a')
+    link.href = snapshot.imageData
+    link.download = `${snapshot.name.replace(/\s+/g, '-').toLowerCase()}.webp`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  const getTypeInfo = (type: string) => {
+    return SNAPSHOT_TYPE_LABELS[type] || { label: type, icon: '📷' }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -16,57 +118,157 @@ export default function ProjectSnapshotsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-xl font-semibold">Snapshots</div>
-          <div className="text-sm text-muted-foreground">Export analytics as shareable images and embeds.</div>
+          <div className="text-sm text-muted-foreground">
+            {snapshots.length} snapshot{snapshots.length !== 1 ? 's' : ''} saved
+          </div>
         </div>
-        <Button className="rounded-2xl" disabled>
-          <Camera className="mr-2 h-4 w-4" /> Create Snapshot
+        <Button className="rounded-2xl" asChild>
+          <Link href={`/dashboard/projects/${projectId}/analytics`}>
+            <Camera className="mr-2 h-4 w-4" /> Go to Analytics
+          </Link>
         </Button>
       </div>
 
-      {/* Coming Soon Notice */}
-      <Card className="rounded-3xl">
-        <CardContent className="py-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Camera className="h-8 w-8 text-primary" />
-          </div>
-          <h2 className="text-lg font-semibold mb-2">Snapshots Coming Soon</h2>
-          <p className="text-muted-foreground max-w-md mx-auto mb-4">
-            Create beautiful shareable images of your analytics. Perfect for social media, devlogs, and investor updates.
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            <Badge variant="secondary" className="rounded-full">PNG Export</Badge>
-            <Badge variant="secondary" className="rounded-full">Embed Widgets</Badge>
-            <Badge variant="secondary" className="rounded-full">Custom Branding</Badge>
-            <Badge variant="secondary" className="rounded-full">Auto-Update</Badge>
-          </div>
-        </CardContent>
-      </Card>
+      {snapshots.length === 0 ? (
+        /* Empty State */
+        <Card className="rounded-3xl">
+          <CardContent className="py-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Camera className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-lg font-semibold mb-2">No Snapshots Yet</h2>
+            <p className="text-muted-foreground max-w-md mx-auto mb-4">
+              Go to Analytics and click the camera icon on any section to save a snapshot.
+            </p>
+            <Button asChild>
+              <Link href={`/dashboard/projects/${projectId}/analytics`}>
+                Go to Analytics
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {snapshots.map((snapshot) => {
+            const typeInfo = getTypeInfo(snapshot.type)
+            return (
+              <Card 
+                key={snapshot.id} 
+                className="rounded-2xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => setSelectedSnapshot(snapshot)}
+              >
+                {/* Image Preview */}
+                <div className="aspect-video bg-slate-100 relative overflow-hidden">
+                  <img 
+                    src={snapshot.imageData} 
+                    alt={snapshot.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 left-2">
+                    <Badge variant="secondary" className="rounded-full text-xs">
+                      {typeInfo.icon} {typeInfo.label}
+                    </Badge>
+                  </div>
+                </div>
+                
+                {/* Info */}
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-slate-800 truncate mb-1">
+                    {snapshot.name}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
+                    <Calendar size={12} />
+                    {formatDate(snapshot.createdAt)}
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="flex-1 rounded-xl"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDownload(snapshot)
+                      }}
+                    >
+                      <Download size={14} className="mr-1" /> Download
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDelete(snapshot.id)
+                      }}
+                      disabled={deleting === snapshot.id}
+                    >
+                      {deleting === snapshot.id ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
 
-      {/* Preview of what snapshots will look like */}
-      <Card className="rounded-3xl">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Preview: Snapshot Types</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="rounded-2xl border p-4 text-center">
-              <div className="text-2xl mb-2">📊</div>
-              <div className="font-medium">Analytics Card</div>
-              <div className="text-sm text-muted-foreground">Key metrics at a glance</div>
+      {/* Lightbox Modal */}
+      {selectedSnapshot && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedSnapshot(null)}
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h2 className="font-semibold text-lg">{selectedSnapshot.name}</h2>
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Tag size={14} />
+                  {getTypeInfo(selectedSnapshot.type).label}
+                  <span className="mx-1">•</span>
+                  <Calendar size={14} />
+                  {formatDate(selectedSnapshot.createdAt)}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleDownload(selectedSnapshot)}
+                >
+                  <Download size={14} className="mr-1" /> Download
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={() => setSelectedSnapshot(null)}
+                >
+                  Close
+                </Button>
+              </div>
             </div>
-            <div className="rounded-2xl border p-4 text-center">
-              <div className="text-2xl mb-2">📈</div>
-              <div className="font-medium">Trend Chart</div>
-              <div className="text-sm text-muted-foreground">Response trends over time</div>
-            </div>
-            <div className="rounded-2xl border p-4 text-center">
-              <div className="text-2xl mb-2">🎯</div>
-              <div className="font-medium">Score Summary</div>
-              <div className="text-sm text-muted-foreground">Fun score distribution</div>
+            
+            {/* Modal Image */}
+            <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
+              <img 
+                src={selectedSnapshot.imageData} 
+                alt={selectedSnapshot.name}
+                className="w-full rounded-lg"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   )
 }

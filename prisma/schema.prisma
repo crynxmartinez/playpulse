@@ -87,6 +87,7 @@ model Project {
   updates       ProjectUpdate[]
   versions      ProjectVersion[]
   elements      PageElement[]
+  snapshots     Snapshot[]
 }
 
 // Tracks all updates/changes to the project (like GitHub contributions)
@@ -239,4 +240,18 @@ model Answer {
   textValue   String?  // Text value (for open text questions)
   selectedIds Json?    // For multi-select: array of selected option indices
   createdAt   DateTime @default(now())
+}
+
+// Analytics Snapshots - saved images of analytics sections
+model Snapshot {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  formId      String?  // Optional - if snapshot is form-specific
+  name        String   // User-defined name for the snapshot
+  type        String   // Type of section: "category-scores", "stat-averages", "response-trend", "overall-score", "insights"
+  imageData   String   @db.Text // Base64 WebP image data
+  metadata    Json?    // Captured data at snapshot time (for reference)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

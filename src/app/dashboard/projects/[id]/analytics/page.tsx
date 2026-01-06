@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { 
   LineChart, BarChart2, TrendingUp, TrendingDown, FileText, MessageSquare, 
-  Lightbulb, PieChart, Filter, Calendar, Target, ArrowUp, ArrowDown, Minus
+  Lightbulb, PieChart, Filter, Calendar, Target, ArrowUp, ArrowDown, Minus,
+  Camera, Check, Loader2
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import html2canvas from 'html2canvas'
 
 interface StatAverage {
   id: string
@@ -92,6 +94,107 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('30')
   const [categoryChartType, setCategoryChartType] = useState<ChartType>('radar')
   const [statsChartType, setStatsChartType] = useState<ChartType>('bar')
+  
+  // Snapshot state
+  const [snapshotLoading, setSnapshotLoading] = useState<string | null>(null)
+  const [snapshotSuccess, setSnapshotSuccess] = useState<string | null>(null)
+  
+  // Refs for snapshot sections
+  const overallScoreRef = useRef<HTMLDivElement>(null)
+  const insightsRef = useRef<HTMLDivElement>(null)
+  const summaryCardsRef = useRef<HTMLDivElement>(null)
+  const statPerformanceRef = useRef<HTMLDivElement>(null)
+  const categoryBreakdownRef = useRef<HTMLDivElement>(null)
+  const allStatsRef = useRef<HTMLDivElement>(null)
+  const responseTrendRef = useRef<HTMLDivElement>(null)
+
+  // Capture snapshot function
+  const captureSnapshot = async (
+    ref: React.RefObject<HTMLDivElement | null>,
+    type: string,
+    defaultName: string
+  ) => {
+    if (!ref.current) return
+    
+    setSnapshotLoading(type)
+    setSnapshotSuccess(null)
+    
+    try {
+      // Capture the element as canvas
+      const canvas = await html2canvas(ref.current, {
+        backgroundColor: '#ffffff',
+        scale: 2, // Higher quality
+        logging: false,
+        useCORS: true,
+      })
+      
+      // Convert to WebP for smaller file size
+      const imageData = canvas.toDataURL('image/webp', 0.9)
+      
+      // Prompt for name
+      const name = window.prompt('Name this snapshot:', defaultName) || defaultName
+      
+      // Save to API
+      const res = await fetch(`/api/projects/${projectId}/snapshots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          type,
+          imageData,
+          formId: formFilter !== 'all' ? formFilter : null,
+          metadata: {
+            timeRange,
+            formFilter,
+            capturedAt: new Date().toISOString(),
+          },
+        }),
+      })
+      
+      if (res.ok) {
+        setSnapshotSuccess(type)
+        setTimeout(() => setSnapshotSuccess(null), 2000)
+      } else {
+        const error = await res.json()
+        alert(`Failed to save snapshot: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to capture snapshot:', error)
+      alert('Failed to capture snapshot. Please try again.')
+    } finally {
+      setSnapshotLoading(null)
+    }
+  }
+
+  // Snapshot button component
+  const SnapshotButton = ({ 
+    sectionRef, 
+    type, 
+    defaultName 
+  }: { 
+    sectionRef: React.RefObject<HTMLDivElement | null>
+    type: string
+    defaultName: string 
+  }) => (
+    <button
+      onClick={() => captureSnapshot(sectionRef, type, defaultName)}
+      disabled={snapshotLoading === type}
+      className={`p-1.5 rounded-lg transition-colors ${
+        snapshotSuccess === type 
+          ? 'bg-green-100 text-green-600' 
+          : 'hover:bg-slate-100 text-slate-400 hover:text-slate-600'
+      }`}
+      title="Save as snapshot"
+    >
+      {snapshotLoading === type ? (
+        <Loader2 size={16} className="animate-spin" />
+      ) : snapshotSuccess === type ? (
+        <Check size={16} />
+      ) : (
+        <Camera size={16} />
+      )}
+    </button>
+  )
 
   const fetchAnalytics = useCallback(async () => {
     try {
@@ -494,7 +597,10 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Overall Score Card */}
-      <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 mb-6 text-white">
+      <div ref={overallScoreRef} className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 mb-6 text-white relative">
+        <div className="absolute top-3 right-3">
+          <SnapshotButton sectionRef={overallScoreRef} type="overall-score" defaultName={`Overall Score - ${data.overallScore}/100`} />
+        </div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <p className="text-purple-200 text-sm mb-1">Overall Score</p>
@@ -512,10 +618,13 @@ export default function AnalyticsPage() {
 
       {/* Insights Panel */}
       {data.insights.length > 0 && (
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-100 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Lightbulb className="text-purple-600" size={20} />
-            <h3 className="font-semibold text-slate-800">Key Insights</h3>
+        <div ref={insightsRef} className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-100 mb-6 relative">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="text-purple-600" size={20} />
+              <h3 className="font-semibold text-slate-800">Key Insights</h3>
+            </div>
+            <SnapshotButton sectionRef={insightsRef} type="insights" defaultName="Key Insights" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {data.insights.map((insight, i) => (
@@ -529,7 +638,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div ref={summaryCardsRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative">
         <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -581,8 +690,11 @@ export default function AnalyticsPage() {
 
       {/* Stat Cards Row */}
       {statsWithData.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-3">Stat Performance</h3>
+        <div ref={statPerformanceRef} className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-slate-800">Stat Performance</h3>
+            <SnapshotButton sectionRef={statPerformanceRef} type="stat-performance" defaultName="Stat Performance" />
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {statsWithData.slice(0, 10).map((stat) => {
               const percentage = getPercentage(stat)
@@ -635,13 +747,16 @@ export default function AnalyticsPage() {
 
       {/* Category Scores */}
       {data.categoryScores.length > 0 && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
+        <div ref={categoryBreakdownRef} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <PieChart className="text-purple-600" size={24} />
               <h3 className="text-lg font-semibold text-slate-800">Category Breakdown</h3>
             </div>
-            <ChartTypeSelector value={categoryChartType} onChange={setCategoryChartType} />
+            <div className="flex items-center gap-2">
+              <SnapshotButton sectionRef={categoryBreakdownRef} type="category-breakdown" defaultName="Category Breakdown" />
+              <ChartTypeSelector value={categoryChartType} onChange={setCategoryChartType} />
+            </div>
           </div>
           
           <div className="flex justify-center">
@@ -657,13 +772,16 @@ export default function AnalyticsPage() {
       )}
 
       {/* Individual Stats */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
+      <div ref={allStatsRef} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <BarChart2 className="text-purple-600" size={24} />
             <h3 className="text-lg font-semibold text-slate-800">All Stats</h3>
           </div>
-          <ChartTypeSelector value={statsChartType} onChange={setStatsChartType} />
+          <div className="flex items-center gap-2">
+            <SnapshotButton sectionRef={allStatsRef} type="all-stats" defaultName="All Stats" />
+            <ChartTypeSelector value={statsChartType} onChange={setStatsChartType} />
+          </div>
         </div>
 
         {statsWithData.length === 0 ? (
@@ -726,7 +844,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Response Trend - Improved Line Chart Style */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+      <div ref={responseTrendRef} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <LineChart className="text-purple-600" size={24} />
@@ -734,9 +852,12 @@ export default function AnalyticsPage() {
               Response Trend
             </h3>
           </div>
-          <span className="text-sm text-slate-500">
-            {TIME_RANGES.find(r => r.value === timeRange)?.label}
-          </span>
+          <div className="flex items-center gap-2">
+            <SnapshotButton sectionRef={responseTrendRef} type="response-trend" defaultName="Response Trend" />
+            <span className="text-sm text-slate-500">
+              {TIME_RANGES.find(r => r.value === timeRange)?.label}
+            </span>
+          </div>
         </div>
 
         {data.totalResponses === 0 ? (
