@@ -173,7 +173,7 @@ export default function PublicUpdatePage() {
       <main className="py-8 px-4">
         <div 
           className={`mx-auto bg-[#1a1a2e] min-h-[50vh] rounded-lg shadow-2xl transition-all ${
-            devicePreview === 'desktop' ? 'max-w-5xl' :
+            devicePreview === 'desktop' ? 'max-w-full' :
             devicePreview === 'tablet' ? 'max-w-2xl' :
             'max-w-sm'
           }`}
@@ -251,6 +251,7 @@ function ElementRenderer({ element }: { element: Element }) {
       )
 
     case 'bullet-list':
+    case 'list':
       return (
         <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
           {((data.items as string[]) || ['Item 1']).map((item, i) => (
@@ -398,6 +399,62 @@ function ElementRenderer({ element }: { element: Element }) {
 
     case 'spacer':
       return <div style={{ height: (data.height as number) || 40 }} />
+
+    case 'card-reference':
+      const refOverlay = (data.overlay as string) || 'none'
+      const refOverlayStyle = refOverlay === 'red' 
+        ? 'bg-red-500/20 border-red-500/30' 
+        : refOverlay === 'darken'
+        ? 'bg-black/30 border-slate-600/30'
+        : 'bg-[#0d0d15] border-[#2a2a3e]'
+      
+      const refChanges = (data.changes as Array<{type: string; text: string}>) || []
+      const hasRefContent = data.title || refChanges.length > 0
+      
+      if (!hasRefContent) {
+        return (
+          <div className={`rounded-lg p-4 border ${refOverlayStyle}`}>
+            <div className="text-center text-slate-500 py-4">
+              <Square size={24} className="mx-auto mb-2 opacity-50" />
+              <div className="text-xs">No card data</div>
+            </div>
+          </div>
+        )
+      }
+      
+      return (
+        <div className={`rounded-lg p-4 border ${refOverlayStyle}`}>
+          <div className="flex items-center gap-3 mb-3">
+            {(data.icon as string) ? (
+              <img src={data.icon as string} alt="" className="w-12 h-12 rounded-lg" />
+            ) : (
+              <div className="w-12 h-12 bg-[#2a2a3e] rounded-lg flex items-center justify-center">
+                <Square size={24} className="text-slate-500" />
+              </div>
+            )}
+            <div className="flex-1">
+              <div className="font-bold text-white">{(data.title as string) || 'Card Title'}</div>
+              {(data.subtitle as string) && (
+                <div className="text-xs text-slate-400">{data.subtitle as string}</div>
+              )}
+            </div>
+          </div>
+          <div className="space-y-1">
+            {refChanges.map((change, i) => (
+              <div key={i} className="flex items-start gap-2 text-sm">
+                <span className={`mt-0.5 ${
+                  change.type === 'buff' ? 'text-green-400' :
+                  change.type === 'nerf' ? 'text-red-400' :
+                  'text-blue-400'
+                }`}>
+                  {change.type === 'buff' ? '↑' : change.type === 'nerf' ? '↓' : '○'}
+                </span>
+                <span className="text-slate-300">{change.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
 
     default:
       return (
