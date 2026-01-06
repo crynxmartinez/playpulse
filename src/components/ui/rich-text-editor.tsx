@@ -136,20 +136,21 @@ export function RichTextEditor({
         dangerouslySetInnerHTML={{ __html: value }}
         data-placeholder={placeholder}
         className={cn(
-          "px-3 py-2 text-sm outline-none overflow-y-auto text-left",
+          "px-3 py-2 text-sm outline-none overflow-y-auto",
+          "[direction:ltr] [text-align:left] [unicode-bidi:plaintext]",
           "prose prose-sm prose-invert max-w-none",
           "prose-headings:font-semibold prose-headings:text-foreground",
           "prose-h1:text-xl prose-h1:mt-4 prose-h1:mb-2",
           "prose-h2:text-lg prose-h2:mt-3 prose-h2:mb-2",
           "prose-p:my-1 prose-p:text-foreground",
-          "prose-ul:my-2 prose-ol:my-2",
+          "prose-ul:my-2 prose-ol:my-2 prose-ul:list-disc prose-ol:list-decimal prose-ul:pl-4 prose-ol:pl-4",
           "prose-li:my-0.5",
           "prose-blockquote:border-l-2 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-muted-foreground",
           "prose-pre:bg-muted prose-pre:rounded-lg prose-pre:p-2",
           "prose-a:text-primary prose-a:underline",
           "[&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground [&:empty]:before:pointer-events-none"
         )}
-        style={{ minHeight }}
+        style={{ minHeight, direction: 'ltr', textAlign: 'left' }}
       />
 
       {/* Character count */}
