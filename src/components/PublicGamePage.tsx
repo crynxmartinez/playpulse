@@ -77,6 +77,7 @@ interface PublicGamePageProps {
     websiteUrl?: string | null;
     discordUrl?: string | null;
     rules?: string | null;
+    rulesPdfUrl?: string | null;
     features?: string[];
     user?: {
       displayName?: string | null;
@@ -690,17 +691,35 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   )}
 
                   {/* How to Play / Rules */}
-                  {project.rules && (
+                  {(project.rules || project.rulesPdfUrl) && (
                     <div className="rounded-xl bg-[#1a1a2e] p-4">
                       <div className="text-sm font-semibold text-white mb-2">How to Play</div>
-                      <div className="text-sm text-slate-400 whitespace-pre-wrap">
-                        {project.rules}
-                      </div>
+                      {project.rulesPdfUrl ? (
+                        <div className="space-y-3">
+                          <iframe
+                            src={`https://docs.google.com/viewer?url=${encodeURIComponent(project.rulesPdfUrl)}&embedded=true`}
+                            className="w-full h-[400px] rounded-lg border border-[#2a2a3e]"
+                            title="Rules PDF"
+                          />
+                          <a 
+                            href={project.rulesPdfUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-xs text-primary hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" /> Open PDF in new tab
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-slate-400 whitespace-pre-wrap">
+                          {project.rules}
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Default content if no features or rules */}
-                  {features.length === 0 && !project.rules && (
+                  {features.length === 0 && !project.rules && !project.rulesPdfUrl && (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="rounded-xl bg-[#1a1a2e] p-4">
                         <div className="text-sm font-semibold text-white">How to help</div>
