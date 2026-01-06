@@ -66,6 +66,36 @@ interface PublicGamePageProps {
     slug: string | null;
     description: string | null;
     visibility: 'PRIVATE' | 'UNLISTED' | 'PUBLIC';
+    bannerUrl?: string | null;
+    logoUrl?: string | null;
+    genre?: string | null;
+    tags?: string[];
+    steamUrl?: string | null;
+    itchUrl?: string | null;
+    websiteUrl?: string | null;
+    discordUrl?: string | null;
+    rules?: string | null;
+    features?: string[];
+    user?: {
+      displayName?: string | null;
+      username?: string | null;
+      studioName?: string | null;
+    };
+    versions?: Array<{
+      id: string;
+      version: string;
+      title: string;
+      description?: string | null;
+      isPublished: boolean;
+      publishedAt?: Date | string | null;
+      createdAt: Date | string;
+    }>;
+    forms?: Array<{
+      id: string;
+      title: string;
+      slug?: string | null;
+      isActive: boolean;
+    }>;
   };
 }
 
@@ -289,42 +319,33 @@ function UpdateCard({ u, expanded, onToggle }: { u: Update; expanded: boolean; o
 }
 
 export default function PublicGamePage({ project }: PublicGamePageProps) {
-  const game = {
-    title: project.name,
-    tagline: project.description || "A game in development.",
-    studio: "Developer",
-    slug: project.slug || project.id,
-    coverHint: "Cover banner",
-    logoHint: "Logo",
-    tags: ["indie", "game"],
-    platforms: ["PC", "Web"],
-    links: {
-      website: "#",
-      discord: "#",
-      itch: "#",
-    },
-    stats: {
-      followers: 0,
-      testers: 0,
-      playtests: 0,
-      totalResponses: 0,
-      avgFun: 0,
-      avgDifficulty: 0,
-    },
-  };
-
-  const updates: Update[] = [
-    {
-      id: "u1",
-      version: "v0.1.0",
-      title: "Welcome to PlayPulse",
-      date: "Jan 5, 2026",
-      type: "Devlog",
-      summary: "This is where your devlogs and playtest updates will appear.",
-      highlights: ["Getting Started", "Feedback"],
-      blocks: [{ kind: "text", value: "Start building your game's public presence here." }],
-    },
-  ];
+  // Use real project data
+  const developerName = project.user?.studioName || project.user?.displayName || project.user?.username || "Developer";
+  const tags = project.tags || [];
+  const features = project.features || [];
+  
+  // Get published versions for the updates timeline
+  const publishedVersions = (project.versions || [])
+    .filter(v => v.isPublished)
+    .sort((a, b) => new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime());
+  
+  // Get active forms for "Join Playtest" button
+  const activeForms = (project.forms || []).filter(f => f.isActive);
+  const activePlaytest = activeForms[0];
+  
+  // Convert published versions to Update format for the timeline
+  const updates: Update[] = publishedVersions.map(v => ({
+    id: v.id,
+    version: v.version,
+    title: v.title,
+    date: v.publishedAt 
+      ? new Date(v.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : new Date(v.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    type: "Devlog" as const,
+    summary: v.description || "No description provided.",
+    highlights: [],
+    blocks: [],
+  }));
 
   const progressRows = useMemo(() => {
     const rows = updates
@@ -369,63 +390,117 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
   }, [updates, search]);
 
   return (
-    <div className="bg-background">
+    <div className="bg-transparent">
       {/* Cover */}
       <div className="relative">
-        <div className="h-52 w-full bg-gradient-to-b from-purple-900/20 to-transparent" />
+        {/* Banner Image or Gradient */}
+        {project.bannerUrl ? (
+          <div className="h-52 w-full overflow-hidden">
+            <img 
+              src={project.bannerUrl} 
+              alt={project.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="h-52 w-full bg-gradient-to-b from-purple-900/30 to-transparent" />
+        )}
         <div className="pointer-events-none absolute inset-0">
           <div className="mx-auto h-full max-w-6xl px-4">
-            <div className="h-full rounded-3xl border bg-background/40 shadow-sm backdrop-blur md:mt-6 md:h-[240px]" />
+            <div className="h-full rounded-3xl border border-[#2a2a3e] bg-[#0d0d15]/40 shadow-sm backdrop-blur md:mt-6 md:h-[240px]" />
           </div>
         </div>
 
         <div className="mx-auto max-w-6xl px-4">
           <div className="relative -mt-14 flex flex-col gap-4 px-4 md:-mt-10 md:flex-row md:items-end md:justify-between">
             <div className="flex items-end gap-4">
-              <div className="grid h-20 w-20 place-items-center rounded-2xl border bg-background shadow-sm">
-                <span className="text-xs text-muted-foreground">{game.logoHint}</span>
+              {/* Logo */}
+              <div className="h-20 w-20 rounded-2xl border border-[#2a2a3e] bg-[#1a1a2e] shadow-sm overflow-hidden flex items-center justify-center">
+                {project.logoUrl ? (
+                  <img src={project.logoUrl} alt={project.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl font-bold text-white/60">{project.name[0]}</span>
+                )}
               </div>
               <div className="pb-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{game.title}</h1>
+                  <h1 className="text-2xl font-bold tracking-tight sm:text-3xl text-white">{project.name}</h1>
                   <Badge className="rounded-xl" variant="secondary">
                     {project.visibility}
                   </Badge>
                 </div>
-                <div className="mt-1 text-sm text-muted-foreground">by {game.studio}</div>
-                <div className="mt-1 text-sm">{game.tagline}</div>
+                <div className="mt-1 text-sm text-slate-400">by {developerName}</div>
+                <div className="mt-1 text-sm text-slate-300">{project.description || "A game in development."}</div>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2 md:pb-2">
-              <Button className="rounded-2xl gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                Join Playtest
-              </Button>
+              {activePlaytest ? (
+                <a href={`/f/${activePlaytest.slug || activePlaytest.id}`}>
+                  <Button className="rounded-2xl gap-2">
+                    <ShieldCheck className="h-4 w-4" />
+                    Join Playtest
+                  </Button>
+                </a>
+              ) : (
+                <Button className="rounded-2xl gap-2" disabled>
+                  <ShieldCheck className="h-4 w-4" />
+                  No Active Playtest
+                </Button>
+              )}
               <Button variant="secondary" className="rounded-2xl gap-2">
                 <Heart className="h-4 w-4" />
                 Follow
               </Button>
-              <Button variant="outline" className="rounded-2xl gap-2">
-                <Star className="h-4 w-4" />
-                Add to List
-              </Button>
+              {project.discordUrl && (
+                <a href={project.discordUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" className="rounded-2xl gap-2 border-[#2a2a3e] text-white hover:bg-[#1a1a2e]">
+                    <MessageSquare className="h-4 w-4" />
+                    Discord
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
 
           {/* Tag row */}
           <div className="mt-4 flex flex-wrap items-center gap-2 px-4">
-            {game.tags.map((t) => (
-              <Badge key={t} variant="outline" className="rounded-xl">
+            {project.genre && (
+              <Badge variant="secondary" className="rounded-xl bg-purple-600/20 text-purple-300 border-purple-500/30">
+                {project.genre}
+              </Badge>
+            )}
+            {tags.map((t) => (
+              <Badge key={t} variant="outline" className="rounded-xl border-[#2a2a3e] text-slate-300">
                 #{t}
               </Badge>
             ))}
-            <Separator orientation="vertical" className="mx-1 hidden h-5 sm:block" />
-            {game.platforms.map((p) => (
-              <Badge key={p} variant="secondary" className="rounded-xl">
-                {p}
-              </Badge>
-            ))}
+            {(project.steamUrl || project.itchUrl || project.websiteUrl) && (
+              <>
+                <Separator orientation="vertical" className="mx-1 hidden h-5 sm:block bg-[#2a2a3e]" />
+                {project.steamUrl && (
+                  <a href={project.steamUrl} target="_blank" rel="noopener noreferrer">
+                    <Badge variant="secondary" className="rounded-xl bg-[#1b2838] text-white hover:bg-[#2a475e] cursor-pointer">
+                      Steam
+                    </Badge>
+                  </a>
+                )}
+                {project.itchUrl && (
+                  <a href={project.itchUrl} target="_blank" rel="noopener noreferrer">
+                    <Badge variant="secondary" className="rounded-xl bg-[#fa5c5c] text-white hover:bg-[#ff7676] cursor-pointer">
+                      Itch.io
+                    </Badge>
+                  </a>
+                )}
+                {project.websiteUrl && (
+                  <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer">
+                    <Badge variant="outline" className="rounded-xl border-[#2a2a3e] text-slate-300 hover:bg-[#1a1a2e] cursor-pointer">
+                      Website
+                    </Badge>
+                  </a>
+                )}
+              </>
+            )}
           </div>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[300px_1fr]">
@@ -434,63 +509,76 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
               <Card className="rounded-3xl">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Game Profile</CardTitle>
-                  <CardDescription className="text-xs">Public page • /g/{game.slug}</CardDescription>
+                  <CardDescription className="text-xs">Public page • /g/{project.slug || project.id}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <SmallKpi label="Followers" value={`${game.stats.followers}`} />
-                    <SmallKpi label="Testers" value={`${game.stats.testers}`} />
-                    <SmallKpi label="Playtests" value={`${game.stats.playtests}`} />
-                    <SmallKpi label="Responses" value={`${game.stats.totalResponses}`} />
+                    <SmallKpi label="Followers" value="0" />
+                    <SmallKpi label="Testers" value="0" />
+                    <SmallKpi label="Updates" value={`${publishedVersions.length}`} />
+                    <SmallKpi label="Forms" value={`${(project.forms || []).length}`} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <SmallKpi label="Avg Fun" value={game.stats.avgFun.toFixed(1)} hint="All time" />
-                    <SmallKpi
-                      label="Avg Difficulty"
-                      value={game.stats.avgDifficulty.toFixed(1)}
-                      hint="All time"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="text-xs font-semibold">Links</div>
-                    <div className="grid gap-2">
-                      <a
-                        className="flex items-center justify-between rounded-2xl border bg-background/60 px-3 py-2 text-sm hover:bg-muted/30"
-                        href={game.links.website}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <ExternalLink className="h-4 w-4" /> Website
-                        </span>
-                        <span className="text-xs text-muted-foreground">open</span>
-                      </a>
-                      <a
-                        className="flex items-center justify-between rounded-2xl border bg-background/60 px-3 py-2 text-sm hover:bg-muted/30"
-                        href={game.links.discord}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <MessageSquare className="h-4 w-4" /> Discord
-                        </span>
-                        <span className="text-xs text-muted-foreground">join</span>
-                      </a>
-                      <a
-                        className="flex items-center justify-between rounded-2xl border bg-background/60 px-3 py-2 text-sm hover:bg-muted/30"
-                        href={game.links.itch}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <ExternalLink className="h-4 w-4" /> Itch
-                        </span>
-                        <span className="text-xs text-muted-foreground">open</span>
-                      </a>
+                  {/* Links Section */}
+                  {(project.websiteUrl || project.discordUrl || project.steamUrl || project.itchUrl) && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-semibold text-slate-400">Links</div>
+                      <div className="grid gap-2">
+                        {project.websiteUrl && (
+                          <a
+                            className="flex items-center justify-between rounded-2xl border border-[#2a2a3e] bg-[#1a1a2e]/60 px-3 py-2 text-sm text-slate-300 hover:bg-[#2a2a3e]"
+                            href={project.websiteUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <ExternalLink className="h-4 w-4" /> Website
+                            </span>
+                            <span className="text-xs text-slate-500">open</span>
+                          </a>
+                        )}
+                        {project.discordUrl && (
+                          <a
+                            className="flex items-center justify-between rounded-2xl border border-[#2a2a3e] bg-[#1a1a2e]/60 px-3 py-2 text-sm text-slate-300 hover:bg-[#2a2a3e]"
+                            href={project.discordUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <MessageSquare className="h-4 w-4" /> Discord
+                            </span>
+                            <span className="text-xs text-slate-500">join</span>
+                          </a>
+                        )}
+                        {project.steamUrl && (
+                          <a
+                            className="flex items-center justify-between rounded-2xl border border-[#2a2a3e] bg-[#1b2838] px-3 py-2 text-sm text-white hover:bg-[#2a475e]"
+                            href={project.steamUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <ExternalLink className="h-4 w-4" /> Steam
+                            </span>
+                            <span className="text-xs text-slate-400">open</span>
+                          </a>
+                        )}
+                        {project.itchUrl && (
+                          <a
+                            className="flex items-center justify-between rounded-2xl border border-[#2a2a3e] bg-[#fa5c5c] px-3 py-2 text-sm text-white hover:bg-[#ff7676]"
+                            href={project.itchUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <ExternalLink className="h-4 w-4" /> Itch.io
+                            </span>
+                            <span className="text-xs text-white/70">open</span>
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="rounded-2xl border bg-muted/20 p-3">
                     <div className="flex items-start gap-2">
@@ -511,21 +599,32 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
 
               <Heatmap weeks={26} />
 
-              <Card className="rounded-3xl">
+              <Card className="rounded-3xl border-[#2a2a3e] bg-[#0d0d15]">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Pinned</CardTitle>
+                  <CardTitle className="text-base text-white">Pinned</CardTitle>
                   <CardDescription className="text-xs">Quick glance highlights</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="rounded-xl bg-muted/40 p-3">
-                    <div className="text-xs text-muted-foreground">Latest update</div>
-                    <div className="mt-1 text-sm font-semibold">{updates[0]?.title || "No updates yet"}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">{updates[0]?.date}</div>
+                  <div className="rounded-xl bg-[#1a1a2e] p-3">
+                    <div className="text-xs text-slate-500">Latest update</div>
+                    <div className="mt-1 text-sm font-semibold text-white">{updates[0]?.title || "No updates yet"}</div>
+                    <div className="mt-1 text-xs text-slate-500">{updates[0]?.date || "Publish a version to show here"}</div>
                   </div>
-                  <div className="rounded-xl bg-muted/40 p-3">
-                    <div className="text-xs text-muted-foreground">Open playtest</div>
-                    <div className="mt-1 text-sm font-semibold">No active playtest</div>
-                    <div className="mt-1 text-xs text-muted-foreground">Create one from Workspace</div>
+                  <div className="rounded-xl bg-[#1a1a2e] p-3">
+                    <div className="text-xs text-slate-500">Open playtest</div>
+                    {activePlaytest ? (
+                      <>
+                        <div className="mt-1 text-sm font-semibold text-white">{activePlaytest.title}</div>
+                        <a href={`/f/${activePlaytest.slug || activePlaytest.id}`} className="mt-1 text-xs text-purple-400 hover:text-purple-300">
+                          Join now →
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        <div className="mt-1 text-sm font-semibold text-slate-400">No active playtest</div>
+                        <div className="mt-1 text-xs text-slate-500">Create one from Workspace</div>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -533,56 +632,57 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
 
             {/* Main column */}
             <div className="space-y-6">
-              <Card className="rounded-3xl">
+              <Card className="rounded-3xl border-[#2a2a3e] bg-[#0d0d15]">
                 <CardHeader>
-                  <CardTitle className="text-base">README</CardTitle>
+                  <CardTitle className="text-base text-white">About</CardTitle>
                   <CardDescription>
-                    A clean, scannable overview — like GitHub, but for game playtests.
+                    {project.description || "A game in development on PlayPulse."}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="rounded-xl bg-muted/30 p-4">
-                      <div className="text-sm font-semibold">What we need</div>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Feel free to be blunt — we prefer actionable feedback.
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <Badge variant="secondary" className="rounded-lg">
-                          pacing
-                        </Badge>
-                        <Badge variant="secondary" className="rounded-lg">
-                          difficulty
-                        </Badge>
-                        <Badge variant="secondary" className="rounded-lg">
-                          onboarding
-                        </Badge>
+                <CardContent className="space-y-4 text-sm">
+                  {/* Key Features */}
+                  {features.length > 0 && (
+                    <div className="rounded-xl bg-[#1a1a2e] p-4">
+                      <div className="text-sm font-semibold text-white mb-3">Key Features</div>
+                      <div className="flex flex-wrap gap-2">
+                        {features.map((feature, idx) => (
+                          <Badge key={idx} variant="secondary" className="rounded-lg bg-purple-600/20 text-purple-300 border-purple-500/30">
+                            {feature}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
-                    <div className="rounded-xl bg-muted/30 p-4">
-                      <div className="text-sm font-semibold">How to help</div>
-                      <ol className="mt-2 list-decimal pl-5 text-sm text-muted-foreground space-y-1">
-                        <li>Play 1 run (10–15 min)</li>
-                        <li>Answer the campaign form</li>
-                        <li>Optional: leave a comment</li>
-                      </ol>
-                    </div>
-                    <div className="rounded-xl bg-muted/30 p-4">
-                      <div className="text-sm font-semibold">Privacy</div>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Submissions are anonymous by default. Creators see raw responses; public views show
-                        aggregates.
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
-                  <Separator />
+                  {/* How to Play / Rules */}
+                  {project.rules && (
+                    <div className="rounded-xl bg-[#1a1a2e] p-4">
+                      <div className="text-sm font-semibold text-white mb-2">How to Play</div>
+                      <div className="text-sm text-slate-400 whitespace-pre-wrap">
+                        {project.rules}
+                      </div>
+                    </div>
+                  )}
 
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <SmallKpi label="Open issues" value="0" hint="clustered from responses" />
-                    <SmallKpi label="Top theme" value="-" hint="No data yet" />
-                    <SmallKpi label="Next goal" value="-" hint="Set in Workspace" />
-                  </div>
+                  {/* Default content if no features or rules */}
+                  {features.length === 0 && !project.rules && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-xl bg-[#1a1a2e] p-4">
+                        <div className="text-sm font-semibold text-white">How to help</div>
+                        <ol className="mt-2 list-decimal pl-5 text-sm text-slate-400 space-y-1">
+                          <li>Play the game</li>
+                          <li>Answer the feedback form</li>
+                          <li>Optional: leave a comment</li>
+                        </ol>
+                      </div>
+                      <div className="rounded-xl bg-[#1a1a2e] p-4">
+                        <div className="text-sm font-semibold text-white">Privacy</div>
+                        <div className="mt-2 text-sm text-slate-400">
+                          Submissions are anonymous by default. Creators see raw responses; public views show aggregates.
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

@@ -27,6 +27,43 @@ export default async function GamePage({ params }: PageProps) {
       slug: true,
       description: true,
       visibility: true,
+      bannerUrl: true,
+      logoUrl: true,
+      genre: true,
+      tags: true,
+      steamUrl: true,
+      itchUrl: true,
+      websiteUrl: true,
+      discordUrl: true,
+      rules: true,
+      features: true,
+      user: {
+        select: {
+          displayName: true,
+          username: true,
+          studioName: true,
+        }
+      },
+      versions: {
+        select: {
+          id: true,
+          version: true,
+          title: true,
+          description: true,
+          isPublished: true,
+          publishedAt: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' }
+      },
+      forms: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          isActive: true,
+        }
+      }
     }
   })
 

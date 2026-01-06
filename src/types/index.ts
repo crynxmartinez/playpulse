@@ -12,6 +12,46 @@ export interface Project {
   slug: string | null
   description: string | null
   visibility: Visibility
+  bannerUrl?: string | null
+  logoUrl?: string | null
+  genre?: string | null
+  tags?: string[]
+  steamUrl?: string | null
+  itchUrl?: string | null
+  websiteUrl?: string | null
+  discordUrl?: string | null
+  rules?: string | null
+  features?: string[]
+  user?: {
+    displayName?: string | null
+    username?: string | null
+    studioName?: string | null
+  }
+  versions?: ProjectVersion[]
+  forms?: ProjectForm[]
+  _count?: {
+    forms?: number
+    stats?: number
+    versions?: number
+  }
+}
+
+export interface ProjectVersion {
+  id: string
+  version: string
+  title: string
+  description?: string | null
+  imageUrl?: string | null
+  isPublished: boolean
+  publishedAt?: Date | string | null
+  createdAt: Date | string
+}
+
+export interface ProjectForm {
+  id: string
+  title: string
+  slug?: string | null
+  isActive: boolean
 }
 
 export type Visibility = 'PRIVATE' | 'UNLISTED' | 'PUBLIC'
