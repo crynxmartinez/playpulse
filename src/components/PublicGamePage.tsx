@@ -82,6 +82,10 @@ interface PublicGamePageProps {
     rules?: string | null;
     rulesPdfUrl?: string | null;
     features?: string[];
+    formResponseCount?: number;
+    _count?: {
+      followers?: number;
+    };
     user?: {
       displayName?: string | null;
       username?: string | null;
@@ -804,9 +808,9 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
 
               {/* Activity Log - between About and Tabs */}
               <ActivityLog 
-                formResponseCount={0} 
+                formResponseCount={project.formResponseCount || 0} 
                 updateCount={publishedVersions.length} 
-                followerCount={0} 
+                followerCount={project._count?.followers || 0} 
               />
 
               <Tabs defaultValue="updates" className="w-full">

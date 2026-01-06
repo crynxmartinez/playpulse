@@ -33,6 +33,7 @@ model User {
   discord     String?            // Discord username
   
   projects  Project[]
+  following ProjectFollower[]
 }
 
 enum Role {
@@ -90,6 +91,7 @@ model Project {
   elements      PageElement[]
   snapshots     Snapshot[]
   pinnedSections PinnedSection[]
+  followers     ProjectFollower[]
 }
 
 // Tracks all updates/changes to the project (like GitHub contributions)
@@ -283,4 +285,16 @@ model PinnedSection {
 enum PinnedType {
   SNAPSHOT    // Static image from analytics
   ANALYTICS   // Live analytics widget
+}
+
+// Project followers - users following a project for updates
+model ProjectFollower {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([projectId, userId])
 }

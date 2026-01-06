@@ -91,6 +91,7 @@ export async function GET(
             stats: true,
             versions: true,
             updates: true,
+            followers: true,
           }
         }
       }
@@ -108,7 +109,22 @@ export async function GET(
       return NextResponse.json({ error: 'Game not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ game: project, isOwner })
+    // Get total form response count for this project
+    const formResponseCount = await prisma.response.count({
+      where: {
+        form: {
+          projectId: project.id
+        }
+      }
+    })
+
+    return NextResponse.json({ 
+      game: { 
+        ...project, 
+        formResponseCount 
+      }, 
+      isOwner 
+    })
   } catch (error) {
     console.error('Failed to fetch game:', error)
     return NextResponse.json({ error: 'Failed to fetch game' }, { status: 500 })
