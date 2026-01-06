@@ -243,15 +243,109 @@ export default function VersionEditorPage() {
     }
   }
 
+  // Extract cards from Comparison.after and Card Reference elements and create change-cards
+  const extractAndCreateCards = (pageContent: PageContent): PageContent => {
+    const newContent = JSON.parse(JSON.stringify(pageContent)) as PageContent
+    const cardsToAdd: Element[] = []
+    const processedCardIds = new Set<string>()
+    
+    // Collect existing change-card IDs to avoid duplicates
+    newContent.rows.forEach(row => {
+      row.columns.forEach(col => {
+        col.elements.forEach(el => {
+          if (el.type === 'change-card') {
+            // Use title as identifier since cards might be loaded multiple times
+            const cardKey = `${el.data.title}-${el.data.subtitle || ''}`
+            processedCardIds.add(cardKey)
+          }
+        })
+      })
+    })
+    
+    // Find Comparison and Card Reference elements
+    newContent.rows.forEach(row => {
+      row.columns.forEach(col => {
+        col.elements.forEach(el => {
+          if (el.type === 'comparison') {
+            const afterData = el.data.after as { title?: string; subtitle?: string; icon?: string; changes?: Array<{type: string; text: string}> }
+            if (afterData?.title) {
+              const cardKey = `${afterData.title}-${afterData.subtitle || ''}`
+              if (!processedCardIds.has(cardKey)) {
+                processedCardIds.add(cardKey)
+                cardsToAdd.push({
+                  id: generateId(),
+                  type: 'change-card',
+                  data: {
+                    icon: afterData.icon || '',
+                    title: afterData.title,
+                    subtitle: afterData.subtitle || '',
+                    changes: afterData.changes || []
+                  }
+                })
+              }
+            }
+          }
+          if (el.type === 'card-reference') {
+            const title = el.data.title as string
+            if (title) {
+              const cardKey = `${title}-${el.data.subtitle || ''}`
+              if (!processedCardIds.has(cardKey)) {
+                processedCardIds.add(cardKey)
+                cardsToAdd.push({
+                  id: generateId(),
+                  type: 'change-card',
+                  data: {
+                    icon: el.data.icon || '',
+                    title: title,
+                    subtitle: (el.data.subtitle as string) || '',
+                    changes: (el.data.changes as Array<{type: string; text: string}>) || []
+                  }
+                })
+              }
+            }
+          }
+        })
+      })
+    })
+    
+    // Add new cards to the first row's first column (or create a new row)
+    if (cardsToAdd.length > 0) {
+      if (newContent.rows.length > 0 && newContent.rows[0].columns.length > 0) {
+        // Add to end of first column
+        newContent.rows[0].columns[0].elements.push(...cardsToAdd)
+      } else {
+        // Create a new row with the cards
+        newContent.rows.push({
+          id: generateId(),
+          type: 'row',
+          settings: { backgroundColor: 'transparent', padding: 'md', maxWidth: '6xl' },
+          columns: [{
+            id: generateId(),
+            width: '100%',
+            elements: cardsToAdd
+          }]
+        })
+      }
+    }
+    
+    return newContent
+  }
+
   // Save content
   const saveContent = useCallback(async () => {
     setSaving(true)
     try {
+      // Extract cards from Comparison.after and Card Reference, add as change-cards
+      const contentWithCards = extractAndCreateCards(content)
+      
       await fetch(`/api/projects/${projectId}/versions/${versionId}/page`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content: contentWithCards }),
       })
+      
+      // Update local content with the new cards
+      setContent(contentWithCards)
       setLastSaved(new Date())
     } catch (error) {
       console.error('Failed to save:', error)
