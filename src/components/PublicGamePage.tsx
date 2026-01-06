@@ -412,50 +412,49 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
 
   return (
     <div className="bg-transparent">
-      {/* Cover */}
+      {/* Cover with Banner */}
       <div className="relative">
-        {/* Banner Image or Gradient */}
-        {project.bannerUrl ? (
-          <div className="h-52 w-full overflow-hidden">
+        {/* Banner Image - Full width behind the profile card */}
+        {project.bannerUrl && (
+          <div className="absolute inset-0 h-64 w-full overflow-hidden">
             <img 
               src={project.bannerUrl} 
               alt={project.name}
               className="w-full h-full object-cover"
             />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0d0d15]/60 to-[#0d0d15]" />
           </div>
-        ) : (
-          <div className="h-52 w-full bg-gradient-to-b from-purple-900/30 to-transparent" />
         )}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="mx-auto h-full max-w-6xl px-4">
-            <div className="h-full rounded-3xl border border-[#2a2a3e] bg-[#0d0d15]/40 shadow-sm backdrop-blur md:mt-6 md:h-[240px]" />
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="relative -mt-14 flex flex-col gap-4 px-4 md:-mt-10 md:flex-row md:items-end md:justify-between">
-            <div className="flex items-end gap-4">
-              {/* Logo */}
-              <div className="h-20 w-20 rounded-2xl border border-[#2a2a3e] bg-[#1a1a2e] shadow-sm overflow-hidden flex items-center justify-center">
-                {project.logoUrl ? (
-                  <img src={project.logoUrl} alt={project.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-2xl font-bold text-white/60">{project.name[0]}</span>
-                )}
-              </div>
-              <div className="pb-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight sm:text-3xl text-white">{project.name}</h1>
-                  <Badge className="rounded-xl" variant="secondary">
-                    {project.visibility}
-                  </Badge>
+        
+        {/* Spacer for banner height */}
+        <div className={project.bannerUrl ? "h-40" : "h-20"} />
+        
+        {/* Profile Card Container */}
+        <div className="relative mx-auto max-w-7xl px-4">
+          <div className="rounded-3xl border border-[#2a2a3e] bg-[#0d0d15]/80 shadow-sm backdrop-blur p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div className="flex items-end gap-4">
+                {/* Logo */}
+                <div className="h-20 w-20 rounded-2xl border border-[#2a2a3e] bg-[#1a1a2e] shadow-sm overflow-hidden flex items-center justify-center">
+                  {project.logoUrl ? (
+                    <img src={project.logoUrl} alt={project.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-bold text-white/60">{project.name[0]}</span>
+                  )}
                 </div>
-                <div className="mt-1 text-sm text-slate-400">by {developerName}</div>
-                <div className="mt-1 text-sm text-slate-300">{project.description || "A game in development."}</div>
+                <div className="pb-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight sm:text-3xl text-white">{project.name}</h1>
+                    <Badge className="rounded-xl" variant="secondary">
+                      {project.visibility}
+                    </Badge>
+                  </div>
+                  <div className="mt-1 text-sm text-slate-400">by {developerName}</div>
+                  <div className="mt-1 text-sm text-slate-300">{project.description || "A game in development."}</div>
+                </div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap gap-2 md:pb-2">
+              <div className="flex flex-wrap gap-2">
               {activePlaytest ? (
                 <a href={`/f/${activePlaytest.slug || activePlaytest.id}`}>
                   <Button className="rounded-2xl gap-2">
@@ -491,11 +490,16 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   </Button>
                 </Link>
               )}
+              </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Tag row */}
-          <div className="mt-4 flex flex-wrap items-center gap-2 px-4">
+      {/* Main Content */}
+      <div className="mx-auto max-w-7xl px-4">
+        {/* Tag row */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
             {project.genre && (
               <Badge variant="secondary" className="rounded-xl bg-purple-600/20 text-purple-300 border-purple-500/30">
                 {project.genre}
@@ -1006,10 +1010,9 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
             </div>
           </div>
         </div>
-      </div>
 
       {/* Footer */}
-      <div className="mx-auto max-w-6xl px-4 pb-10">
+      <div className="mx-auto max-w-7xl px-4 pb-10">
         <Separator className="my-8" />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-muted-foreground">
