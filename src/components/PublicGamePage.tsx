@@ -871,7 +871,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                                         {u.summary || "No description provided."}
                                       </div>
                                       <a 
-                                        href={`/updates/${u.id}`}
+                                        href={`/updates/${project.id}/${u.id}`}
                                         className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 hover:underline"
                                       >
                                         <ExternalLink className="h-3 w-3" />
