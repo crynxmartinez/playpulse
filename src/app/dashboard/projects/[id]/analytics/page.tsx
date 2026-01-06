@@ -108,6 +108,41 @@ export default function AnalyticsPage() {
   const allStatsRef = useRef<HTMLDivElement>(null)
   const responseTrendRef = useRef<HTMLDivElement>(null)
 
+  // Helper to convert lab/oklch colors to RGB for html2canvas compatibility
+  const convertColorsToRGB = (element: HTMLElement) => {
+    const allElements = element.querySelectorAll('*')
+    const elementsToProcess = [element, ...Array.from(allElements)] as HTMLElement[]
+    
+    elementsToProcess.forEach((el) => {
+      if (!(el instanceof HTMLElement)) return
+      const computed = window.getComputedStyle(el)
+      
+      // Get computed colors (browser converts to rgb/rgba)
+      const bgColor = computed.backgroundColor
+      const textColor = computed.color
+      const borderColor = computed.borderColor
+      
+      // Apply computed RGB values directly
+      if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
+        el.style.backgroundColor = bgColor
+      }
+      if (textColor) {
+        el.style.color = textColor
+      }
+      if (borderColor) {
+        el.style.borderColor = borderColor
+      }
+      
+      // Handle gradients by replacing with solid color fallback
+      const bgImage = computed.backgroundImage
+      if (bgImage && bgImage.includes('lab(')) {
+        // Extract first color or use a fallback
+        el.style.backgroundImage = 'none'
+        el.style.backgroundColor = bgColor || '#8b5cf6'
+      }
+    })
+  }
+
   // Capture snapshot function
   const captureSnapshot = async (
     ref: React.RefObject<HTMLDivElement | null>,
@@ -120,13 +155,27 @@ export default function AnalyticsPage() {
     setSnapshotSuccess(null)
     
     try {
-      // Capture the element as canvas
-      const canvas = await html2canvas(ref.current, {
+      // Clone the element to avoid modifying the original
+      const clone = ref.current.cloneNode(true) as HTMLElement
+      clone.style.position = 'absolute'
+      clone.style.left = '-9999px'
+      clone.style.top = '0'
+      clone.style.width = `${ref.current.offsetWidth}px`
+      document.body.appendChild(clone)
+      
+      // Convert modern CSS colors to RGB for html2canvas compatibility
+      convertColorsToRGB(clone)
+      
+      // Capture the cloned element as canvas
+      const canvas = await html2canvas(clone, {
         backgroundColor: '#ffffff',
         scale: 2, // Higher quality
         logging: false,
         useCORS: true,
       })
+      
+      // Remove the clone
+      document.body.removeChild(clone)
       
       // Convert to WebP for smaller file size
       const imageData = canvas.toDataURL('image/webp', 0.9)
