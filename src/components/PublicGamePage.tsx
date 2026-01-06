@@ -183,92 +183,55 @@ function SharePageCard({ projectId, slug }: { projectId: string; slug: string | 
   );
 }
 
-function Heatmap() {
+function ActivityLog({ 
+  formResponseCount = 0, 
+  updateCount = 0,
+  followerCount = 0 
+}: { 
+  formResponseCount?: number;
+  updateCount?: number;
+  followerCount?: number;
+}) {
   const currentYear = new Date().getFullYear();
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
-  // Generate data for each month (4-5 weeks per month, 7 days per week)
-  const monthData = useMemo(() => {
-    return months.map((month, monthIndex) => {
-      // Get number of days in this month
-      const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
-      const weeksInMonth = Math.ceil(daysInMonth / 7);
-      
-      // Generate activity data for each day
-      const days: number[] = [];
-      for (let d = 0; d < weeksInMonth * 7; d++) {
-        if (d < daysInMonth) {
-          const r = Math.random();
-          const v = r < 0.55 ? 0 : r < 0.78 ? 1 : r < 0.92 ? 2 : r < 0.985 ? 3 : 4;
-          days.push(v);
-        } else {
-          days.push(-1); // Empty cell for padding
-        }
-      }
-      return { month, days, weeksInMonth };
-    });
-  }, [currentYear]);
-
-  const shade = (v: number) => {
-    if (v === -1) return 'transparent';
-    const colors = [
-      'rgba(148,163,184,0.1)',
-      'rgba(139,92,246,0.3)',
-      'rgba(139,92,246,0.5)',
-      'rgba(139,92,246,0.7)',
-      'rgba(139,92,246,0.9)',
-    ];
-    return colors[clamp(v, 0, 4)];
-  };
+  const activities = [
+    { 
+      icon: MessageSquare, 
+      label: 'Form responses', 
+      count: formResponseCount,
+      color: 'text-purple-400'
+    },
+    { 
+      icon: Sparkles, 
+      label: 'Updates published', 
+      count: updateCount,
+      color: 'text-blue-400'
+    },
+    { 
+      icon: Heart, 
+      label: 'New followers', 
+      count: followerCount,
+      color: 'text-pink-400'
+    },
+  ];
 
   return (
     <Card className="rounded-3xl">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base">Activity {currentYear}</CardTitle>
-            <CardDescription className="text-xs">Devlogs + playtests published</CardDescription>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Less</span>
-            <div className="flex items-center gap-0.5">
-              {[0, 1, 2, 3, 4].map((v) => (
-                <span
-                  key={v}
-                  className="h-2 w-2 rounded-sm"
-                  style={{ background: shade(v) }}
-                  aria-label={`activity level ${v}`}
-                />
-              ))}
-            </div>
-            <span>More</span>
+            <CardDescription className="text-xs">Public activity log</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="grid grid-cols-12 gap-1">
-          {monthData.map(({ month, days, weeksInMonth }) => (
-            <div key={month} className="flex flex-col">
-              {/* Month label */}
-              <div className="text-[9px] text-muted-foreground mb-1 text-center">{month}</div>
-              {/* Days grid - 7 rows (days of week) */}
-              <div className="grid grid-rows-7 gap-[2px]">
-                {Array.from({ length: 7 }).map((_, dayOfWeek) => (
-                  <div key={dayOfWeek} className="flex gap-[2px]">
-                    {Array.from({ length: weeksInMonth }).map((_, weekIndex) => {
-                      const dayIndex = weekIndex * 7 + dayOfWeek;
-                      const value = days[dayIndex] ?? -1;
-                      return (
-                        <span
-                          key={weekIndex}
-                          className="h-[6px] w-[6px] rounded-[1px]"
-                          style={{ background: shade(value) }}
-                        />
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
+        <div className="grid grid-cols-3 gap-3">
+          {activities.map(({ icon: Icon, label, count, color }) => (
+            <div key={label} className="rounded-xl bg-[#1a1a2e] p-3 text-center">
+              <Icon className={`h-5 w-5 mx-auto mb-2 ${color}`} />
+              <div className="text-2xl font-bold text-white">{count}</div>
+              <div className="text-[10px] text-slate-400 mt-1">{label}</div>
             </div>
           ))}
         </div>
@@ -839,8 +802,12 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 </CardContent>
               </Card>
 
-              {/* Activity Heatmap - between About and Tabs */}
-              <Heatmap />
+              {/* Activity Log - between About and Tabs */}
+              <ActivityLog 
+                formResponseCount={0} 
+                updateCount={publishedVersions.length} 
+                followerCount={0} 
+              />
 
               <Tabs defaultValue="updates" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 rounded-2xl h-auto gap-1 p-1">
