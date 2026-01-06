@@ -328,18 +328,15 @@ function ActivityHeatmap({
     return `${days[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
   };
 
-  // Handle hover
+  // Handle hover - use fixed positioning for tooltip
   const handleMouseEnter = (day: DayCell, e: React.MouseEvent) => {
     if (day.isEmpty) return;
     setHoveredDay(day);
     const rect = (e.target as HTMLElement).getBoundingClientRect();
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    if (containerRect) {
-      setTooltipPos({
-        x: rect.left - containerRect.left + rect.width / 2,
-        y: rect.top - containerRect.top - 8
-      });
-    }
+    setTooltipPos({
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8
+    });
   };
 
   const handleMouseLeave = () => {
@@ -446,46 +443,47 @@ function ActivityHeatmap({
             </div>
           </div>
 
-          {/* Tooltip */}
-          {hoveredDay && tooltipPos && !hoveredDay.isEmpty && (
-            <div 
-              className="absolute z-50 bg-[#1a1a2e] border border-[#2a2a3e] rounded-lg shadow-xl p-3 pointer-events-none"
-              style={{
-                left: tooltipPos.x,
-                top: tooltipPos.y,
-                transform: 'translate(-50%, -100%)',
-                minWidth: '180px'
-              }}
-            >
-              <div className="text-xs font-medium text-white mb-1">
-                {formatDate(hoveredDay.date)}
-              </div>
-              <div className="text-sm font-bold text-purple-400 mb-2">
-                {hoveredDay.activity?.total || 0} activit{(hoveredDay.activity?.total || 0) === 1 ? 'y' : 'ies'}
-              </div>
-              {hoveredDay.activity && hoveredDay.activity.total > 0 && (
-                <div className="space-y-1 text-xs text-slate-400 border-t border-[#2a2a3e] pt-2">
-                  {getBreakdownText(hoveredDay.activity.breakdown).map((text, i) => (
-                    <div key={i}>• {text}</div>
-                  ))}
-                </div>
-              )}
-              {(!hoveredDay.activity || hoveredDay.activity.total === 0) && (
-                <div className="text-xs text-slate-500">No activity</div>
-              )}
-              {/* Tooltip arrow */}
-              <div 
-                className="absolute w-2 h-2 bg-[#1a1a2e] border-r border-b border-[#2a2a3e] rotate-45"
-                style={{
-                  bottom: '-5px',
-                  left: '50%',
-                  transform: 'translateX(-50%) rotate(45deg)'
-                }}
-              />
+          </div>
+      </CardContent>
+      
+      {/* Tooltip - fixed position outside overflow container */}
+      {hoveredDay && tooltipPos && !hoveredDay.isEmpty && (
+        <div 
+          className="fixed z-[100] bg-[#1a1a2e] border border-[#2a2a3e] rounded-lg shadow-xl p-3 pointer-events-none"
+          style={{
+            left: tooltipPos.x,
+            top: tooltipPos.y,
+            transform: 'translate(-50%, -100%)',
+            minWidth: '200px'
+          }}
+        >
+          <div className="text-xs font-medium text-white mb-1">
+            {formatDate(hoveredDay.date)}
+          </div>
+          <div className="text-sm font-bold text-purple-400 mb-2">
+            {hoveredDay.activity?.total || 0} activit{(hoveredDay.activity?.total || 0) === 1 ? 'y' : 'ies'}
+          </div>
+          {hoveredDay.activity && hoveredDay.activity.total > 0 && (
+            <div className="space-y-1 text-xs text-slate-400 border-t border-[#2a2a3e] pt-2">
+              {getBreakdownText(hoveredDay.activity.breakdown).map((text, i) => (
+                <div key={i}>• {text}</div>
+              ))}
             </div>
           )}
+          {(!hoveredDay.activity || hoveredDay.activity.total === 0) && (
+            <div className="text-xs text-slate-500">No activity</div>
+          )}
+          {/* Tooltip arrow */}
+          <div 
+            className="absolute w-2 h-2 bg-[#1a1a2e] border-r border-b border-[#2a2a3e]"
+            style={{
+              bottom: '-5px',
+              left: '50%',
+              transform: 'translateX(-50%) rotate(45deg)'
+            }}
+          />
         </div>
-      </CardContent>
+      )}
     </Card>
   );
 }
