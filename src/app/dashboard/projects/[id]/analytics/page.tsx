@@ -418,7 +418,7 @@ export default function AnalyticsPage() {
             })}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-bold text-slate-800">
+            <span className="text-3xl font-bold text-white">
               {Math.round(total / scores.length)}%
             </span>
             <span className="text-xs text-slate-500">Average</span>
@@ -455,7 +455,7 @@ export default function AnalyticsPage() {
                   <span className="font-medium text-slate-700">{catInfo.label}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-800">{cat.score}%</span>
+                  <span className="font-bold text-white">{cat.score}%</span>
                   <span className="text-xs text-slate-400">({cat.statCount})</span>
                 </div>
               </div>
@@ -610,7 +610,7 @@ export default function AnalyticsPage() {
             <select
               value={formFilter}
               onChange={(e) => setFormFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-white"
             >
               <option value="all">All Forms</option>
               {data.formsList.map((form) => (
@@ -627,7 +627,7 @@ export default function AnalyticsPage() {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-white"
             >
               {TIME_RANGES.map((range) => (
                 <option key={range.value} value={range.value}>{range.label}</option>
@@ -663,7 +663,7 @@ export default function AnalyticsPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Lightbulb className="text-purple-600" size={20} />
-              <h3 className="font-semibold text-slate-800">Key Insights</h3>
+              <h3 className="font-semibold text-white">Key Insights</h3>
             </div>
             <SnapshotButton sectionRef={insightsRef} type="insights" defaultName="Key Insights" />
           </div>
@@ -680,49 +680,49 @@ export default function AnalyticsPage() {
 
       {/* Summary Cards */}
       <div ref={summaryCardsRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <div className="bg-[#0d0d15] rounded-xl p-4 border border-[#2a2a3e]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
               <MessageSquare className="text-purple-600" size={20} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-800">{data.totalResponses}</p>
+              <p className="text-2xl font-bold text-white">{data.totalResponses}</p>
               <p className="text-xs text-slate-500">Responses</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <div className="bg-[#0d0d15] rounded-xl p-4 border border-[#2a2a3e]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
               <FileText className="text-blue-600" size={20} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-800">{data.totalForms}</p>
+              <p className="text-2xl font-bold text-white">{data.totalForms}</p>
               <p className="text-xs text-slate-500">Forms</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <div className="bg-[#0d0d15] rounded-xl p-4 border border-[#2a2a3e]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
               <TrendingUp className="text-green-600" size={20} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-800">{data.activeForms}</p>
+              <p className="text-2xl font-bold text-white">{data.activeForms}</p>
               <p className="text-xs text-slate-500">Active</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <div className="bg-[#0d0d15] rounded-xl p-4 border border-[#2a2a3e]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
               <BarChart2 className="text-orange-600" size={20} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-800">{statsWithData.length}</p>
+              <p className="text-2xl font-bold text-white">{statsWithData.length}</p>
               <p className="text-xs text-slate-500">Stats Tracked</p>
             </div>
           </div>
@@ -733,7 +733,7 @@ export default function AnalyticsPage() {
       {statsWithData.length > 0 && (
         <div ref={statPerformanceRef} className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-slate-800">Stat Performance</h3>
+            <h3 className="text-lg font-semibold text-white">Stat Performance</h3>
             <SnapshotButton sectionRef={statPerformanceRef} type="stat-performance" defaultName="Stat Performance" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -746,7 +746,7 @@ export default function AnalyticsPage() {
                 <div key={stat.id} className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-800 truncate text-sm">{stat.name}</p>
+                      <p className="font-medium text-white truncate text-sm">{stat.name}</p>
                       {catInfo && (
                         <span className={`text-xs px-1.5 py-0.5 rounded ${catInfo.lightColor} ${catInfo.textColor}`}>
                           {catInfo.label}
@@ -766,7 +766,7 @@ export default function AnalyticsPage() {
                     )}
                   </div>
                   <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-2xl font-bold text-slate-800">{stat.average}</span>
+                    <span className="text-2xl font-bold text-white">{stat.average}</span>
                     <span className="text-sm text-slate-400">/ {stat.max}</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
@@ -788,11 +788,11 @@ export default function AnalyticsPage() {
 
       {/* Category Scores */}
       {data.categoryScores.length > 0 && (
-        <div ref={categoryBreakdownRef} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
+        <div ref={categoryBreakdownRef} className="bg-[#0d0d15] rounded-xl p-6 border border-[#2a2a3e] mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <PieChart className="text-purple-600" size={24} />
-              <h3 className="text-lg font-semibold text-slate-800">Category Breakdown</h3>
+              <h3 className="text-lg font-semibold text-white">Category Breakdown</h3>
             </div>
             <div className="flex items-center gap-2">
               <SnapshotButton sectionRef={categoryBreakdownRef} type="category-breakdown" defaultName="Category Breakdown" />
@@ -813,11 +813,11 @@ export default function AnalyticsPage() {
       )}
 
       {/* Individual Stats */}
-      <div ref={allStatsRef} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
+      <div ref={allStatsRef} className="bg-[#0d0d15] rounded-xl p-6 border border-[#2a2a3e] mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <BarChart2 className="text-purple-600" size={24} />
-            <h3 className="text-lg font-semibold text-slate-800">All Stats</h3>
+            <h3 className="text-lg font-semibold text-white">All Stats</h3>
           </div>
           <div className="flex items-center gap-2">
             <SnapshotButton sectionRef={allStatsRef} type="all-stats" defaultName="All Stats" />
@@ -850,7 +850,7 @@ export default function AnalyticsPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-800">{stat.average}</span>
+                      <span className="font-bold text-white">{stat.average}</span>
                       <span className="text-slate-400">/ {stat.max}</span>
                       <span className="text-xs text-slate-400">({stat.count})</span>
                     </div>
@@ -885,11 +885,11 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Response Trend - Improved Line Chart Style */}
-      <div ref={responseTrendRef} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+      <div ref={responseTrendRef} className="bg-[#0d0d15] rounded-xl p-6 border border-[#2a2a3e]">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <LineChart className="text-purple-600" size={24} />
-            <h3 className="text-lg font-semibold text-slate-800">
+            <h3 className="text-lg font-semibold text-white">
               Response Trend
             </h3>
           </div>
@@ -970,12 +970,12 @@ export default function AnalyticsPage() {
             {/* Summary stats */}
             <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-slate-100">
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-800">{data.totalResponses}</p>
+                <p className="text-2xl font-bold text-white">{data.totalResponses}</p>
                 <p className="text-xs text-slate-500">Total Responses</p>
               </div>
               <div className="w-px h-8 bg-slate-200"></div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-800">
+                <p className="text-2xl font-bold text-white">
                   {(data.totalResponses / parseInt(timeRange)).toFixed(1)}
                 </p>
                 <p className="text-xs text-slate-500">Avg per Day</p>
@@ -995,7 +995,7 @@ export default function AnalyticsPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-xl">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">Save Snapshot</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Save Snapshot</h3>
               
               {/* Preview */}
               <div className="mb-4 rounded-lg overflow-hidden border border-slate-200">
@@ -1029,7 +1029,7 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={cancelSnapshot}
-                  className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium rounded-lg hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2 text-slate-600 hover:text-white font-medium rounded-lg hover:bg-slate-100 transition-colors"
                 >
                   Cancel
                 </button>
