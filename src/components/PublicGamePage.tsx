@@ -372,7 +372,7 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
     <div className="bg-background">
       {/* Cover */}
       <div className="relative">
-        <div className="h-52 w-full border-b bg-muted/30" />
+        <div className="h-52 w-full bg-gradient-to-b from-purple-900/20 to-transparent" />
         <div className="pointer-events-none absolute inset-0">
           <div className="mx-auto h-full max-w-6xl px-4">
             <div className="h-full rounded-3xl border bg-background/40 shadow-sm backdrop-blur md:mt-6 md:h-[240px]" />
