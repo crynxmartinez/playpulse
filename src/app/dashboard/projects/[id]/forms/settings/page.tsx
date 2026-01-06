@@ -137,8 +137,8 @@ export default function FormSettingsPage() {
       {message && (
         <div className={`mb-6 p-4 rounded-lg ${
           message.type === 'success' 
-            ? 'bg-green-50 border border-green-200 text-green-700' 
-            : 'bg-red-50 border border-red-200 text-red-700'
+            ? 'bg-green-500/10 border border-green-500/30 text-green-400' 
+            : 'bg-red-500/10 border border-red-500/30 text-red-400'
         }`}>
           {message.text}
         </div>
@@ -230,39 +230,39 @@ export default function FormSettingsPage() {
 
             {/* Tier Ranges */}
             <div className="mb-6">
-              <h4 className="font-medium text-slate-700 mb-3">Tier Ranges</h4>
+              <h4 className="font-medium text-white mb-3">Tier Ranges</h4>
               <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                  <label className="block text-sm font-medium text-red-700 mb-2">
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <label className="block text-sm font-medium text-red-400 mb-2">
                     Low Tier (0% - {tierData.tierLowMax}%)
                   </label>
                   <input
                     type="number"
                     value={tierData.tierLowMax}
                     onChange={(e) => setTierData({ ...tierData, tierLowMax: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-800 bg-white"
+                    className="w-full px-3 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-white bg-[#1a1a2e]"
                     min={1}
                     max={tierData.tierMediumMax - 1}
                   />
                 </div>
-                <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200">
-                  <label className="block text-sm font-medium text-yellow-700 mb-2">
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                  <label className="block text-sm font-medium text-yellow-400 mb-2">
                     Medium Tier ({tierData.tierLowMax + 1}% - {tierData.tierMediumMax}%)
                   </label>
                   <input
                     type="number"
                     value={tierData.tierMediumMax}
                     onChange={(e) => setTierData({ ...tierData, tierMediumMax: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-yellow-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-slate-800 bg-white"
+                    className="w-full px-3 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-white bg-[#1a1a2e]"
                     min={tierData.tierLowMax + 1}
                     max={99}
                   />
                 </div>
-                <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-                  <label className="block text-sm font-medium text-green-700 mb-2">
+                <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                  <label className="block text-sm font-medium text-green-400 mb-2">
                     High Tier ({tierData.tierMediumMax + 1}% - 100%)
                   </label>
-                  <div className="px-3 py-2 bg-green-100 border border-green-200 rounded-lg text-slate-600 text-sm">
+                  <div className="px-3 py-2 bg-[#1a1a2e] border border-[#2a2a3e] rounded-lg text-slate-400 text-sm">
                     Automatically calculated
                   </div>
                 </div>
@@ -271,35 +271,35 @@ export default function FormSettingsPage() {
 
             {/* Tier Labels */}
             <div className="mb-6">
-              <h4 className="font-medium text-slate-700 mb-3">Tier Labels</h4>
+              <h4 className="font-medium text-white mb-3">Tier Labels</h4>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">Low Tier Label</label>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Low Tier Label</label>
                   <input
                     type="text"
                     value={tierData.tierLowLabel}
                     onChange={(e) => setTierData({ ...tierData, tierLowLabel: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                    className="w-full px-3 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                     placeholder="Needs Improvement"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">Medium Tier Label</label>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Medium Tier Label</label>
                   <input
                     type="text"
                     value={tierData.tierMediumLabel}
                     onChange={(e) => setTierData({ ...tierData, tierMediumLabel: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                    className="w-full px-3 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                     placeholder="Good"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">High Tier Label</label>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">High Tier Label</label>
                   <input
                     type="text"
                     value={tierData.tierHighLabel}
                     onChange={(e) => setTierData({ ...tierData, tierHighLabel: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                    className="w-full px-3 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                     placeholder="Excellent"
                   />
                 </div>
@@ -308,34 +308,34 @@ export default function FormSettingsPage() {
 
             {/* Tier Messages */}
             <div>
-              <h4 className="font-medium text-slate-700 mb-3">Tier Messages (shown to players after submission)</h4>
+              <h4 className="font-medium text-white mb-3">Tier Messages (shown to players after submission)</h4>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">Low Tier Message</label>
+                  <label className="block text-sm font-medium text-red-400 mb-1">Low Tier Message</label>
                   <textarea
                     value={tierData.tierLowMsg}
                     onChange={(e) => setTierData({ ...tierData, tierLowMsg: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                    className="w-full px-3 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                     placeholder="Thanks for the honest feedback! We'll work on improving..."
                     rows={2}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-yellow-600 mb-1">Medium Tier Message</label>
+                  <label className="block text-sm font-medium text-yellow-400 mb-1">Medium Tier Message</label>
                   <textarea
                     value={tierData.tierMediumMsg}
                     onChange={(e) => setTierData({ ...tierData, tierMediumMsg: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                    className="w-full px-3 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                     placeholder="Good foundation! Here's what we're focusing on..."
                     rows={2}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-green-600 mb-1">High Tier Message</label>
+                  <label className="block text-sm font-medium text-green-400 mb-1">High Tier Message</label>
                   <textarea
                     value={tierData.tierHighMsg}
                     onChange={(e) => setTierData({ ...tierData, tierHighMsg: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                    className="w-full px-3 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                     placeholder="Awesome! Glad you enjoyed it!"
                     rows={2}
                   />
@@ -344,8 +344,8 @@ export default function FormSettingsPage() {
             </div>
 
             {/* Preview */}
-            <div className="mt-4 p-4 rounded-2xl border">
-              <h4 className="font-medium text-sm mb-3">Preview</h4>
+            <div className="mt-4 p-4 rounded-2xl border border-[#2a2a3e]">
+              <h4 className="font-medium text-sm mb-3 text-white">Preview</h4>
               <div className="flex gap-2">
                 <div className="flex-1 text-center p-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white">
                   <div className="text-xs opacity-80">0-{tierData.tierLowMax}%</div>
