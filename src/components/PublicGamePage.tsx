@@ -187,7 +187,7 @@ function SharePageCard({ projectId, slug }: { projectId: string; slug: string | 
   );
 }
 
-function ActivityLog({ 
+function ActivityHeatmap({ 
   formResponseCount = 0, 
   updateCount = 0,
   followerCount = 0 
@@ -197,47 +197,110 @@ function ActivityLog({
   followerCount?: number;
 }) {
   const currentYear = new Date().getFullYear();
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
-  const activities = [
-    { 
-      icon: MessageSquare, 
-      label: 'Form responses', 
-      count: formResponseCount,
-      color: 'text-purple-400'
-    },
-    { 
-      icon: Sparkles, 
-      label: 'Updates published', 
-      count: updateCount,
-      color: 'text-blue-400'
-    },
-    { 
-      icon: Heart, 
-      label: 'New followers', 
-      count: followerCount,
-      color: 'text-pink-400'
-    },
-  ];
+  // Generate heatmap data - in future this would come from real activity data
+  const weeksData = useMemo(() => {
+    const weeks: number[][] = [];
+    // 52 weeks, 7 days each
+    for (let w = 0; w < 52; w++) {
+      const week: number[] = [];
+      for (let d = 0; d < 7; d++) {
+        // Random placeholder - replace with real activity data later
+        const r = Math.random();
+        const v = r < 0.6 ? 0 : r < 0.8 ? 1 : r < 0.92 ? 2 : r < 0.98 ? 3 : 4;
+        week.push(v);
+      }
+      weeks.push(week);
+    }
+    return weeks;
+  }, []);
+
+  const shade = (v: number) => {
+    const colors = [
+      'rgba(148,163,184,0.1)',
+      'rgba(139,92,246,0.3)',
+      'rgba(139,92,246,0.5)',
+      'rgba(139,92,246,0.7)',
+      'rgba(139,92,246,0.9)',
+    ];
+    return colors[clamp(v, 0, 4)];
+  };
+
+  // Calculate month positions (approximate - each month ~4.3 weeks)
+  const monthPositions = months.map((_, i) => Math.floor(i * 52 / 12));
 
   return (
     <Card className="rounded-3xl">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base">Activity {currentYear}</CardTitle>
-            <CardDescription className="text-xs">Public activity log</CardDescription>
+            <CardDescription className="text-xs">
+              {formResponseCount} responses • {updateCount} updates • {followerCount} followers
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Less</span>
+            <div className="flex items-center gap-0.5">
+              {[0, 1, 2, 3, 4].map((v) => (
+                <span
+                  key={v}
+                  className="h-2.5 w-2.5 rounded-sm"
+                  style={{ background: shade(v) }}
+                />
+              ))}
+            </div>
+            <span>More</span>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="grid grid-cols-3 gap-3">
-          {activities.map(({ icon: Icon, label, count, color }) => (
-            <div key={label} className="rounded-xl bg-[#1a1a2e] p-3 text-center">
-              <Icon className={`h-5 w-5 mx-auto mb-2 ${color}`} />
-              <div className="text-2xl font-bold text-white">{count}</div>
-              <div className="text-[10px] text-slate-400 mt-1">{label}</div>
+        <div className="overflow-x-auto">
+          {/* Month labels */}
+          <div className="flex mb-1 text-[10px] text-muted-foreground" style={{ paddingLeft: '24px' }}>
+            {months.map((month, i) => (
+              <span 
+                key={month} 
+                style={{ 
+                  width: `${100/12}%`,
+                  minWidth: '40px'
+                }}
+              >
+                {month}
+              </span>
+            ))}
+          </div>
+          
+          {/* Heatmap grid */}
+          <div className="flex gap-1">
+            {/* Day labels */}
+            <div className="flex flex-col justify-around text-[9px] text-muted-foreground w-5 shrink-0">
+              <span></span>
+              <span>Mon</span>
+              <span></span>
+              <span>Wed</span>
+              <span></span>
+              <span>Fri</span>
+              <span></span>
             </div>
-          ))}
+            
+            {/* Weeks grid */}
+            <div className="flex gap-[2px] flex-1">
+              {weeksData.map((week, weekIdx) => (
+                <div key={weekIdx} className="flex flex-col gap-[2px]">
+                  {week.map((day, dayIdx) => (
+                    <span
+                      key={dayIdx}
+                      className="w-[10px] h-[10px] rounded-sm"
+                      style={{ background: shade(day) }}
+                      title={`Activity level: ${day}`}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -806,8 +869,8 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 </CardContent>
               </Card>
 
-              {/* Activity Log - between About and Tabs */}
-              <ActivityLog 
+              {/* Activity Heatmap - between About and Tabs */}
+              <ActivityHeatmap 
                 formResponseCount={project.formResponseCount || 0} 
                 updateCount={publishedVersions.length} 
                 followerCount={project._count?.followers || 0} 
