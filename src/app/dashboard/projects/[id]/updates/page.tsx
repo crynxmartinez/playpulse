@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, Edit2, Trash2, GitBranch, Calendar, ExternalLink } from 'lucide-react'
+import { Plus, Edit2, Trash2, GitBranch, Calendar, ExternalLink, Globe, GlobeLock } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ConfirmModal } from '@/components/ui/confirm-modal'
@@ -99,6 +99,25 @@ export default function UpdatesPage() {
       setVersions(versions.filter(v => v.id !== versionId))
     } catch (error) {
       console.error('Failed to delete version:', error)
+    }
+  }
+
+  const handleTogglePublish = async (version: Version) => {
+    try {
+      const endpoint = version.isPublished ? 'unpublish' : 'publish'
+      const res = await fetch(`/api/projects/${projectId}/versions/${version.id}/${endpoint}`, {
+        method: 'POST',
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setVersions(versions.map(v => 
+          v.id === version.id 
+            ? { ...v, isPublished: data.version.isPublished, publishedAt: data.version.publishedAt }
+            : v
+        ))
+      }
+    } catch (error) {
+      console.error('Failed to toggle publish:', error)
     }
   }
 
@@ -238,6 +257,7 @@ export default function UpdatesPage() {
               <tr className="border-b border-[#2a2a3e] bg-[#1a1a2e]">
                 <th className="text-left px-4 py-3 text-sm font-medium text-purple-400">Version</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">Title</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">Status</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">Date</th>
                 <th className="text-right px-4 py-3 text-sm font-medium text-slate-400">Actions</th>
               </tr>
@@ -260,13 +280,39 @@ export default function UpdatesPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
+                    {version.isPublished ? (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                        <Globe size={12} />
+                        Published
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-slate-500/20 text-slate-400">
+                        <GlobeLock size={12} />
+                        Draft
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
                       <Calendar size={14} />
-                      {formatDate(version.createdAt)}
+                      {version.isPublished && version.publishedAt 
+                        ? formatDate(version.publishedAt)
+                        : formatDate(version.createdAt)}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => handleTogglePublish(version)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          version.isPublished 
+                            ? 'text-green-400 hover:text-orange-400 hover:bg-orange-500/10' 
+                            : 'text-slate-400 hover:text-green-400 hover:bg-green-500/10'
+                        }`}
+                        title={version.isPublished ? 'Unpublish' : 'Publish'}
+                      >
+                        {version.isPublished ? <GlobeLock size={16} /> : <Globe size={16} />}
+                      </button>
                       <Link
                         href={`/editor/${projectId}/${version.id}`}
                         className="p-2 text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
