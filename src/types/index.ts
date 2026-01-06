@@ -35,7 +35,9 @@ export interface Project {
     forms?: number
     stats?: number
     versions?: number
+    followers?: number
   }
+  formResponseCount?: number
 }
 
 export interface PinnedSection {
