@@ -27,6 +27,7 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
+  Copy,
   ExternalLink,
   Heart,
   Link2,
@@ -35,6 +36,7 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  Check,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -133,6 +135,51 @@ function SmallKpi({ label, value, hint }: { label: string; value: string; hint?:
       <div className="mt-1 text-xl font-semibold tracking-tight">{value || "-"}</div>
       {hint ? <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div> : null}
     </div>
+  );
+}
+
+function SharePageCard({ projectId, slug }: { projectId: string; slug: string | null }) {
+  const [copied, setCopied] = useState(false);
+  const pageUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/game/${projectId}`
+    : `/game/${projectId}`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(pageUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return (
+    <Card className="rounded-3xl">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Share Page</CardTitle>
+        <CardDescription className="text-xs">Share your game with others</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button 
+          onClick={handleCopy} 
+          variant="secondary" 
+          className="w-full rounded-2xl gap-2"
+        >
+          {copied ? (
+            <>
+              <Check className="h-4 w-4 text-green-500" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="h-4 w-4" />
+              Copy Page Link
+            </>
+          )}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -457,6 +504,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
 
   const [expandedId, setExpandedId] = useState<string>(updates[0]?.id ?? "");
   const [search, setSearch] = useState<string>("");
+  const [showAllUpdates, setShowAllUpdates] = useState(false);
 
   const filteredUpdates = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -465,6 +513,12 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
       [u.version, u.title, u.summary, u.type, ...u.highlights].join(" ").toLowerCase().includes(q)
     );
   }, [updates, search]);
+
+  // Limit to 5 updates unless "Show more" is clicked
+  const displayedUpdates = useMemo(() => {
+    if (showAllUpdates || search.trim()) return filteredUpdates;
+    return filteredUpdates.slice(0, 5);
+  }, [filteredUpdates, showAllUpdates, search]);
 
   return (
     <div className="bg-transparent">
@@ -554,7 +608,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4">
-        {/* Tag row */}
+        {/* Tag row - Genre, Tags, and Key Features */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
             {project.genre && (
               <Badge variant="secondary" className="rounded-xl bg-purple-600/20 text-purple-300 border-purple-500/30">
@@ -566,30 +620,14 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 #{t}
               </Badge>
             ))}
-            {(project.steamUrl || project.itchUrl || project.websiteUrl) && (
+            {features.length > 0 && (
               <>
                 <Separator orientation="vertical" className="mx-1 hidden h-5 sm:block bg-[#2a2a3e]" />
-                {project.steamUrl && (
-                  <a href={project.steamUrl} target="_blank" rel="noopener noreferrer">
-                    <Badge variant="secondary" className="rounded-xl bg-[#1b2838] text-white hover:bg-[#2a475e] cursor-pointer">
-                      Steam
-                    </Badge>
-                  </a>
-                )}
-                {project.itchUrl && (
-                  <a href={project.itchUrl} target="_blank" rel="noopener noreferrer">
-                    <Badge variant="secondary" className="rounded-xl bg-[#fa5c5c] text-white hover:bg-[#ff7676] cursor-pointer">
-                      Itch.io
-                    </Badge>
-                  </a>
-                )}
-                {project.websiteUrl && (
-                  <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer">
-                    <Badge variant="outline" className="rounded-xl border-[#2a2a3e] text-slate-300 hover:bg-[#1a1a2e] cursor-pointer">
-                      Website
-                    </Badge>
-                  </a>
-                )}
+                {features.map((feature, idx) => (
+                  <Badge key={idx} variant="secondary" className="rounded-xl bg-purple-600/20 text-purple-300 border-purple-500/30">
+                    {feature}
+                  </Badge>
+                ))}
               </>
             )}
           </div>
@@ -597,10 +635,11 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
           <div className="mt-8 grid gap-8 lg:grid-cols-[300px_1fr]">
             {/* Left column */}
             <div className="space-y-6">
+              <SharePageCard projectId={project.id} slug={project.slug} />
+              
               <Card className="rounded-3xl">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Game Profile</CardTitle>
-                  <CardDescription className="text-xs">Public page • /g/{project.slug || project.id}</CardDescription>
+                  <CardTitle className="text-base">Stats</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
@@ -670,25 +709,8 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                       </div>
                     </div>
                   )}
-
-                  <div className="rounded-2xl border bg-muted/20 p-3">
-                    <div className="flex items-start gap-2">
-                      <Users className="mt-0.5 h-4 w-4" />
-                      <div>
-                        <div className="text-sm font-semibold">Community</div>
-                        <div className="text-xs text-muted-foreground">
-                          All games share one Discord hub — discover teammates and testers faster.
-                        </div>
-                      </div>
-                    </div>
-                    <Button className="mt-3 w-full rounded-2xl" variant="secondary">
-                      Enter PlayPulse Discord
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
-
-              <Heatmap weeks={26} />
 
               <Card className="rounded-3xl border-[#2a2a3e] bg-[#0d0d15]">
                 <CardHeader className="pb-3">
@@ -795,6 +817,9 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 </CardContent>
               </Card>
 
+              {/* Activity Heatmap - between About and Tabs */}
+              <Heatmap weeks={26} />
+
               <Tabs defaultValue="updates" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 rounded-2xl h-auto gap-1 p-1">
                   <TabsTrigger value="updates" className="rounded-xl text-xs sm:text-sm py-2">
@@ -830,7 +855,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     </div>
                   </div>
 
-                  {filteredUpdates.length === 0 ? (
+                  {displayedUpdates.length === 0 ? (
                     <div className="rounded-xl bg-[#1a1a2e] border border-[#2a2a3e] p-8 text-center">
                       <Calendar className="mx-auto h-12 w-12 text-slate-500 mb-3" />
                       <div className="text-white font-medium mb-1">No published updates yet</div>
@@ -840,7 +865,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     </div>
                   ) : (
                     <div className="space-y-6">
-                      {Array.from(groupUpdatesByMonth(filteredUpdates)).map(([monthYear, monthUpdates]) => (
+                      {Array.from(groupUpdatesByMonth(displayedUpdates)).map(([monthYear, monthUpdates]) => (
                         <div key={monthYear}>
                           {/* Month header */}
                           <div className="text-sm font-semibold text-purple-400 mb-4">
@@ -889,6 +914,19 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Show more button */}
+                      {!showAllUpdates && filteredUpdates.length > 5 && !search.trim() && (
+                        <div className="text-center pt-2">
+                          <Button 
+                            variant="outline" 
+                            className="rounded-2xl border-[#2a2a3e] text-slate-300 hover:bg-[#1a1a2e]"
+                            onClick={() => setShowAllUpdates(true)}
+                          >
+                            Show {filteredUpdates.length - 5} more updates
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </TabsContent>
