@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import html2canvas from 'html2canvas'
+import { domToBlob } from 'modern-screenshot'
 
 interface StatAverage {
   id: string
@@ -108,45 +108,6 @@ export default function AnalyticsPage() {
   const allStatsRef = useRef<HTMLDivElement>(null)
   const responseTrendRef = useRef<HTMLDivElement>(null)
 
-  // Helper to inline all computed styles to avoid lab() color parsing issues
-  const inlineAllStyles = (sourceEl: HTMLElement, targetEl: HTMLElement) => {
-    const sourceComputed = window.getComputedStyle(sourceEl)
-    
-    // Key style properties to inline
-    const props = [
-      'backgroundColor', 'color', 'borderColor', 'borderTopColor', 'borderRightColor',
-      'borderBottomColor', 'borderLeftColor', 'outlineColor', 'textDecorationColor',
-      'fill', 'stroke', 'boxShadow', 'textShadow'
-    ]
-    
-    props.forEach(prop => {
-      const value = sourceComputed.getPropertyValue(prop.replace(/([A-Z])/g, '-$1').toLowerCase())
-      if (value && value !== 'none' && value !== 'rgba(0, 0, 0, 0)') {
-        targetEl.style.setProperty(prop.replace(/([A-Z])/g, '-$1').toLowerCase(), value)
-      }
-    })
-    
-    // Handle background-image (gradients) - replace with solid color
-    const bgImage = sourceComputed.backgroundImage
-    if (bgImage && bgImage !== 'none') {
-      targetEl.style.backgroundImage = 'none'
-      // Use background color as fallback
-      const bgColor = sourceComputed.backgroundColor
-      if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
-        targetEl.style.backgroundColor = bgColor
-      }
-    }
-    
-    // Recursively process children
-    const sourceChildren = sourceEl.children
-    const targetChildren = targetEl.children
-    for (let i = 0; i < sourceChildren.length; i++) {
-      if (sourceChildren[i] instanceof HTMLElement && targetChildren[i] instanceof HTMLElement) {
-        inlineAllStyles(sourceChildren[i] as HTMLElement, targetChildren[i] as HTMLElement)
-      }
-    }
-  }
-
   // Capture snapshot function
   const captureSnapshot = async (
     ref: React.RefObject<HTMLDivElement | null>,
@@ -159,27 +120,25 @@ export default function AnalyticsPage() {
     setSnapshotSuccess(null)
     
     try {
-      // Use html2canvas with onclone to modify the cloned document
-      const canvas = await html2canvas(ref.current, {
+      // Use modern-screenshot which supports lab() colors
+      const blob = await domToBlob(ref.current, {
         backgroundColor: '#ffffff',
         scale: 2,
-        logging: false,
-        useCORS: true,
-        onclone: (clonedDoc, clonedElement) => {
-          // Remove all stylesheets to prevent lab() parsing
-          const stylesheets = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]')
-          stylesheets.forEach(sheet => sheet.remove())
-          
-          // Inline all computed styles from original to clone
-          inlineAllStyles(ref.current!, clonedElement)
-          
-          // Set explicit background
-          clonedElement.style.backgroundColor = '#ffffff'
-        }
+        type: 'image/webp',
+        quality: 0.9,
       })
       
-      // Convert to WebP for smaller file size
-      const imageData = canvas.toDataURL('image/webp', 0.9)
+      if (!blob) {
+        throw new Error('Failed to create image blob')
+      }
+      
+      // Convert blob to base64
+      const reader = new FileReader()
+      const imageData = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      })
       
       // Prompt for name
       const name = window.prompt('Name this snapshot:', defaultName) || defaultName
