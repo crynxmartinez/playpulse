@@ -98,6 +98,13 @@ export default function AnalyticsPage() {
   // Snapshot state
   const [snapshotLoading, setSnapshotLoading] = useState<string | null>(null)
   const [snapshotSuccess, setSnapshotSuccess] = useState<string | null>(null)
+  const [snapshotModal, setSnapshotModal] = useState<{
+    isOpen: boolean
+    imageData: string
+    type: string
+    defaultName: string
+  } | null>(null)
+  const [snapshotName, setSnapshotName] = useState('')
   
   // Refs for snapshot sections
   const overallScoreRef = useRef<HTMLDivElement>(null)
@@ -140,17 +147,33 @@ export default function AnalyticsPage() {
         reader.readAsDataURL(blob)
       })
       
-      // Prompt for name
-      const name = window.prompt('Name this snapshot:', defaultName) || defaultName
-      
-      // Save to API
+      // Show custom modal for naming
+      setSnapshotName(defaultName)
+      setSnapshotModal({
+        isOpen: true,
+        imageData,
+        type,
+        defaultName,
+      })
+    } catch (error) {
+      console.error('Failed to capture snapshot:', error)
+      alert('Failed to capture snapshot. Please try again.')
+      setSnapshotLoading(null)
+    }
+  }
+
+  // Save snapshot from modal
+  const saveSnapshot = async () => {
+    if (!snapshotModal) return
+    
+    try {
       const res = await fetch(`/api/projects/${projectId}/snapshots`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          type,
-          imageData,
+          name: snapshotName || snapshotModal.defaultName,
+          type: snapshotModal.type,
+          imageData: snapshotModal.imageData,
           formId: formFilter !== 'all' ? formFilter : null,
           metadata: {
             timeRange,
@@ -161,18 +184,27 @@ export default function AnalyticsPage() {
       })
       
       if (res.ok) {
-        setSnapshotSuccess(type)
+        setSnapshotSuccess(snapshotModal.type)
         setTimeout(() => setSnapshotSuccess(null), 2000)
+        setSnapshotModal(null)
+        setSnapshotName('')
       } else {
         const error = await res.json()
         alert(`Failed to save snapshot: ${error.error}`)
       }
     } catch (error) {
-      console.error('Failed to capture snapshot:', error)
-      alert('Failed to capture snapshot. Please try again.')
+      console.error('Failed to save snapshot:', error)
+      alert('Failed to save snapshot. Please try again.')
     } finally {
       setSnapshotLoading(null)
     }
+  }
+
+  // Cancel snapshot modal
+  const cancelSnapshot = () => {
+    setSnapshotModal(null)
+    setSnapshotName('')
+    setSnapshotLoading(null)
   }
 
   // Snapshot button component
@@ -957,6 +989,61 @@ export default function AnalyticsPage() {
           </div>
         )}
       </div>
+
+      {/* Snapshot Naming Modal */}
+      {snapshotModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-xl">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Save Snapshot</h3>
+              
+              {/* Preview */}
+              <div className="mb-4 rounded-lg overflow-hidden border border-slate-200">
+                <img 
+                  src={snapshotModal.imageData} 
+                  alt="Snapshot preview" 
+                  className="w-full"
+                />
+              </div>
+              
+              {/* Name Input */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Snapshot Name
+                </label>
+                <input
+                  type="text"
+                  value={snapshotName}
+                  onChange={(e) => setSnapshotName(e.target.value)}
+                  placeholder={snapshotModal.defaultName}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveSnapshot()
+                    if (e.key === 'Escape') cancelSnapshot()
+                  }}
+                />
+              </div>
+              
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={cancelSnapshot}
+                  className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveSnapshot}
+                  className="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Save Snapshot
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
