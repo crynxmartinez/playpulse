@@ -40,6 +40,21 @@ interface Version {
   description: string | null
 }
 
+interface ChangeCardData {
+  id: string
+  title: string
+  subtitle: string
+  icon: string
+  changes: Array<{ type: string; text: string }>
+}
+
+interface VersionWithCards {
+  id: string
+  version: string
+  title: string
+  cards: ChangeCardData[]
+}
+
 interface PageContent {
   rows: Row[]
 }
@@ -141,8 +156,11 @@ const getDefaultElementData = (type: string): Record<string, unknown> => {
       return { 
         layout: 'side-by-side',
         title: 'Comparison',
-        before: { content: 'Old value or description here', label: 'Before', overlay: 'darken' },
-        after: { content: 'New value or description here', label: 'After' }
+        beforeVersionId: '',
+        beforeCardId: '',
+        afterVersionId: '',
+        afterCardId: '',
+        overlay: 'darken'
       }
     case 'divider':
       return { style: 'solid', color: '#333' }
@@ -172,6 +190,7 @@ export default function VersionEditorPage() {
   const [insertPosition, setInsertPosition] = useState<{ rowIndex: number; colIndex: number } | null>(null)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [versionsWithCards, setVersionsWithCards] = useState<VersionWithCards[]>([])
 
   // Copy share link
   const copyShareLink = () => {
@@ -200,6 +219,13 @@ export default function VersionEditorPage() {
       const pageData = await pageRes.json()
       if (pageData.page?.content) {
         setContent(pageData.page.content)
+      }
+
+      // Fetch all versions with their change cards (for comparison element)
+      const cardsRes = await fetch(`/api/projects/${projectId}/versions/cards`)
+      const cardsData = await cardsRes.json()
+      if (cardsData.versions) {
+        setVersionsWithCards(cardsData.versions)
       }
     } catch (error) {
       console.error('Failed to fetch data:', error)
@@ -684,6 +710,7 @@ export default function VersionEditorPage() {
                                     element={element} 
                                     isEditing={!isPreviewMode}
                                     onUpdate={(data) => updateElementData(element.id, data)}
+                                    versionsWithCards={versionsWithCards}
                                   />
                                   
                                   {/* Element Controls (hidden in preview mode) */}
@@ -765,6 +792,7 @@ export default function VersionEditorPage() {
               <ElementProperties 
                 element={selectedElement} 
                 onUpdate={(data) => updateElementData(selectedElement.id, data)}
+                versionsWithCards={versionsWithCards}
               />
             ) : (
               <div className="text-center py-8">
@@ -866,11 +894,13 @@ function InlineEditableText({
 function ElementRenderer({ 
   element, 
   isEditing = false,
-  onUpdate
+  onUpdate,
+  versionsWithCards = []
 }: { 
   element: Element
   isEditing?: boolean
   onUpdate?: (data: Record<string, unknown>) => void
+  versionsWithCards?: VersionWithCards[]
 }) {
   const { type, data } = element
   const handleUpdate = (newData: Record<string, unknown>) => {
@@ -971,11 +1001,65 @@ function ElementRenderer({
       )
 
     case 'comparison':
-      const beforeData = (data.before as { content?: string; label?: string; overlay?: string }) || {}
-      const afterData = (data.after as { content?: string; label?: string }) || {}
-      const overlayStyle = beforeData.overlay === 'red' 
+      // Find selected cards from versions
+      const beforeVersionId = data.beforeVersionId as string
+      const beforeCardId = data.beforeCardId as string
+      const afterVersionId = data.afterVersionId as string
+      const afterCardId = data.afterCardId as string
+      const overlayType = (data.overlay as string) || 'darken'
+      
+      const beforeVersion = versionsWithCards.find(v => v.id === beforeVersionId)
+      const beforeCard = beforeVersion?.cards.find(c => c.id === beforeCardId)
+      const afterVersion = versionsWithCards.find(v => v.id === afterVersionId)
+      const afterCard = afterVersion?.cards.find(c => c.id === afterCardId)
+      
+      const beforeOverlay = overlayType === 'red' 
         ? 'bg-red-500/20 border-red-500/30' 
         : 'bg-black/30 border-slate-600/30'
+      
+      // Render a single card
+      const renderCard = (card: ChangeCardData | undefined, versionLabel: string) => {
+        if (!card) {
+          return (
+            <div className="text-center text-slate-500 py-4">
+              <Square size={24} className="mx-auto mb-2 opacity-50" />
+              <div className="text-xs">Select a card from properties</div>
+            </div>
+          )
+        }
+        return (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              {card.icon ? (
+                <img src={card.icon} alt="" className="w-8 h-8 rounded" />
+              ) : (
+                <div className="w-8 h-8 bg-[#2a2a3e] rounded flex items-center justify-center">
+                  <Square size={14} className="text-slate-500" />
+                </div>
+              )}
+              <div>
+                <div className="font-medium text-white text-sm">{card.title}</div>
+                {card.subtitle && <div className="text-xs text-slate-400">{card.subtitle}</div>}
+              </div>
+            </div>
+            <div className="space-y-1">
+              {card.changes.map((change, i) => (
+                <div key={i} className="flex items-start gap-1.5 text-xs">
+                  <span className={`mt-0.5 ${
+                    change.type === 'buff' ? 'text-green-400' :
+                    change.type === 'nerf' ? 'text-red-400' :
+                    'text-blue-400'
+                  }`}>
+                    {change.type === 'buff' ? '↑' : change.type === 'nerf' ? '↓' : '○'}
+                  </span>
+                  <span className="text-slate-300">{change.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-[10px] text-slate-500 mt-2">{versionLabel}</div>
+          </div>
+        )
+      }
       
       return (
         <div className="bg-[#0d0d15] rounded-lg p-4">
@@ -991,34 +1075,18 @@ function ElementRenderer({
           )}
           <div className={`flex gap-4 ${(data.layout as string) === 'stacked' ? 'flex-col' : ''}`}>
             {/* Before */}
-            <div className={`flex-1 p-3 rounded-lg border ${overlayStyle}`}>
-              <div className="text-xs text-slate-400 mb-2 font-medium">
-                {beforeData.label || 'Before'}
+            <div className={`flex-1 p-3 rounded-lg border ${beforeOverlay}`}>
+              <div className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">
+                Before
               </div>
-              <div className="text-sm text-slate-300">
-                <InlineEditableText
-                  value={beforeData.content || ''}
-                  onChange={(content) => handleUpdate({ before: { ...beforeData, content } })}
-                  isEditing={isEditing}
-                  placeholder="Old value or description..."
-                  multiline
-                />
-              </div>
+              {renderCard(beforeCard, beforeVersion ? `v${beforeVersion.version}` : '')}
             </div>
             {/* After */}
             <div className="flex-1 p-3 bg-[#1a1a2e] rounded-lg border border-green-500/30">
-              <div className="text-xs text-green-400 mb-2 font-medium">
-                {afterData.label || 'After'}
+              <div className="text-xs text-green-400 mb-2 font-medium uppercase tracking-wide">
+                After
               </div>
-              <div className="text-sm text-slate-200">
-                <InlineEditableText
-                  value={afterData.content || ''}
-                  onChange={(content) => handleUpdate({ after: { ...afterData, content } })}
-                  isEditing={isEditing}
-                  placeholder="New value or description..."
-                  multiline
-                />
-              </div>
+              {renderCard(afterCard, afterVersion ? `v${afterVersion.version}` : '')}
             </div>
           </div>
         </div>
@@ -1072,10 +1140,12 @@ function ElementRenderer({
 // Element Properties Component
 function ElementProperties({ 
   element, 
-  onUpdate 
+  onUpdate,
+  versionsWithCards = []
 }: { 
   element: Element
-  onUpdate: (data: Record<string, unknown>) => void 
+  onUpdate: (data: Record<string, unknown>) => void
+  versionsWithCards?: VersionWithCards[]
 }) {
   const { type, data } = element
 
@@ -1255,51 +1325,83 @@ function ElementProperties({
           <div>
             <label className="block text-xs text-slate-400 mb-1">&quot;Before&quot; Overlay Style</label>
             <select
-              value={((data.before as { overlay?: string })?.overlay) || 'darken'}
-              onChange={(e) => onUpdate({ before: { ...(data.before as object), overlay: e.target.value } })}
+              value={(data.overlay as string) || 'darken'}
+              onChange={(e) => onUpdate({ overlay: e.target.value })}
               className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
             >
               <option value="darken">Darken (Gray)</option>
               <option value="red">Red Tint</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">Before Label</label>
-            <input
-              type="text"
-              value={((data.before as { label?: string })?.label) || 'Before'}
-              onChange={(e) => onUpdate({ before: { ...(data.before as object), label: e.target.value } })}
-              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-            />
+          
+          {/* Before Card Selection */}
+          <div className="pt-2 border-t border-[#2a2a3e]">
+            <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Before Card</div>
+            <div className="space-y-2">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Version</label>
+                <select
+                  value={(data.beforeVersionId as string) || ''}
+                  onChange={(e) => onUpdate({ beforeVersionId: e.target.value, beforeCardId: '' })}
+                  className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+                >
+                  <option value="">Select version...</option>
+                  {versionsWithCards.filter(v => v.cards.length > 0).map((v) => (
+                    <option key={v.id} value={v.id}>v{v.version} - {v.title}</option>
+                  ))}
+                </select>
+              </div>
+              {(data.beforeVersionId as string) && (
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Card</label>
+                  <select
+                    value={(data.beforeCardId as string) || ''}
+                    onChange={(e) => onUpdate({ beforeCardId: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="">Select card...</option>
+                    {versionsWithCards.find(v => v.id === data.beforeVersionId)?.cards.map((card) => (
+                      <option key={card.id} value={card.id}>{card.title}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">Before Content</label>
-            <textarea
-              value={((data.before as { content?: string })?.content) || ''}
-              onChange={(e) => onUpdate({ before: { ...(data.before as object), content: e.target.value } })}
-              rows={3}
-              placeholder="Old value or description..."
-              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 resize-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">After Label</label>
-            <input
-              type="text"
-              value={((data.after as { label?: string })?.label) || 'After'}
-              onChange={(e) => onUpdate({ after: { ...(data.after as object), label: e.target.value } })}
-              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">After Content</label>
-            <textarea
-              value={((data.after as { content?: string })?.content) || ''}
-              onChange={(e) => onUpdate({ after: { ...(data.after as object), content: e.target.value } })}
-              rows={3}
-              placeholder="New value or description..."
-              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 resize-none"
-            />
+          
+          {/* After Card Selection */}
+          <div className="pt-2 border-t border-[#2a2a3e]">
+            <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">After Card</div>
+            <div className="space-y-2">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Version</label>
+                <select
+                  value={(data.afterVersionId as string) || ''}
+                  onChange={(e) => onUpdate({ afterVersionId: e.target.value, afterCardId: '' })}
+                  className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+                >
+                  <option value="">Select version...</option>
+                  {versionsWithCards.filter(v => v.cards.length > 0).map((v) => (
+                    <option key={v.id} value={v.id}>v{v.version} - {v.title}</option>
+                  ))}
+                </select>
+              </div>
+              {(data.afterVersionId as string) && (
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Card</label>
+                  <select
+                    value={(data.afterCardId as string) || ''}
+                    onChange={(e) => onUpdate({ afterCardId: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="">Select card...</option>
+                    {versionsWithCards.find(v => v.id === data.afterVersionId)?.cards.map((card) => (
+                      <option key={card.id} value={card.id}>{card.title}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
