@@ -113,6 +113,7 @@ const ELEMENT_CATEGORIES = [
     elements: [
       { type: 'section-header', label: 'Section Header', icon: Minus, description: 'Colored bar with title' },
       { type: 'change-card', label: 'Change Card', icon: FileText, description: 'Hero/Item with changes' },
+      { type: 'card-reference', label: 'Card Reference', icon: FileText, description: 'Load card from previous version' },
       { type: 'comparison', label: 'Comparison', icon: GitCompare, description: 'Before/After view' },
     ]
   },
@@ -156,11 +157,19 @@ const getDefaultElementData = (type: string): Record<string, unknown> => {
       return { 
         layout: 'side-by-side',
         title: 'Comparison',
-        beforeVersionId: '',
-        beforeCardId: '',
-        afterVersionId: '',
-        afterCardId: '',
-        overlay: 'darken'
+        overlay: 'darken',
+        before: { title: '', subtitle: '', icon: '', changes: [] },
+        after: { title: '', subtitle: '', icon: '', changes: [] }
+      }
+    case 'card-reference':
+      return {
+        sourceVersionId: '',
+        sourceCardId: '',
+        title: '',
+        subtitle: '',
+        icon: '',
+        changes: [],
+        overlay: 'none'
       }
     case 'divider':
       return { style: 'solid', color: '#333' }
@@ -1001,49 +1010,59 @@ function ElementRenderer({
       )
 
     case 'comparison':
-      // Find selected cards from versions
-      const beforeVersionId = data.beforeVersionId as string
-      const beforeCardId = data.beforeCardId as string
-      const afterVersionId = data.afterVersionId as string
-      const afterCardId = data.afterCardId as string
-      const overlayType = (data.overlay as string) || 'darken'
-      
-      const beforeVersion = versionsWithCards.find(v => v.id === beforeVersionId)
-      const beforeCard = beforeVersion?.cards.find(c => c.id === beforeCardId)
-      const afterVersion = versionsWithCards.find(v => v.id === afterVersionId)
-      const afterCard = afterVersion?.cards.find(c => c.id === afterCardId)
-      
-      const beforeOverlay = overlayType === 'red' 
+      const compOverlay = (data.overlay as string) || 'darken'
+      const compBeforeOverlay = compOverlay === 'red' 
         ? 'bg-red-500/20 border-red-500/30' 
         : 'bg-black/30 border-slate-600/30'
       
-      // Render a single card
-      const renderCard = (card: ChangeCardData | undefined, versionLabel: string) => {
-        if (!card) {
+      const beforeCardData = (data.before as { title?: string; subtitle?: string; icon?: string; changes?: Array<{type: string; text: string}> }) || {}
+      const afterCardData = (data.after as { title?: string; subtitle?: string; icon?: string; changes?: Array<{type: string; text: string}> }) || {}
+      
+      // Render editable card
+      const renderEditableCard = (
+        cardData: { title?: string; subtitle?: string; icon?: string; changes?: Array<{type: string; text: string}> },
+        cardKey: 'before' | 'after'
+      ) => {
+        const hasContent = cardData.title || (cardData.changes && cardData.changes.length > 0)
+        if (!hasContent) {
           return (
             <div className="text-center text-slate-500 py-4">
               <Square size={24} className="mx-auto mb-2 opacity-50" />
-              <div className="text-xs">Select a card from properties</div>
+              <div className="text-xs">Load a card from properties</div>
             </div>
           )
         }
         return (
           <div>
             <div className="flex items-center gap-2 mb-2">
-              {card.icon ? (
-                <img src={card.icon} alt="" className="w-8 h-8 rounded" />
+              {cardData.icon ? (
+                <img src={cardData.icon} alt="" className="w-8 h-8 rounded" />
               ) : (
                 <div className="w-8 h-8 bg-[#2a2a3e] rounded flex items-center justify-center">
                   <Square size={14} className="text-slate-500" />
                 </div>
               )}
-              <div>
-                <div className="font-medium text-white text-sm">{card.title}</div>
-                {card.subtitle && <div className="text-xs text-slate-400">{card.subtitle}</div>}
+              <div className="flex-1">
+                <div className="font-medium text-white text-sm">
+                  <InlineEditableText
+                    value={cardData.title || ''}
+                    onChange={(title) => handleUpdate({ [cardKey]: { ...cardData, title } })}
+                    isEditing={isEditing}
+                    placeholder="Card Title"
+                  />
+                </div>
+                <div className="text-xs text-slate-400">
+                  <InlineEditableText
+                    value={cardData.subtitle || ''}
+                    onChange={(subtitle) => handleUpdate({ [cardKey]: { ...cardData, subtitle } })}
+                    isEditing={isEditing}
+                    placeholder="Subtitle"
+                  />
+                </div>
               </div>
             </div>
             <div className="space-y-1">
-              {card.changes.map((change, i) => (
+              {(cardData.changes || []).map((change, i) => (
                 <div key={i} className="flex items-start gap-1.5 text-xs">
                   <span className={`mt-0.5 ${
                     change.type === 'buff' ? 'text-green-400' :
@@ -1056,7 +1075,6 @@ function ElementRenderer({
                 </div>
               ))}
             </div>
-            <div className="text-[10px] text-slate-500 mt-2">{versionLabel}</div>
           </div>
         )
       }
@@ -1075,19 +1093,87 @@ function ElementRenderer({
           )}
           <div className={`flex gap-4 ${(data.layout as string) === 'stacked' ? 'flex-col' : ''}`}>
             {/* Before */}
-            <div className={`flex-1 p-3 rounded-lg border ${beforeOverlay}`}>
+            <div className={`flex-1 p-3 rounded-lg border ${compBeforeOverlay}`}>
               <div className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">
                 Before
               </div>
-              {renderCard(beforeCard, beforeVersion ? `v${beforeVersion.version}` : '')}
+              {renderEditableCard(beforeCardData, 'before')}
             </div>
             {/* After */}
             <div className="flex-1 p-3 bg-[#1a1a2e] rounded-lg border border-green-500/30">
               <div className="text-xs text-green-400 mb-2 font-medium uppercase tracking-wide">
                 After
               </div>
-              {renderCard(afterCard, afterVersion ? `v${afterVersion.version}` : '')}
+              {renderEditableCard(afterCardData, 'after')}
             </div>
+          </div>
+        </div>
+      )
+
+    case 'card-reference':
+      const refOverlay = (data.overlay as string) || 'none'
+      const refOverlayStyle = refOverlay === 'red' 
+        ? 'bg-red-500/20 border-red-500/30' 
+        : refOverlay === 'darken'
+        ? 'bg-black/30 border-slate-600/30'
+        : 'bg-[#0d0d15] border-[#2a2a3e]'
+      
+      const refChanges = (data.changes as Array<{type: string; text: string}>) || []
+      const hasRefContent = data.title || refChanges.length > 0
+      
+      if (!hasRefContent) {
+        return (
+          <div className={`rounded-lg p-4 border ${refOverlayStyle}`}>
+            <div className="text-center text-slate-500 py-4">
+              <Square size={24} className="mx-auto mb-2 opacity-50" />
+              <div className="text-xs">Load a card from properties</div>
+            </div>
+          </div>
+        )
+      }
+      
+      return (
+        <div className={`rounded-lg p-4 border ${refOverlayStyle}`}>
+          <div className="flex items-center gap-3 mb-3">
+            {(data.icon as string) ? (
+              <img src={data.icon as string} alt="" className="w-12 h-12 rounded-lg" />
+            ) : (
+              <div className="w-12 h-12 bg-[#2a2a3e] rounded-lg flex items-center justify-center">
+                <Square size={24} className="text-slate-500" />
+              </div>
+            )}
+            <div className="flex-1">
+              <div className="font-bold text-white">
+                <InlineEditableText
+                  value={(data.title as string) || ''}
+                  onChange={(title) => handleUpdate({ title })}
+                  isEditing={isEditing}
+                  placeholder="Card Title"
+                />
+              </div>
+              <div className="text-xs text-slate-400">
+                <InlineEditableText
+                  value={(data.subtitle as string) || ''}
+                  onChange={(subtitle) => handleUpdate({ subtitle })}
+                  isEditing={isEditing}
+                  placeholder="Subtitle"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-1">
+            {refChanges.map((change, i) => (
+              <div key={i} className="flex items-start gap-2 text-sm">
+                <span className={`mt-0.5 ${
+                  change.type === 'buff' ? 'text-green-400' :
+                  change.type === 'nerf' ? 'text-red-400' :
+                  'text-blue-400'
+                }`}>
+                  {change.type === 'buff' ? '↑' : change.type === 'nerf' ? '↓' : '○'}
+                </span>
+                <span className="text-slate-300">{change.text}</span>
+              </div>
+            ))}
           </div>
         </div>
       )
@@ -1301,109 +1387,11 @@ function ElementProperties({
       )}
 
       {type === 'comparison' && (
-        <>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">Title</label>
-            <input
-              type="text"
-              value={(data.title as string) || ''}
-              onChange={(e) => onUpdate({ title: e.target.value })}
-              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">Layout</label>
-            <select
-              value={(data.layout as string) || 'side-by-side'}
-              onChange={(e) => onUpdate({ layout: e.target.value })}
-              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-            >
-              <option value="side-by-side">Side by Side</option>
-              <option value="stacked">Stacked (Up/Down)</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">&quot;Before&quot; Overlay Style</label>
-            <select
-              value={(data.overlay as string) || 'darken'}
-              onChange={(e) => onUpdate({ overlay: e.target.value })}
-              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-            >
-              <option value="darken">Darken (Gray)</option>
-              <option value="red">Red Tint</option>
-            </select>
-          </div>
-          
-          {/* Before Card Selection */}
-          <div className="pt-2 border-t border-[#2a2a3e]">
-            <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Before Card</div>
-            <div className="space-y-2">
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Version</label>
-                <select
-                  value={(data.beforeVersionId as string) || ''}
-                  onChange={(e) => onUpdate({ beforeVersionId: e.target.value, beforeCardId: '' })}
-                  className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-                >
-                  <option value="">Select version...</option>
-                  {versionsWithCards.filter(v => v.cards.length > 0).map((v) => (
-                    <option key={v.id} value={v.id}>v{v.version} - {v.title}</option>
-                  ))}
-                </select>
-              </div>
-              {(data.beforeVersionId as string) && (
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">Card</label>
-                  <select
-                    value={(data.beforeCardId as string) || ''}
-                    onChange={(e) => onUpdate({ beforeCardId: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-                  >
-                    <option value="">Select card...</option>
-                    {versionsWithCards.find(v => v.id === data.beforeVersionId)?.cards.map((card) => (
-                      <option key={card.id} value={card.id}>{card.title}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* After Card Selection */}
-          <div className="pt-2 border-t border-[#2a2a3e]">
-            <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">After Card</div>
-            <div className="space-y-2">
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Version</label>
-                <select
-                  value={(data.afterVersionId as string) || ''}
-                  onChange={(e) => onUpdate({ afterVersionId: e.target.value, afterCardId: '' })}
-                  className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-                >
-                  <option value="">Select version...</option>
-                  {versionsWithCards.filter(v => v.cards.length > 0).map((v) => (
-                    <option key={v.id} value={v.id}>v{v.version} - {v.title}</option>
-                  ))}
-                </select>
-              </div>
-              {(data.afterVersionId as string) && (
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">Card</label>
-                  <select
-                    value={(data.afterCardId as string) || ''}
-                    onChange={(e) => onUpdate({ afterCardId: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-                  >
-                    <option value="">Select card...</option>
-                    {versionsWithCards.find(v => v.id === data.afterVersionId)?.cards.map((card) => (
-                      <option key={card.id} value={card.id}>{card.title}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
+        <ComparisonProperties data={data} onUpdate={onUpdate} versionsWithCards={versionsWithCards} />
+      )}
+
+      {type === 'card-reference' && (
+        <CardReferenceProperties data={data} onUpdate={onUpdate} versionsWithCards={versionsWithCards} />
       )}
 
       {type === 'image' && (
@@ -1442,5 +1430,377 @@ function ElementProperties({
         </div>
       )}
     </div>
+  )
+}
+
+// Comparison Properties Component
+function ComparisonProperties({ 
+  data, 
+  onUpdate, 
+  versionsWithCards 
+}: { 
+  data: Record<string, unknown>
+  onUpdate: (data: Record<string, unknown>) => void
+  versionsWithCards: VersionWithCards[]
+}) {
+  const [loadVersionId, setLoadVersionId] = useState<{ before: string; after: string }>({ before: '', after: '' })
+  
+  const loadCard = (cardKey: 'before' | 'after', versionId: string, cardId: string) => {
+    const version = versionsWithCards.find(v => v.id === versionId)
+    const card = version?.cards.find(c => c.id === cardId)
+    if (card) {
+      onUpdate({
+        [cardKey]: {
+          title: card.title,
+          subtitle: card.subtitle,
+          icon: card.icon,
+          changes: [...card.changes]
+        }
+      })
+    }
+  }
+  
+  const beforeData = (data.before as { title?: string; subtitle?: string; icon?: string; changes?: Array<{type: string; text: string}> }) || {}
+  const afterData = (data.after as { title?: string; subtitle?: string; icon?: string; changes?: Array<{type: string; text: string}> }) || {}
+  
+  const renderCardEditor = (cardData: typeof beforeData, cardKey: 'before' | 'after') => (
+    <div className="space-y-2">
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Icon URL</label>
+        <input
+          type="text"
+          value={cardData.icon || ''}
+          onChange={(e) => onUpdate({ [cardKey]: { ...cardData, icon: e.target.value } })}
+          placeholder="https://..."
+          className="w-full px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs focus:outline-none focus:border-purple-500"
+        />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Title</label>
+        <input
+          type="text"
+          value={cardData.title || ''}
+          onChange={(e) => onUpdate({ [cardKey]: { ...cardData, title: e.target.value } })}
+          className="w-full px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs focus:outline-none focus:border-purple-500"
+        />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Subtitle</label>
+        <input
+          type="text"
+          value={cardData.subtitle || ''}
+          onChange={(e) => onUpdate({ [cardKey]: { ...cardData, subtitle: e.target.value } })}
+          className="w-full px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs focus:outline-none focus:border-purple-500"
+        />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Changes</label>
+        <div className="space-y-1">
+          {(cardData.changes || []).map((change, i) => (
+            <div key={i} className="flex gap-1">
+              <select
+                value={change.type}
+                onChange={(e) => {
+                  const newChanges = [...(cardData.changes || [])]
+                  newChanges[i] = { ...newChanges[i], type: e.target.value }
+                  onUpdate({ [cardKey]: { ...cardData, changes: newChanges } })
+                }}
+                className="w-16 px-1 py-1 bg-[#0d0d15] border border-[#2a2a3e] rounded text-white text-[10px] focus:outline-none"
+              >
+                <option value="buff">↑</option>
+                <option value="nerf">↓</option>
+                <option value="neutral">○</option>
+              </select>
+              <input
+                type="text"
+                value={change.text}
+                onChange={(e) => {
+                  const newChanges = [...(cardData.changes || [])]
+                  newChanges[i] = { ...newChanges[i], text: e.target.value }
+                  onUpdate({ [cardKey]: { ...cardData, changes: newChanges } })
+                }}
+                className="flex-1 px-1 py-1 bg-[#0d0d15] border border-[#2a2a3e] rounded text-white text-[10px] focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  const newChanges = (cardData.changes || []).filter((_, idx) => idx !== i)
+                  onUpdate({ [cardKey]: { ...cardData, changes: newChanges } })
+                }}
+                className="px-1 text-red-400 hover:text-red-300"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              const newChanges = [...(cardData.changes || []), { type: 'buff', text: '' }]
+              onUpdate({ [cardKey]: { ...cardData, changes: newChanges } })
+            }}
+            className="w-full py-1 text-[10px] text-purple-400 border border-dashed border-[#2a2a3e] rounded hover:border-purple-500"
+          >
+            + Add
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+  
+  return (
+    <>
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Title</label>
+        <input
+          type="text"
+          value={(data.title as string) || ''}
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+        />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Layout</label>
+        <select
+          value={(data.layout as string) || 'side-by-side'}
+          onChange={(e) => onUpdate({ layout: e.target.value })}
+          className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+        >
+          <option value="side-by-side">Side by Side</option>
+          <option value="stacked">Stacked (Up/Down)</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">&quot;Before&quot; Overlay</label>
+        <select
+          value={(data.overlay as string) || 'darken'}
+          onChange={(e) => onUpdate({ overlay: e.target.value })}
+          className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+        >
+          <option value="darken">Darken (Gray)</option>
+          <option value="red">Red Tint</option>
+        </select>
+      </div>
+      
+      {/* Before Card */}
+      <div className="pt-2 border-t border-[#2a2a3e]">
+        <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Before Card</div>
+        <div className="flex gap-1 mb-2">
+          <select
+            value={loadVersionId.before}
+            onChange={(e) => setLoadVersionId(prev => ({ ...prev, before: e.target.value }))}
+            className="flex-1 px-2 py-1 bg-[#0d0d15] border border-[#2a2a3e] rounded text-white text-xs"
+          >
+            <option value="">Version...</option>
+            {versionsWithCards.filter(v => v.cards.length > 0).map((v) => (
+              <option key={v.id} value={v.id}>v{v.version}</option>
+            ))}
+          </select>
+          <select
+            value=""
+            onChange={(e) => {
+              if (e.target.value && loadVersionId.before) {
+                loadCard('before', loadVersionId.before, e.target.value)
+              }
+            }}
+            className="flex-1 px-2 py-1 bg-[#0d0d15] border border-[#2a2a3e] rounded text-white text-xs"
+          >
+            <option value="">Load card...</option>
+            {versionsWithCards.find(v => v.id === loadVersionId.before)?.cards.map((card) => (
+              <option key={card.id} value={card.id}>{card.title}</option>
+            ))}
+          </select>
+        </div>
+        {renderCardEditor(beforeData, 'before')}
+      </div>
+      
+      {/* After Card */}
+      <div className="pt-2 border-t border-[#2a2a3e]">
+        <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">After Card</div>
+        <div className="flex gap-1 mb-2">
+          <select
+            value={loadVersionId.after}
+            onChange={(e) => setLoadVersionId(prev => ({ ...prev, after: e.target.value }))}
+            className="flex-1 px-2 py-1 bg-[#0d0d15] border border-[#2a2a3e] rounded text-white text-xs"
+          >
+            <option value="">Version...</option>
+            {versionsWithCards.filter(v => v.cards.length > 0).map((v) => (
+              <option key={v.id} value={v.id}>v{v.version}</option>
+            ))}
+          </select>
+          <select
+            value=""
+            onChange={(e) => {
+              if (e.target.value && loadVersionId.after) {
+                loadCard('after', loadVersionId.after, e.target.value)
+              }
+            }}
+            className="flex-1 px-2 py-1 bg-[#0d0d15] border border-[#2a2a3e] rounded text-white text-xs"
+          >
+            <option value="">Load card...</option>
+            {versionsWithCards.find(v => v.id === loadVersionId.after)?.cards.map((card) => (
+              <option key={card.id} value={card.id}>{card.title}</option>
+            ))}
+          </select>
+        </div>
+        {renderCardEditor(afterData, 'after')}
+      </div>
+    </>
+  )
+}
+
+// Card Reference Properties Component
+function CardReferenceProperties({ 
+  data, 
+  onUpdate, 
+  versionsWithCards 
+}: { 
+  data: Record<string, unknown>
+  onUpdate: (data: Record<string, unknown>) => void
+  versionsWithCards: VersionWithCards[]
+}) {
+  const [loadVersionId, setLoadVersionId] = useState('')
+  
+  const loadCard = (versionId: string, cardId: string) => {
+    const version = versionsWithCards.find(v => v.id === versionId)
+    const card = version?.cards.find(c => c.id === cardId)
+    if (card) {
+      onUpdate({
+        sourceVersionId: versionId,
+        sourceCardId: cardId,
+        title: card.title,
+        subtitle: card.subtitle,
+        icon: card.icon,
+        changes: [...card.changes]
+      })
+    }
+  }
+  
+  return (
+    <>
+      {/* Load from version */}
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Load from Version</label>
+        <div className="flex gap-1">
+          <select
+            value={loadVersionId}
+            onChange={(e) => setLoadVersionId(e.target.value)}
+            className="flex-1 px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs"
+          >
+            <option value="">Select version...</option>
+            {versionsWithCards.filter(v => v.cards.length > 0).map((v) => (
+              <option key={v.id} value={v.id}>v{v.version} - {v.title}</option>
+            ))}
+          </select>
+        </div>
+        {loadVersionId && (
+          <select
+            value=""
+            onChange={(e) => {
+              if (e.target.value) {
+                loadCard(loadVersionId, e.target.value)
+              }
+            }}
+            className="w-full mt-1 px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs"
+          >
+            <option value="">Select card to load...</option>
+            {versionsWithCards.find(v => v.id === loadVersionId)?.cards.map((card) => (
+              <option key={card.id} value={card.id}>{card.title}</option>
+            ))}
+          </select>
+        )}
+      </div>
+      
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Overlay Color</label>
+        <select
+          value={(data.overlay as string) || 'none'}
+          onChange={(e) => onUpdate({ overlay: e.target.value })}
+          className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+        >
+          <option value="none">None</option>
+          <option value="darken">Darken (Gray)</option>
+          <option value="red">Red Tint</option>
+        </select>
+      </div>
+      
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Icon URL</label>
+        <input
+          type="text"
+          value={(data.icon as string) || ''}
+          onChange={(e) => onUpdate({ icon: e.target.value })}
+          placeholder="https://..."
+          className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+        />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Title</label>
+        <input
+          type="text"
+          value={(data.title as string) || ''}
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+        />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">Subtitle</label>
+        <input
+          type="text"
+          value={(data.subtitle as string) || ''}
+          onChange={(e) => onUpdate({ subtitle: e.target.value })}
+          className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-xs text-slate-400 mb-2">Changes</label>
+        <div className="space-y-2">
+          {((data.changes as Array<{type: string; text: string}>) || []).map((change, i) => (
+            <div key={i} className="flex gap-2">
+              <select
+                value={change.type}
+                onChange={(e) => {
+                  const newChanges = [...((data.changes as Array<{type: string; text: string}>) || [])]
+                  newChanges[i] = { ...newChanges[i], type: e.target.value }
+                  onUpdate({ changes: newChanges })
+                }}
+                className="w-20 px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs"
+              >
+                <option value="buff">↑ Buff</option>
+                <option value="nerf">↓ Nerf</option>
+                <option value="neutral">○ Info</option>
+              </select>
+              <input
+                type="text"
+                value={change.text}
+                onChange={(e) => {
+                  const newChanges = [...((data.changes as Array<{type: string; text: string}>) || [])]
+                  newChanges[i] = { ...newChanges[i], text: e.target.value }
+                  onUpdate({ changes: newChanges })
+                }}
+                className="flex-1 px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs"
+              />
+              <button
+                onClick={() => {
+                  const newChanges = ((data.changes as Array<{type: string; text: string}>) || []).filter((_, idx) => idx !== i)
+                  onUpdate({ changes: newChanges })
+                }}
+                className="p-1.5 text-red-400 hover:text-red-300"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              const newChanges = [...((data.changes as Array<{type: string; text: string}>) || []), { type: 'buff', text: '' }]
+              onUpdate({ changes: newChanges })
+            }}
+            className="w-full py-1.5 text-xs text-purple-400 border border-dashed border-[#2a2a3e] rounded-lg hover:border-purple-500"
+          >
+            + Add Change
+          </button>
+        </div>
+      </div>
+    </>
   )
 }
