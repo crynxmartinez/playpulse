@@ -53,9 +53,12 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
     <nav className="rounded-2xl border border-[#2a2a3e] bg-[#0d0d15] p-1 flex items-center gap-1 overflow-x-auto scrollbar-hide">
       {navItems.map((item) => {
         const href = `${basePath}${item.href}`
+        // More precise matching to avoid /forms matching /forms/settings
         const isActive = item.href === '' 
           ? pathname === basePath || pathname === `${basePath}/`
-          : pathname.startsWith(href)
+          : item.href === '/forms' 
+            ? pathname === href || pathname === `${href}/`
+            : pathname.startsWith(href)
         const Icon = item.icon
 
         return (
