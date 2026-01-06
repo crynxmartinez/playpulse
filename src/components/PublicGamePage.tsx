@@ -31,11 +31,13 @@ import {
   Heart,
   Link2,
   MessageSquare,
+  Settings,
   ShieldCheck,
   Sparkles,
   Star,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 
 type Update = {
   id: string;
@@ -111,6 +113,7 @@ interface PublicGamePageProps {
       widgetConfig?: unknown;
     }>;
   };
+  isOwner?: boolean;
 }
 
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
@@ -332,7 +335,7 @@ function UpdateCard({ u, expanded, onToggle }: { u: Update; expanded: boolean; o
   );
 }
 
-export default function PublicGamePage({ project }: PublicGamePageProps) {
+export default function PublicGamePage({ project, isOwner = false }: PublicGamePageProps) {
   // Use real project data
   const developerName = project.user?.studioName || project.user?.displayName || project.user?.username || "Developer";
   const tags = project.tags || [];
@@ -466,10 +469,12 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
                   No Active Playtest
                 </Button>
               )}
-              <Button variant="secondary" className="rounded-2xl gap-2">
-                <Heart className="h-4 w-4" />
-                Follow
-              </Button>
+              {!isOwner && (
+                <Button variant="secondary" className="rounded-2xl gap-2">
+                  <Heart className="h-4 w-4" />
+                  Follow
+                </Button>
+              )}
               {project.discordUrl && (
                 <a href={project.discordUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="rounded-2xl gap-2 border-[#2a2a3e] text-white hover:bg-[#1a1a2e]">
@@ -477,6 +482,14 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
                     Discord
                   </Button>
                 </a>
+              )}
+              {isOwner && (
+                <Link href={`/dashboard/projects/${project.id}/profile`}>
+                  <Button variant="outline" className="rounded-2xl gap-2 border-[#2a2a3e] text-white hover:bg-[#1a1a2e]">
+                    <Settings className="h-4 w-4" />
+                    Edit Settings
+                  </Button>
+                </Link>
               )}
             </div>
           </div>

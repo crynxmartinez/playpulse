@@ -94,7 +94,7 @@ export default function GamePageView({ project, user }: GamePageViewProps) {
 
       {/* Game Page Content - Full width, no sidebar */}
       <main className="p-4 lg:p-6 relative z-10">
-        <PublicGamePage project={project} />
+        <PublicGamePage project={project} isOwner={true} />
       </main>
     </div>
   )
