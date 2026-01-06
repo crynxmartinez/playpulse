@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface Version {
   id: string
@@ -40,6 +41,7 @@ export default function ProfilePage() {
   const [features, setFeatures] = useState<string[]>([])
   const [featureInput, setFeatureInput] = useState('')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   
   // Version modal state
   const [showVersionModal, setShowVersionModal] = useState(false)
@@ -172,8 +174,7 @@ export default function ProfilePage() {
   }
 
   const handleDeleteVersion = async (versionId: string) => {
-    if (!confirm('Are you sure you want to delete this version?')) return
-
+    setDeleteConfirm(null)
     try {
       const res = await fetch(`/api/projects/${projectId}/versions/${versionId}`, {
         method: 'DELETE',
@@ -328,7 +329,7 @@ export default function ProfilePage() {
                     <Button size="sm" variant="ghost" className="rounded-xl" onClick={() => openVersionModal(version)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" className="rounded-xl text-destructive" onClick={() => handleDeleteVersion(version.id)}>
+                    <Button size="sm" variant="ghost" className="rounded-xl text-destructive" onClick={() => setDeleteConfirm(version.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -422,6 +423,18 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Delete Version"
+        message="Are you sure you want to delete this version?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={() => deleteConfirm && handleDeleteVersion(deleteConfirm)}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

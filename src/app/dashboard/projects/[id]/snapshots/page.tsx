@@ -7,6 +7,7 @@ import { Camera, Trash2, Download, ExternalLink, Loader2, Calendar, Tag } from '
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface Snapshot {
   id: string
@@ -40,6 +41,7 @@ export default function ProjectSnapshotsPage() {
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [selectedSnapshot, setSelectedSnapshot] = useState<Snapshot | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchSnapshots = useCallback(async () => {
     try {
@@ -61,8 +63,7 @@ export default function ProjectSnapshotsPage() {
   }, [fetchSnapshots])
 
   const handleDelete = async (snapshotId: string) => {
-    if (!confirm('Are you sure you want to delete this snapshot?')) return
-    
+    setDeleteConfirm(null)
     setDeleting(snapshotId)
     try {
       const res = await fetch(`/api/projects/${projectId}/snapshots/${snapshotId}`, {
@@ -200,7 +201,7 @@ export default function ProjectSnapshotsPage() {
                       className="rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleDelete(snapshot.id)
+                        setDeleteConfirm(snapshot.id)
                       }}
                       disabled={deleting === snapshot.id}
                     >
@@ -217,6 +218,18 @@ export default function ProjectSnapshotsPage() {
           })}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Delete Snapshot"
+        message="Are you sure you want to delete this snapshot? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        onCancel={() => setDeleteConfirm(null)}
+      />
 
       {/* Lightbox Modal */}
       {selectedSnapshot && (

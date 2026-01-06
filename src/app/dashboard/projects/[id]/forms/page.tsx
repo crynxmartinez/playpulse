@@ -6,6 +6,7 @@ import { Plus, FileText, Eye, EyeOff, Trash2, Link as LinkIcon, Check, X, Chevro
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface Stat {
   id: string
@@ -123,6 +124,7 @@ export default function FormsPage() {
   const [stats, setStats] = useState<Stat[]>([])
   const [loading, setLoading] = useState(true)
   const [showWizard, setShowWizard] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [wizardStep, setWizardStep] = useState(1)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
@@ -323,8 +325,7 @@ export default function FormsPage() {
   }
 
   const handleDeleteForm = async (formId: string) => {
-    if (!confirm('Are you sure you want to delete this form? All responses will be lost.')) return
-
+    setDeleteConfirm(null)
     try {
       await fetch(`/api/projects/${projectId}/forms/${formId}`, {
         method: 'DELETE',
@@ -543,7 +544,7 @@ export default function FormsPage() {
                     {form.isActive ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                   <button
-                    onClick={() => handleDeleteForm(form.id)}
+                    onClick={() => setDeleteConfirm(form.id)}
                     className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />
@@ -1089,6 +1090,18 @@ export default function FormsPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Delete Form"
+        message="Are you sure you want to delete this form? All responses will be lost."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={() => deleteConfirm && handleDeleteForm(deleteConfirm)}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

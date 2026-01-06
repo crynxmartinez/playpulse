@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface Stat {
   id: string
@@ -114,6 +115,7 @@ export default function StatsPage() {
   const [isCreating, setIsCreating] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
   const [editingStat, setEditingStat] = useState<Stat | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -174,8 +176,7 @@ export default function StatsPage() {
   }
 
   const handleDelete = async (statId: string) => {
-    if (!confirm('Are you sure you want to delete this stat?')) return
-
+    setDeleteConfirm(null)
     try {
       await fetch(`/api/projects/${projectId}/stats/${statId}`, {
         method: 'DELETE',
@@ -509,7 +510,7 @@ export default function StatsPage() {
                               <Edit2 size={16} />
                             </button>
                             <button
-                              onClick={() => handleDelete(stat.id)}
+                              onClick={() => setDeleteConfirm(stat.id)}
                               className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                             >
                               <Trash2 size={16} />
@@ -575,7 +576,7 @@ export default function StatsPage() {
                                   <Edit2 size={16} />
                                 </button>
                                 <button
-                                  onClick={() => handleDelete(stat.id)}
+                                  onClick={() => setDeleteConfirm(stat.id)}
                                   className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                 >
                                   <Trash2 size={16} />
@@ -630,7 +631,7 @@ export default function StatsPage() {
                                 <Edit2 size={16} />
                               </button>
                               <button
-                                onClick={() => handleDelete(stat.id)}
+                                onClick={() => setDeleteConfirm(stat.id)}
                                 className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                               >
                                 <Trash2 size={16} />
@@ -650,6 +651,18 @@ export default function StatsPage() {
           })()}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Delete Stat"
+        message="Are you sure you want to delete this stat? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

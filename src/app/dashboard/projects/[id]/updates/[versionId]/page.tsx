@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, GripVertical, Trash2, Settings, Eye, X } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface Version {
   id: string
@@ -45,6 +46,7 @@ export default function VersionEditorPage() {
   const [loading, setLoading] = useState(true)
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
   const [showBlockPicker, setShowBlockPicker] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   useEffect(() => {
     fetchVersion()
@@ -101,8 +103,7 @@ export default function VersionEditorPage() {
   }
 
   const handleDeleteSection = async (sectionId: string) => {
-    if (!confirm('Delete this section and all its blocks?')) return
-
+    setDeleteConfirm(null)
     try {
       await fetch(`/api/projects/${projectId}/versions/${versionId}/sections/${sectionId}`, {
         method: 'DELETE',
@@ -313,7 +314,7 @@ export default function VersionEditorPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleDeleteSection(section.id)
+                      setDeleteConfirm(section.id)
                     }}
                     className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${
                       selectedSectionId === section.id
@@ -515,6 +516,18 @@ export default function VersionEditorPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Delete Section"
+        message="Delete this section and all its blocks? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={() => deleteConfirm && handleDeleteSection(deleteConfirm)}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

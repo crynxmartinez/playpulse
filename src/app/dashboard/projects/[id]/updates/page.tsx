@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { Plus, Edit2, Trash2, GitBranch, Calendar, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface Version {
   id: string
@@ -24,6 +25,7 @@ export default function UpdatesPage() {
   const [loading, setLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [editingVersion, setEditingVersion] = useState<Version | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     version: '',
     title: '',
@@ -89,8 +91,7 @@ export default function UpdatesPage() {
   }
 
   const handleDelete = async (versionId: string) => {
-    if (!confirm('Are you sure you want to delete this version?')) return
-
+    setDeleteConfirm(null)
     try {
       await fetch(`/api/projects/${projectId}/versions/${versionId}`, {
         method: 'DELETE',
@@ -281,7 +282,7 @@ export default function UpdatesPage() {
                         <Edit2 size={16} />
                       </button>
                       <button
-                        onClick={() => handleDelete(version.id)}
+                        onClick={() => setDeleteConfirm(version.id)}
                         className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                         title="Delete"
                       >
@@ -295,6 +296,18 @@ export default function UpdatesPage() {
           </table>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Delete Version"
+        message="Are you sure you want to delete this version?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }
