@@ -63,7 +63,8 @@ export async function PATCH(
     const { id } = await params
     const body = await request.json()
     const { 
-      name, 
+      name,
+      subtitle,
       description,
       // Game Hub fields (slug is auto-generated from name)
       visibility,
@@ -116,7 +117,8 @@ export async function PATCH(
       where: { id },
       data: {
         ...(name && { name: name.trim(), slug: newSlug }),
-        ...(description !== undefined && { description: description?.trim() || null }),
+        ...(subtitle !== undefined && { subtitle: subtitle?.trim() || null }),
+        ...(description !== undefined && { description: description || null }),
         // Game Hub fields (slug is now auto-generated from name)
         ...(visibility !== undefined && { visibility }),
         ...(bannerUrl !== undefined && { bannerUrl: bannerUrl?.trim() || null }),

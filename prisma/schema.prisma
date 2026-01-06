@@ -49,7 +49,8 @@ enum Visibility {
 model Project {
   id            String     @id @default(cuid())
   name          String
-  description   String?
+  subtitle      String?    // Short tagline for SEO meta description (140 chars)
+  description   String?    @db.Text  // Rich text description
   userId        String
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt     DateTime   @default(now())

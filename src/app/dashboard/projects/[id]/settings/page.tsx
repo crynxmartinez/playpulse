@@ -14,6 +14,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor'
 interface Project {
   id: string
   name: string
+  subtitle: string | null
   description: string | null
   slug: string | null
   visibility: 'PRIVATE' | 'UNLISTED' | 'PUBLIC'
@@ -55,6 +56,7 @@ export default function SettingsPage() {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
+    subtitle: '',
     description: '',
     slug: '',
     visibility: 'PRIVATE' as 'PRIVATE' | 'UNLISTED' | 'PUBLIC',
@@ -88,6 +90,7 @@ export default function SettingsPage() {
         setProject(data.project)
         setFormData({
           name: data.project.name,
+          subtitle: data.project.subtitle || '',
           description: data.project.description || '',
           slug: data.project.slug || '',
           visibility: data.project.visibility || 'PRIVATE',
@@ -238,13 +241,24 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <label className="text-sm font-medium">Subtitle</label>
+                  <Input
+                    value={formData.subtitle}
+                    onChange={(e) => setFormData({ ...formData, subtitle: e.target.value.slice(0, 140) })}
+                    className="rounded-xl"
+                    placeholder="A short tagline for your game..."
+                    maxLength={140}
+                  />
+                  <p className="text-xs text-muted-foreground">{formData.subtitle.length}/140 characters • Used for SEO meta description</p>
+                </div>
+                <div className="space-y-2">
                   <label className="text-sm font-medium">Description</label>
-                  <p className="text-xs text-muted-foreground">Describe your game. Use formatting to make it stand out.</p>
+                  <p className="text-xs text-muted-foreground">Full description of your game. Use formatting to make it stand out.</p>
                   <RichTextEditor
                     value={formData.description}
                     onChange={(value) => setFormData({ ...formData, description: value })}
-                    placeholder="A short description of your game..."
-                    minHeight="120px"
+                    placeholder="Describe your game in detail..."
+                    minHeight="150px"
                   />
                 </div>
                 <div className="space-y-2">
