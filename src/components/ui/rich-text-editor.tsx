@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { 
   Bold, 
   Italic, 
@@ -36,27 +36,50 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   const [isFocused, setIsFocused] = useState(false)
+  const isInitialMount = useRef(true)
 
-  const execCommand = useCallback((command: string, value?: string) => {
-    document.execCommand(command, false, value)
+  // Only set innerHTML on initial mount, not on every value change
+  useEffect(() => {
+    if (isInitialMount.current && editorRef.current) {
+      editorRef.current.innerHTML = value || ''
+      isInitialMount.current = false
+    }
+  }, [value])
+
+  const execCommand = useCallback((command: string, val?: string) => {
+    document.execCommand(command, false, val)
     editorRef.current?.focus()
-    // Trigger onChange after command
+  }, [])
+
+  const handleInput = useCallback(() => {
+    if (editorRef.current) {
+      if (maxLength && editorRef.current.innerText.length > maxLength) {
+        // Truncate if over max length - save and restore selection
+        const selection = window.getSelection()
+        const range = selection?.getRangeAt(0)
+        const cursorPos = range?.startOffset || 0
+        
+        editorRef.current.innerText = editorRef.current.innerText.slice(0, maxLength)
+        
+        // Restore cursor position
+        if (selection && editorRef.current.firstChild) {
+          const newRange = document.createRange()
+          newRange.setStart(editorRef.current.firstChild, Math.min(cursorPos, maxLength))
+          newRange.collapse(true)
+          selection.removeAllRanges()
+          selection.addRange(newRange)
+        }
+      }
+    }
+  }, [maxLength])
+
+  const handleBlur = useCallback(() => {
+    setIsFocused(false)
+    // Only sync to parent on blur to avoid cursor issues
     if (editorRef.current) {
       onChange(editorRef.current.innerHTML)
     }
   }, [onChange])
-
-  const handleInput = useCallback(() => {
-    if (editorRef.current) {
-      let content = editorRef.current.innerHTML
-      if (maxLength && editorRef.current.innerText.length > maxLength) {
-        // Truncate if over max length
-        editorRef.current.innerText = editorRef.current.innerText.slice(0, maxLength)
-        content = editorRef.current.innerHTML
-      }
-      onChange(content)
-    }
-  }, [onChange, maxLength])
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault()
@@ -128,16 +151,13 @@ export function RichTextEditor({
       <div
         ref={editorRef}
         contentEditable
-        dir="ltr"
         onInput={handleInput}
         onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onBlur={handleBlur}
         onPaste={handlePaste}
-        dangerouslySetInnerHTML={{ __html: value }}
         data-placeholder={placeholder}
         className={cn(
           "px-3 py-2 text-sm outline-none overflow-y-auto",
-          "[direction:ltr] [text-align:left] [unicode-bidi:plaintext]",
           "prose prose-sm prose-invert max-w-none",
           "prose-headings:font-semibold prose-headings:text-foreground",
           "prose-h1:text-xl prose-h1:mt-4 prose-h1:mb-2",
@@ -150,7 +170,7 @@ export function RichTextEditor({
           "prose-a:text-primary prose-a:underline",
           "[&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground [&:empty]:before:pointer-events-none"
         )}
-        style={{ minHeight, direction: 'ltr', textAlign: 'left' }}
+        style={{ minHeight }}
       />
 
       {/* Character count */}
