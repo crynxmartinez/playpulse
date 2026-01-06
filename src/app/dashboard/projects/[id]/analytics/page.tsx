@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
     try {
       // Use modern-screenshot which supports lab() colors
       const blob = await domToBlob(ref.current, {
-        backgroundColor: '#ffffff',
+        backgroundColor: '#0d0d15',
         scale: 2,
         type: 'image/webp',
         quality: 0.9,
