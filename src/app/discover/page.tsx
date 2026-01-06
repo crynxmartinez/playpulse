@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Compass, Search, Gamepad2, User, Tag, Filter, X, Sparkles, ArrowLeft } from 'lucide-react'
+import { Compass, Search, Gamepad2, User, Tag, Filter, X, Sparkles } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,6 +38,18 @@ interface Pagination {
 }
 
 export default function PublicDiscoverPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <DiscoverContent />
+    </Suspense>
+  )
+}
+
+function DiscoverContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
