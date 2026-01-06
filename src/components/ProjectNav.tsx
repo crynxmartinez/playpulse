@@ -50,7 +50,7 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
   const navItems = isUpdatesMode ? updatesNavItems : isFormMode ? formNavItems : overviewNavItems
 
   return (
-    <nav className="rounded-2xl border bg-card p-1 flex items-center gap-1 overflow-x-auto scrollbar-hide">
+    <nav className="rounded-2xl border border-[#2a2a3e] bg-[#0d0d15] p-1 flex items-center gap-1 overflow-x-auto scrollbar-hide">
       {navItems.map((item) => {
         const href = `${basePath}${item.href}`
         const isActive = item.href === '' 
@@ -65,8 +65,8 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
             className={cn(
               "flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-xl transition-colors whitespace-nowrap",
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                ? "bg-purple-600 text-white"
+                : "text-slate-400 hover:bg-[#1a1a2e] hover:text-white"
             )}
           >
             <Icon size={16} className="flex-shrink-0" />

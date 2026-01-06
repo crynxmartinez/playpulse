@@ -20,14 +20,14 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
   
   return (
     <div className="mb-3">
-      <div className="inline-flex items-center rounded-full border bg-muted/50 p-1">
+      <div className="inline-flex items-center rounded-full border border-[#2a2a3e] bg-[#0d0d15] p-1">
         <Link
           href={basePath}
           className={cn(
             "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
             isOverviewMode
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-purple-600 text-white shadow-sm"
+              : "text-slate-400 hover:text-white"
           )}
         >
           <Eye size={14} />
@@ -38,8 +38,8 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
           className={cn(
             "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
             isFormMode
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-purple-600 text-white shadow-sm"
+              : "text-slate-400 hover:text-white"
           )}
         >
           <FileText size={14} />
@@ -50,8 +50,8 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
           className={cn(
             "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
             isUpdatesMode
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-purple-600 text-white shadow-sm"
+              : "text-slate-400 hover:text-white"
           )}
         >
           <Megaphone size={14} />
