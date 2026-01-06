@@ -72,7 +72,7 @@ const STAT_CATEGORIES = [
   { value: 'balance', label: 'Balance', color: 'bg-orange-500', textColor: 'text-orange-600', lightColor: 'bg-orange-100', hex: '#f97316' },
   { value: 'progression', label: 'Progression', color: 'bg-pink-500', textColor: 'text-pink-600', lightColor: 'bg-pink-100', hex: '#ec4899' },
   { value: 'multiplayer', label: 'Multiplayer', color: 'bg-cyan-500', textColor: 'text-cyan-600', lightColor: 'bg-cyan-100', hex: '#06b6d4' },
-  { value: 'overall', label: 'Overall', color: 'bg-slate-500', textColor: 'text-slate-600', lightColor: 'bg-slate-100', hex: '#64748b' },
+  { value: 'overall', label: 'Overall', color: 'bg-slate-500', textColor: 'text-slate-600', lightColor: 'bg-[#1a1a2e]', hex: '#64748b' },
   { value: 'uncategorized', label: 'Other', color: 'bg-gray-500', textColor: 'text-gray-600', lightColor: 'bg-gray-100', hex: '#6b7280' },
 ]
 
@@ -223,7 +223,7 @@ export default function AnalyticsPage() {
       className={`p-1.5 rounded-lg transition-colors ${
         snapshotSuccess === type 
           ? 'bg-green-100 text-green-600' 
-          : 'hover:bg-slate-100 text-slate-400 hover:text-slate-600'
+          : 'hover:bg-[#1a1a2e] text-slate-400 hover:text-slate-600'
       }`}
       title="Save as snapshot"
     >
@@ -459,7 +459,7 @@ export default function AnalyticsPage() {
                   <span className="text-xs text-slate-400">({cat.statCount})</span>
                 </div>
               </div>
-              <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-4 bg-[#1a1a2e] rounded-full overflow-hidden">
                 <div 
                   className={`h-full ${catInfo.color} rounded-full transition-all duration-500`}
                   style={{ width: `${(cat.score / maxScore) * 100}%` }}
@@ -548,24 +548,24 @@ export default function AnalyticsPage() {
 
   // Chart Type Selector
   const ChartTypeSelector = ({ value, onChange }: { value: ChartType; onChange: (v: ChartType) => void }) => (
-    <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+    <div className="flex items-center gap-1 bg-[#1a1a2e] rounded-lg p-1">
       <button
         onClick={() => onChange('bar')}
-        className={`p-1.5 rounded ${value === 'bar' ? 'bg-white shadow-sm' : 'hover:bg-slate-200'}`}
+        className={`p-1.5 rounded ${value === 'bar' ? 'bg-purple-600 text-white shadow-sm' : 'hover:bg-[#2a2a3e]'}`}
         title="Bar Chart"
       >
         <BarChart2 size={16} className={value === 'bar' ? 'text-purple-600' : 'text-slate-500'} />
       </button>
       <button
         onClick={() => onChange('donut')}
-        className={`p-1.5 rounded ${value === 'donut' ? 'bg-white shadow-sm' : 'hover:bg-slate-200'}`}
+        className={`p-1.5 rounded ${value === 'donut' ? 'bg-purple-600 text-white shadow-sm' : 'hover:bg-[#2a2a3e]'}`}
         title="Donut Chart"
       >
         <PieChart size={16} className={value === 'donut' ? 'text-purple-600' : 'text-slate-500'} />
       </button>
       <button
         onClick={() => onChange('radar')}
-        className={`p-1.5 rounded ${value === 'radar' ? 'bg-white shadow-sm' : 'hover:bg-slate-200'}`}
+        className={`p-1.5 rounded ${value === 'radar' ? 'bg-purple-600 text-white shadow-sm' : 'hover:bg-[#2a2a3e]'}`}
         title="Radar Chart"
       >
         <Target size={16} className={value === 'radar' ? 'text-purple-600' : 'text-slate-500'} />
@@ -610,7 +610,7 @@ export default function AnalyticsPage() {
             <select
               value={formFilter}
               onChange={(e) => setFormFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-white"
+              className="px-3 py-2 border border-[#2a2a3e] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
             >
               <option value="all">All Forms</option>
               {data.formsList.map((form) => (
@@ -627,7 +627,7 @@ export default function AnalyticsPage() {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-white"
+              className="px-3 py-2 border border-[#2a2a3e] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
             >
               {TIME_RANGES.map((range) => (
                 <option key={range.value} value={range.value}>{range.label}</option>
@@ -659,19 +659,19 @@ export default function AnalyticsPage() {
 
       {/* Insights Panel */}
       {data.insights.length > 0 && (
-        <div ref={insightsRef} className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-100 mb-6 relative">
+        <div ref={insightsRef} className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-5 border border-purple-500/30 mb-6 relative">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Lightbulb className="text-purple-600" size={20} />
+              <Lightbulb className="text-purple-400" size={20} />
               <h3 className="font-semibold text-white">Key Insights</h3>
             </div>
             <SnapshotButton sectionRef={insightsRef} type="insights" defaultName="Key Insights" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {data.insights.map((insight, i) => (
-              <div key={i} className="flex items-start gap-2 bg-white/60 rounded-lg px-3 py-2">
-                <span className="text-purple-500 mt-0.5">•</span>
-                <p className="text-sm text-slate-700">{insight}</p>
+              <div key={i} className="flex items-start gap-2 bg-[#1a1a2e] rounded-lg px-3 py-2">
+                <span className="text-purple-400 mt-0.5">•</span>
+                <p className="text-sm text-slate-300">{insight}</p>
               </div>
             ))}
           </div>
@@ -743,7 +743,7 @@ export default function AnalyticsPage() {
               const catInfo = stat.category ? getCategoryInfo(stat.category) : null
               
               return (
-                <div key={stat.id} className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+                <div key={stat.id} className="bg-[#0d0d15] rounded-xl p-4 border border-[#2a2a3e] hover:border-[#3a3a4e] transition-colors">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white truncate text-sm">{stat.name}</p>
@@ -769,7 +769,7 @@ export default function AnalyticsPage() {
                     <span className="text-2xl font-bold text-white">{stat.average}</span>
                     <span className="text-sm text-slate-400">/ {stat.max}</span>
                   </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
+                  <div className="h-2 bg-[#1a1a2e] rounded-full overflow-hidden mb-2">
                     <div 
                       className={`h-full bg-gradient-to-r ${getBarColor(percentage)} rounded-full`}
                       style={{ width: `${percentage}%` }}
@@ -855,7 +855,7 @@ export default function AnalyticsPage() {
                       <span className="text-xs text-slate-400">({stat.count})</span>
                     </div>
                   </div>
-                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-3 bg-[#1a1a2e] rounded-full overflow-hidden">
                     <div 
                       className={`h-full bg-gradient-to-r ${getBarColor(percentage)} rounded-full transition-all duration-500`}
                       style={{ width: `${percentage}%` }}
@@ -1029,7 +1029,7 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={cancelSnapshot}
-                  className="px-4 py-2 text-slate-600 hover:text-white font-medium rounded-lg hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2 text-slate-600 hover:text-white font-medium rounded-lg hover:bg-[#1a1a2e] transition-colors"
                 >
                   Cancel
                 </button>
