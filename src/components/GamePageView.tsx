@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import PublicGamePage from '@/components/PublicGamePage'
+import StarsBackground from '@/components/ui/stars-background'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Project, User } from '@/types'
@@ -30,18 +31,19 @@ export default function GamePageView({ project, user }: GamePageViewProps) {
   const gamePageUrl = `/game/${project.id}`
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-[#0a0a0f] relative">
+      <StarsBackground starCount={100} />
       {/* TopBar with Workspace/Game Page toggle */}
-      <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sticky top-0 z-40 border-b border-[#2a2a3e] bg-[#0a0a0f]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0a0a0f]/60">
         <div className="flex items-center justify-between px-4 py-3 lg:px-6">
           {/* Left Section - Logo */}
           <div className="flex items-center gap-3">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl border bg-background">
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#2a2a3e] bg-[#1a1a2e]">
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
               <div className="hidden sm:block">
-                <div className="text-sm font-semibold leading-none">PlayPulse</div>
+                <div className="text-sm font-semibold leading-none text-white">PlayPulse</div>
                 <div className="text-xs text-muted-foreground">devlogs • playtests • proof</div>
               </div>
             </Link>
@@ -91,7 +93,7 @@ export default function GamePageView({ project, user }: GamePageViewProps) {
       </div>
 
       {/* Game Page Content - Full width, no sidebar */}
-      <main className="p-4 lg:p-6">
+      <main className="p-4 lg:p-6 relative z-10">
         <PublicGamePage project={project} />
       </main>
     </div>
