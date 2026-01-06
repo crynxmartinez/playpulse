@@ -108,39 +108,43 @@ export default function AnalyticsPage() {
   const allStatsRef = useRef<HTMLDivElement>(null)
   const responseTrendRef = useRef<HTMLDivElement>(null)
 
-  // Helper to convert lab/oklch colors to RGB for html2canvas compatibility
-  const convertColorsToRGB = (element: HTMLElement) => {
-    const allElements = element.querySelectorAll('*')
-    const elementsToProcess = [element, ...Array.from(allElements)] as HTMLElement[]
+  // Helper to inline all computed styles to avoid lab() color parsing issues
+  const inlineAllStyles = (sourceEl: HTMLElement, targetEl: HTMLElement) => {
+    const sourceComputed = window.getComputedStyle(sourceEl)
     
-    elementsToProcess.forEach((el) => {
-      if (!(el instanceof HTMLElement)) return
-      const computed = window.getComputedStyle(el)
-      
-      // Get computed colors (browser converts to rgb/rgba)
-      const bgColor = computed.backgroundColor
-      const textColor = computed.color
-      const borderColor = computed.borderColor
-      
-      // Apply computed RGB values directly
-      if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
-        el.style.backgroundColor = bgColor
-      }
-      if (textColor) {
-        el.style.color = textColor
-      }
-      if (borderColor) {
-        el.style.borderColor = borderColor
-      }
-      
-      // Handle gradients by replacing with solid color fallback
-      const bgImage = computed.backgroundImage
-      if (bgImage && bgImage.includes('lab(')) {
-        // Extract first color or use a fallback
-        el.style.backgroundImage = 'none'
-        el.style.backgroundColor = bgColor || '#8b5cf6'
+    // Key style properties to inline
+    const props = [
+      'backgroundColor', 'color', 'borderColor', 'borderTopColor', 'borderRightColor',
+      'borderBottomColor', 'borderLeftColor', 'outlineColor', 'textDecorationColor',
+      'fill', 'stroke', 'boxShadow', 'textShadow'
+    ]
+    
+    props.forEach(prop => {
+      const value = sourceComputed.getPropertyValue(prop.replace(/([A-Z])/g, '-$1').toLowerCase())
+      if (value && value !== 'none' && value !== 'rgba(0, 0, 0, 0)') {
+        targetEl.style.setProperty(prop.replace(/([A-Z])/g, '-$1').toLowerCase(), value)
       }
     })
+    
+    // Handle background-image (gradients) - replace with solid color
+    const bgImage = sourceComputed.backgroundImage
+    if (bgImage && bgImage !== 'none') {
+      targetEl.style.backgroundImage = 'none'
+      // Use background color as fallback
+      const bgColor = sourceComputed.backgroundColor
+      if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
+        targetEl.style.backgroundColor = bgColor
+      }
+    }
+    
+    // Recursively process children
+    const sourceChildren = sourceEl.children
+    const targetChildren = targetEl.children
+    for (let i = 0; i < sourceChildren.length; i++) {
+      if (sourceChildren[i] instanceof HTMLElement && targetChildren[i] instanceof HTMLElement) {
+        inlineAllStyles(sourceChildren[i] as HTMLElement, targetChildren[i] as HTMLElement)
+      }
+    }
   }
 
   // Capture snapshot function
@@ -155,27 +159,24 @@ export default function AnalyticsPage() {
     setSnapshotSuccess(null)
     
     try {
-      // Clone the element to avoid modifying the original
-      const clone = ref.current.cloneNode(true) as HTMLElement
-      clone.style.position = 'absolute'
-      clone.style.left = '-9999px'
-      clone.style.top = '0'
-      clone.style.width = `${ref.current.offsetWidth}px`
-      document.body.appendChild(clone)
-      
-      // Convert modern CSS colors to RGB for html2canvas compatibility
-      convertColorsToRGB(clone)
-      
-      // Capture the cloned element as canvas
-      const canvas = await html2canvas(clone, {
+      // Use html2canvas with onclone to modify the cloned document
+      const canvas = await html2canvas(ref.current, {
         backgroundColor: '#ffffff',
-        scale: 2, // Higher quality
+        scale: 2,
         logging: false,
         useCORS: true,
+        onclone: (clonedDoc, clonedElement) => {
+          // Remove all stylesheets to prevent lab() parsing
+          const stylesheets = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]')
+          stylesheets.forEach(sheet => sheet.remove())
+          
+          // Inline all computed styles from original to clone
+          inlineAllStyles(ref.current!, clonedElement)
+          
+          // Set explicit background
+          clonedElement.style.backgroundColor = '#ffffff'
+        }
       })
-      
-      // Remove the clone
-      document.body.removeChild(clone)
       
       // Convert to WebP for smaller file size
       const imageData = canvas.toDataURL('image/webp', 0.9)
