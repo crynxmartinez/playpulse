@@ -183,7 +183,28 @@ function SharePageCard({ projectId, slug }: { projectId: string; slug: string | 
   );
 }
 
-function Heatmap({ weeks = 26 }: { weeks?: number }) {
+function Heatmap({ weeks = 52 }: { weeks?: number }) {
+  // Generate month labels for the past year
+  const monthLabels = useMemo(() => {
+    const labels: { month: string; weekIndex: number }[] = [];
+    const today = new Date();
+    
+    for (let w = 0; w < weeks; w++) {
+      const weekDate = new Date(today);
+      weekDate.setDate(today.getDate() - (weeks - 1 - w) * 7);
+      
+      // Check if this is the first week of a month
+      const dayOfMonth = weekDate.getDate();
+      if (dayOfMonth <= 7 || w === 0) {
+        labels.push({
+          month: weekDate.toLocaleDateString('en-US', { month: 'short' }),
+          weekIndex: w
+        });
+      }
+    }
+    return labels;
+  }, [weeks]);
+
   const data = useMemo(() => {
     const cells: number[] = [];
     for (let i = 0; i < weeks * 7; i++) {
@@ -195,13 +216,23 @@ function Heatmap({ weeks = 26 }: { weeks?: number }) {
   }, [weeks]);
 
   const shade = (v: number) => {
-    const a = [0.06, 0.12, 0.22, 0.34, 0.5][clamp(v, 0, 4)];
-    return `rgba(148,163,184,${a})`;
+    const colors = [
+      'rgba(148,163,184,0.06)',
+      'rgba(139,92,246,0.3)',
+      'rgba(139,92,246,0.5)',
+      'rgba(139,92,246,0.7)',
+      'rgba(139,92,246,0.9)',
+    ];
+    return colors[clamp(v, 0, 4)];
   };
+
+  // Cell size for calculating month label positions
+  const cellSize = 10; // 2.5 * 4 (h-2.5 = 10px)
+  const gap = 3;
 
   return (
     <Card className="rounded-3xl">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base">Activity</CardTitle>
@@ -223,17 +254,53 @@ function Heatmap({ weeks = 26 }: { weeks?: number }) {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
+        {/* Month labels */}
         <div className="overflow-x-auto">
-          <div className="inline-grid grid-flow-col grid-rows-7 gap-[3px]">
-            {data.map((v, i) => (
-              <span
-                key={i}
-                className="h-2.5 w-2.5 rounded-sm"
-                style={{ background: shade(v) }}
-                title={`Activity level: ${v}`}
-              />
-            ))}
+          <div className="min-w-max">
+            <div className="flex text-xs text-muted-foreground mb-1 ml-8">
+              {monthLabels.map((label, idx) => (
+                <span 
+                  key={idx} 
+                  className="text-[10px]"
+                  style={{ 
+                    position: 'relative',
+                    left: `${label.weekIndex * (cellSize + gap)}px`,
+                    marginRight: idx < monthLabels.length - 1 
+                      ? `${(monthLabels[idx + 1]?.weekIndex - label.weekIndex - 1) * (cellSize + gap) - 20}px` 
+                      : 0
+                  }}
+                >
+                  {label.month}
+                </span>
+              ))}
+            </div>
+            
+            {/* Grid with day labels */}
+            <div className="flex gap-1">
+              {/* Day labels */}
+              <div className="flex flex-col justify-between text-[10px] text-muted-foreground pr-1" style={{ height: `${7 * (cellSize + gap) - gap}px` }}>
+                <span></span>
+                <span>Mon</span>
+                <span></span>
+                <span>Wed</span>
+                <span></span>
+                <span>Fri</span>
+                <span></span>
+              </div>
+              
+              {/* Heatmap grid */}
+              <div className="inline-grid grid-flow-col grid-rows-7 gap-[3px]">
+                {data.map((v, i) => (
+                  <span
+                    key={i}
+                    className="h-2.5 w-2.5 rounded-sm"
+                    style={{ background: shade(v) }}
+                    title={`Activity level: ${v}`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -753,20 +820,6 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
-                  {/* Key Features */}
-                  {features.length > 0 && (
-                    <div className="rounded-xl bg-[#1a1a2e] p-4">
-                      <div className="text-sm font-semibold text-white mb-3">Key Features</div>
-                      <div className="flex flex-wrap gap-2">
-                        {features.map((feature, idx) => (
-                          <Badge key={idx} variant="secondary" className="rounded-lg bg-purple-600/20 text-purple-300 border-purple-500/30">
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* How to Play / Rules */}
                   {(project.rules || project.rulesPdfUrl) && (
                     <div className="rounded-xl bg-[#1a1a2e] p-4">
@@ -795,8 +848,8 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     </div>
                   )}
 
-                  {/* Default content if no features or rules */}
-                  {features.length === 0 && !project.rules && !project.rulesPdfUrl && (
+                  {/* Default content if no rules */}
+                  {!project.rules && !project.rulesPdfUrl && (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="rounded-xl bg-[#1a1a2e] p-4">
                         <div className="text-sm font-semibold text-white">How to help</div>
@@ -818,7 +871,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
               </Card>
 
               {/* Activity Heatmap - between About and Tabs */}
-              <Heatmap weeks={26} />
+              <Heatmap weeks={52} />
 
               <Tabs defaultValue="updates" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 rounded-2xl h-auto gap-1 p-1">
