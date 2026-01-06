@@ -138,9 +138,9 @@ export default function ResponsesPage() {
   }
 
   const getTierBg = (score: number) => {
-    if (score >= 70) return 'bg-green-50 border-green-200'
-    if (score >= 40) return 'bg-yellow-50 border-yellow-200'
-    return 'bg-red-50 border-red-200'
+    if (score >= 70) return 'bg-green-500/10 border-green-500/30'
+    if (score >= 40) return 'bg-yellow-500/10 border-yellow-500/30'
+    return 'bg-red-500/10 border-red-500/30'
   }
 
   if (loading) {
@@ -164,22 +164,22 @@ export default function ResponsesPage() {
       </div>
 
       {/* Search & Filters Bar */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 mb-6">
+      <div className="bg-[#0d0d15] rounded-xl p-4 border border-[#2a2a3e] mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name or comment..."
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+              className="w-full pl-10 pr-4 py-2.5 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e] placeholder-slate-500"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
               >
                 <X size={16} />
               </button>
@@ -188,11 +188,11 @@ export default function ResponsesPage() {
 
           {/* Form Filter */}
           <div className="flex items-center gap-2">
-            <Filter size={18} className="text-slate-400" />
+            <Filter size={18} className="text-slate-500" />
             <select
               value={formFilter}
               onChange={(e) => setFormFilter(e.target.value)}
-              className="px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white min-w-[150px]"
+              className="px-3 py-2.5 border border-[#2a2a3e] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e] min-w-[150px]"
             >
               <option value="all">All Forms</option>
               {forms.map((form) => (
@@ -205,7 +205,7 @@ export default function ResponsesPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+            className="px-3 py-2.5 border border-[#2a2a3e] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
@@ -217,12 +217,12 @@ export default function ResponsesPage() {
 
       {/* Responses */}
       {filteredResponses.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm border border-slate-200 text-center">
-          <MessageSquare className="mx-auto text-slate-300 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-slate-700 mb-2">
+        <div className="bg-[#0d0d15] rounded-xl p-12 border border-[#2a2a3e] text-center">
+          <MessageSquare className="mx-auto text-slate-500 mb-4" size={48} />
+          <h3 className="text-lg font-medium text-white mb-2">
             {searchQuery || formFilter !== 'all' ? 'No matching responses' : 'No responses yet'}
           </h3>
-          <p className="text-slate-500">
+          <p className="text-slate-400">
             {searchQuery || formFilter !== 'all' 
               ? 'Try adjusting your search or filters.' 
               : 'Share your forms to start collecting feedback.'}
@@ -237,7 +237,7 @@ export default function ResponsesPage() {
             return (
               <div
                 key={response.id}
-                className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md ${isExpanded ? 'md:col-span-2 lg:col-span-3' : ''}`}
+                className={`bg-[#0d0d15] rounded-xl border border-[#2a2a3e] overflow-hidden transition-all hover:border-[#3a3a4e] ${isExpanded ? 'md:col-span-2 lg:col-span-3' : ''}`}
               >
                 {/* Card Header with Score */}
                 <div className={`p-4 border-b ${getTierBg(score)}`}>
@@ -247,16 +247,16 @@ export default function ResponsesPage() {
                         {score}
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-800">
+                        <p className="font-semibold text-white">
                           {response.respondent || 'Anonymous'}
                         </p>
                         {response.respondentEmail && (
-                          <p className="text-xs text-slate-600">{response.respondentEmail}</p>
+                          <p className="text-xs text-slate-400">{response.respondentEmail}</p>
                         )}
                         <p className="text-xs text-slate-500">{formatShortDate(response.createdAt)}</p>
                       </div>
                     </div>
-                    <span className="px-2 py-1 bg-white/80 rounded-lg text-xs font-medium text-slate-600 border border-slate-200">
+                    <span className="px-2 py-1 bg-[#1a1a2e] rounded-lg text-xs font-medium text-slate-300 border border-[#2a2a3e]">
                       {response.form.title}
                     </span>
                   </div>
@@ -269,13 +269,13 @@ export default function ResponsesPage() {
                     <div className="flex flex-wrap gap-2 mb-3">
                       {response.answers.slice(0, 3).map((answer) => (
                         answer.question.stat && answer.value !== null && (
-                          <span key={answer.id} className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600">
+                          <span key={answer.id} className="px-2 py-1 bg-[#1a1a2e] rounded text-xs text-slate-300">
                             {answer.question.stat.name}: <strong>{answer.value}</strong>
                           </span>
                         )
                       ))}
                       {response.answers.length > 3 && (
-                        <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-500">
+                        <span className="px-2 py-1 bg-[#1a1a2e] rounded text-xs text-slate-500">
                           +{response.answers.length - 3} more
                         </span>
                       )}
@@ -288,13 +288,13 @@ export default function ResponsesPage() {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {response.answers.map((answer) => (
                           answer.question.stat && answer.value !== null && (
-                            <div key={answer.id} className="p-3 bg-slate-50 rounded-lg">
+                            <div key={answer.id} className="p-3 bg-[#1a1a2e] rounded-lg">
                               <p className="text-xs text-slate-500 mb-1 truncate">{answer.question.stat.name}</p>
                               <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-bold text-slate-800">{answer.value}</span>
-                                <span className="text-xs text-slate-400">/{answer.question.stat.maxValue}</span>
+                                <span className="text-xl font-bold text-white">{answer.value}</span>
+                                <span className="text-xs text-slate-500">/{answer.question.stat.maxValue}</span>
                               </div>
-                              <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                              <div className="mt-2 h-1.5 bg-[#2a2a3e] rounded-full overflow-hidden">
                                 <div 
                                   className={`h-full bg-gradient-to-r ${getTierColor(((answer.value - answer.question.stat.minValue) / (answer.question.stat.maxValue - answer.question.stat.minValue)) * 100)} rounded-full`}
                                   style={{ 
@@ -311,9 +311,9 @@ export default function ResponsesPage() {
                       {response.answers.some(a => a.textValue) && (
                         <div className="space-y-2">
                           {response.answers.filter(a => a.textValue).map((answer) => (
-                            <div key={answer.id} className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                              <p className="text-xs text-blue-600 font-medium mb-1">{answer.question.questionText}</p>
-                              <p className="text-sm text-slate-700">{answer.textValue}</p>
+                            <div key={answer.id} className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                              <p className="text-xs text-blue-400 font-medium mb-1">{answer.question.questionText}</p>
+                              <p className="text-sm text-slate-300">{answer.textValue}</p>
                             </div>
                           ))}
                         </div>
@@ -328,8 +328,8 @@ export default function ResponsesPage() {
 
                   {/* Comment Preview */}
                   {response.comment && (
-                    <div className="p-3 bg-slate-50 rounded-lg mb-3">
-                      <p className="text-sm text-slate-600 italic line-clamp-2">
+                    <div className="p-3 bg-[#1a1a2e] rounded-lg mb-3">
+                      <p className="text-sm text-slate-400 italic line-clamp-2">
                         &quot;{response.comment}&quot;
                       </p>
                     </div>
@@ -338,7 +338,7 @@ export default function ResponsesPage() {
                   {/* Expand/Collapse Button */}
                   <button
                     onClick={() => toggleExpand(response.id)}
-                    className="w-full flex items-center justify-center gap-1 py-2 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center gap-1 py-2 text-sm text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-colors"
                   >
                     {isExpanded ? (
                       <>
