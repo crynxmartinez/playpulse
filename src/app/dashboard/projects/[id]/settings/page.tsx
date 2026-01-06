@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Settings, Trash2, Globe, Eye, EyeOff, Link as LinkIcon, Image, Tag, FileText, Plus, ExternalLink } from 'lucide-react'
+import { Settings, Trash2, Globe, Eye, EyeOff, Link as LinkIcon, Image, Tag, FileText, Plus, ExternalLink, Upload, X, File } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -66,10 +66,13 @@ export default function SettingsPage() {
     websiteUrl: '',
     discordUrl: '',
     rules: '',
+    rulesPdfUrl: '',
     features: [] as string[],
   })
   const [tagInput, setTagInput] = useState('')
   const [featureInput, setFeatureInput] = useState('')
+  const [rulesMode, setRulesMode] = useState<'text' | 'pdf'>('text')
+  const [uploadingPdf, setUploadingPdf] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
@@ -96,8 +99,13 @@ export default function SettingsPage() {
           websiteUrl: data.project.websiteUrl || '',
           discordUrl: data.project.discordUrl || '',
           rules: data.project.rules || '',
+          rulesPdfUrl: data.project.rulesPdfUrl || '',
           features: data.project.features || [],
         })
+        // Set rules mode based on whether PDF exists
+        if (data.project.rulesPdfUrl) {
+          setRulesMode('pdf')
+        }
       }
     } catch (error) {
       console.error('Failed to fetch project:', error)
@@ -316,7 +324,7 @@ export default function SettingsPage() {
                   <select
                     value={formData.genre}
                     onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                    className="w-full rounded-xl border border-input bg-[#0d0d15] text-white px-3 py-2 text-sm [&>option]:bg-[#0d0d15] [&>option]:text-white"
                   >
                     <option value="">Select a genre...</option>
                     {GENRES.map(g => (
@@ -326,6 +334,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tags (max 5)</label>
+                  <p className="text-xs text-muted-foreground">Used for discovery and search. e.g. #tcg, #mythology, #indie</p>
                   <div className="flex gap-2">
                     <Input
                       value={tagInput}
@@ -408,18 +417,78 @@ export default function SettingsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">How to Play / Rules</label>
-                  <p className="text-xs text-muted-foreground">Write instructions or rules for your game. Supports markdown.</p>
-                  <textarea
-                    value={formData.rules}
-                    onChange={(e) => setFormData({ ...formData, rules: e.target.value })}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-mono resize-none min-h-[120px]"
-                    placeholder="# How to Play&#10;&#10;1. First, do this...&#10;2. Then, do that..."
-                  />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">How to Play / Rules</label>
+                    <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                      <button
+                        type="button"
+                        onClick={() => setRulesMode('text')}
+                        className={`px-3 py-1 text-xs rounded-md transition-colors ${rulesMode === 'text' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted-foreground/20'}`}
+                      >
+                        Text
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRulesMode('pdf')}
+                        className={`px-3 py-1 text-xs rounded-md transition-colors ${rulesMode === 'pdf' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted-foreground/20'}`}
+                      >
+                        PDF
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {rulesMode === 'text' ? (
+                    <>
+                      <p className="text-xs text-muted-foreground">Write instructions or rules for your game. Supports markdown.</p>
+                      <textarea
+                        value={formData.rules}
+                        onChange={(e) => setFormData({ ...formData, rules: e.target.value })}
+                        className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-mono resize-none min-h-[120px]"
+                        placeholder="# How to Play&#10;&#10;1. First, do this...&#10;2. Then, do that..."
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground">Upload a PDF rulebook. It will be displayed in an embedded viewer on your game page.</p>
+                      {formData.rulesPdfUrl ? (
+                        <div className="flex items-center gap-3 p-3 rounded-xl border border-input bg-muted/30">
+                          <File className="h-8 w-8 text-red-500" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">Rules PDF</p>
+                            <a href={formData.rulesPdfUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate block">
+                              {formData.rulesPdfUrl}
+                            </a>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-lg text-destructive hover:text-destructive"
+                            onClick={() => setFormData({ ...formData, rulesPdfUrl: '' })}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Input
+                            value={formData.rulesPdfUrl}
+                            onChange={(e) => setFormData({ ...formData, rulesPdfUrl: e.target.value })}
+                            className="rounded-xl"
+                            placeholder="Paste PDF URL (e.g. from Google Drive, Dropbox, or direct link)"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Tip: Upload your PDF to Google Drive, make it public, and paste the sharing link here.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Key Features (max 10)</label>
+                  <p className="text-xs text-muted-foreground">Highlight what makes your game special. e.g. "Trading Card Game", "Philippine Mythology"</p>
                   <div className="flex gap-2">
                     <Input
                       value={featureInput}
