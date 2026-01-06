@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Settings, Trash2, Globe, Eye, EyeOff, Link as LinkIcon } from 'lucide-react'
+import { Settings, Trash2, Globe, Eye, EyeOff, Link as LinkIcon, Image, Tag, FileText, Plus, ExternalLink } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,6 +24,8 @@ interface Project {
   itchUrl: string | null
   websiteUrl: string | null
   discordUrl: string | null
+  rules: string | null
+  features: string[]
   tierLowMax: number
   tierMediumMax: number
   tierLowLabel: string
@@ -63,8 +65,11 @@ export default function SettingsPage() {
     itchUrl: '',
     websiteUrl: '',
     discordUrl: '',
+    rules: '',
+    features: [] as string[],
   })
   const [tagInput, setTagInput] = useState('')
+  const [featureInput, setFeatureInput] = useState('')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
@@ -90,6 +95,8 @@ export default function SettingsPage() {
           itchUrl: data.project.itchUrl || '',
           websiteUrl: data.project.websiteUrl || '',
           discordUrl: data.project.discordUrl || '',
+          rules: data.project.rules || '',
+          features: data.project.features || [],
         })
       }
     } catch (error) {
@@ -109,6 +116,18 @@ export default function SettingsPage() {
 
   const removeTag = (tagToRemove: string) => {
     setFormData({ ...formData, tags: formData.tags.filter(t => t !== tagToRemove) })
+  }
+
+  const addFeature = () => {
+    const feature = featureInput.trim()
+    if (feature && !formData.features.includes(feature) && formData.features.length < 10) {
+      setFormData({ ...formData, features: [...formData.features, feature] })
+      setFeatureInput('')
+    }
+  }
+
+  const removeFeature = (featureToRemove: string) => {
+    setFormData({ ...formData, features: formData.features.filter(f => f !== featureToRemove) })
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -260,6 +279,168 @@ export default function SettingsPage() {
                       <div className="text-xs text-muted-foreground">{opt.desc}</div>
                     </button>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Game Profile - Banner, Logo, Genre, Tags */}
+            <Card className="rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Image className="h-4 w-4" /> Game Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Banner Image URL</label>
+                    <Input
+                      value={formData.bannerUrl}
+                      onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
+                      className="rounded-xl"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Logo Image URL</label>
+                    <Input
+                      value={formData.logoUrl}
+                      onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                      className="rounded-xl"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Genre</label>
+                  <select
+                    value={formData.genre}
+                    onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">Select a genre...</option>
+                    {GENRES.map(g => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tags (max 5)</label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                      className="rounded-xl"
+                      placeholder="Add a tag..."
+                    />
+                    <Button type="button" variant="outline" className="rounded-xl" onClick={addTag}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {formData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="rounded-full cursor-pointer py-1 px-3" onClick={() => removeTag(tag)}>
+                          #{tag} ×
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Links */}
+            <Card className="rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4" /> Social Links
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Website</label>
+                    <Input
+                      value={formData.websiteUrl}
+                      onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                      className="rounded-xl"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Discord</label>
+                    <Input
+                      value={formData.discordUrl}
+                      onChange={(e) => setFormData({ ...formData, discordUrl: e.target.value })}
+                      className="rounded-xl"
+                      placeholder="https://discord.gg/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Steam</label>
+                    <Input
+                      value={formData.steamUrl}
+                      onChange={(e) => setFormData({ ...formData, steamUrl: e.target.value })}
+                      className="rounded-xl"
+                      placeholder="https://store.steampowered.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Itch.io</label>
+                    <Input
+                      value={formData.itchUrl}
+                      onChange={(e) => setFormData({ ...formData, itchUrl: e.target.value })}
+                      className="rounded-xl"
+                      placeholder="https://itch.io/..."
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Game Rules & Features */}
+            <Card className="rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4" /> Game Rules & Features
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">How to Play / Rules</label>
+                  <p className="text-xs text-muted-foreground">Write instructions or rules for your game. Supports markdown.</p>
+                  <textarea
+                    value={formData.rules}
+                    onChange={(e) => setFormData({ ...formData, rules: e.target.value })}
+                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-mono resize-none min-h-[120px]"
+                    placeholder="# How to Play&#10;&#10;1. First, do this...&#10;2. Then, do that..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Key Features (max 10)</label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={featureInput}
+                      onChange={(e) => setFeatureInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                      className="rounded-xl"
+                      placeholder="Add a feature..."
+                    />
+                    <Button type="button" variant="outline" className="rounded-xl" onClick={addFeature}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {formData.features.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.features.map((feature, idx) => (
+                        <Badge key={idx} variant="secondary" className="rounded-full cursor-pointer py-1 px-3" onClick={() => removeFeature(feature)}>
+                          {feature} ×
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

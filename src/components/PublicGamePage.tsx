@@ -483,7 +483,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 </a>
               )}
               {isOwner && (
-                <Link href={`/dashboard/projects/${project.id}/profile`}>
+                <Link href={`/dashboard/projects/${project.id}/settings`}>
                   <Button variant="outline" className="rounded-2xl gap-2 border-[#2a2a3e] text-white hover:bg-[#1a1a2e]">
                     <Settings className="h-4 w-4" />
                     Edit Settings
