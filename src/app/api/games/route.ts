@@ -13,8 +13,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '12')
 
     const where: Record<string, unknown> = {
-      visibility: 'PUBLIC',
-      slug: { not: null }
+      visibility: 'PUBLIC'
     }
 
     // Search filter
@@ -78,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     // Get unique genres for filter
     const genres = await prisma.project.findMany({
-      where: { visibility: 'PUBLIC', slug: { not: null } },
+      where: { visibility: 'PUBLIC' },
       select: { genre: true },
       distinct: ['genre'],
     })

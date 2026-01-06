@@ -252,7 +252,7 @@ function DiscoverContent() {
               {games.map(game => {
                 const developerName = game.user.studioName || game.user.displayName || game.user.username || 'Unknown'
                 return (
-                  <Link key={game.id} href={`/g/${game.slug}`}>
+                  <Link key={game.id} href={game.slug ? `/g/${game.slug}` : `/game/${game.id}`}>
                     <Card className="rounded-3xl overflow-hidden bg-[#0d0d15] border-[#1a1a2e] hover:border-purple-500/50 transition group cursor-pointer h-full">
                       {/* Banner */}
                       <div className="h-32 relative overflow-hidden">
