@@ -283,15 +283,15 @@ export default function StatsPage() {
       {/* Templates Modal */}
       {showTemplates && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <div className="bg-[#0d0d15] rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden shadow-2xl border border-[#2a2a3e]">
+            <div className="flex items-center justify-between p-6 border-b border-[#2a2a3e]">
               <div>
-                <h3 className="text-xl font-bold text-slate-800">Stat Templates</h3>
-                <p className="text-sm text-slate-500 mt-1">Click on any stat to add it to your project</p>
+                <h3 className="text-xl font-bold text-white">Stat Templates</h3>
+                <p className="text-sm text-slate-400 mt-1">Click on any stat to add it to your project</p>
               </div>
               <button
                 onClick={() => setShowTemplates(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-2 text-slate-400 hover:text-white hover:bg-[#1a1a2e] rounded-lg transition-colors"
               >
                 <X size={24} />
               </button>
@@ -300,7 +300,7 @@ export default function StatsPage() {
               <div className="space-y-6">
                 {STAT_TEMPLATES.map((category) => (
                   <div key={category.name}>
-                    <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">
+                    <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
                       {category.name}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -313,16 +313,16 @@ export default function StatsPage() {
                             disabled={alreadyAdded}
                             className={`p-3 rounded-lg border text-left transition-all ${
                               alreadyAdded
-                                ? 'border-green-200 bg-green-50 cursor-default'
-                                : 'border-slate-200 hover:border-purple-400 hover:bg-purple-50 hover:shadow-sm'
+                                ? 'border-green-500/30 bg-green-500/10 cursor-default'
+                                : 'border-[#2a2a3e] hover:border-purple-500 hover:bg-purple-500/10'
                             }`}
                           >
                             <div className="flex items-center justify-between">
-                              <span className={`font-medium ${alreadyAdded ? 'text-green-700' : 'text-slate-800'}`}>
+                              <span className={`font-medium ${alreadyAdded ? 'text-green-400' : 'text-white'}`}>
                                 {template.name}
                               </span>
                               {alreadyAdded && (
-                                <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full">
                                   Added
                                 </span>
                               )}
@@ -336,10 +336,10 @@ export default function StatsPage() {
                 ))}
               </div>
             </div>
-            <div className="p-4 border-t border-slate-200 bg-slate-50">
+            <div className="p-4 border-t border-[#2a2a3e] bg-[#0a0a0f]">
               <button
                 onClick={() => setShowTemplates(false)}
-                className="w-full py-2 text-slate-600 hover:text-slate-800 font-medium transition-colors"
+                className="w-full py-2 text-slate-400 hover:text-white font-medium transition-colors"
               >
                 Done
               </button>
@@ -350,46 +350,46 @@ export default function StatsPage() {
 
       {/* Create/Edit Form */}
       {isCreating && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">
+        <div className="bg-[#0d0d15] rounded-xl p-6 border border-[#2a2a3e] mb-6">
+          <h3 className="text-lg font-semibold text-white mb-4">
             {editingStat ? 'Edit Stat' : 'Create New Stat'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Name *
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                 placeholder="e.g., Fun Rating"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Description
               </label>
               <input
                 type="text"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                 placeholder="e.g., How fun was the game?"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Category
               </label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
               >
                 <option value="">No Category</option>
                 {STAT_CATEGORIES.map((cat) => (
@@ -400,31 +400,31 @@ export default function StatsPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Min Value
                 </label>
                 <input
                   type="number"
                   value={formData.minValue}
                   onChange={(e) => setFormData({ ...formData, minValue: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                  className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                   min={0}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Max Value
                 </label>
                 <input
                   type="number"
                   value={formData.maxValue}
                   onChange={(e) => setFormData({ ...formData, maxValue: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                  className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                   min={1}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Weight
                 </label>
                 <input
@@ -432,7 +432,7 @@ export default function StatsPage() {
                   step="0.1"
                   value={formData.weight}
                   onChange={(e) => setFormData({ ...formData, weight: parseFloat(e.target.value) })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 bg-white"
+                  className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                   min={0.1}
                   max={5}
                 />
@@ -449,7 +449,7 @@ export default function StatsPage() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-4 py-2 text-slate-600 hover:text-slate-800 transition-colors"
+                className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -460,13 +460,13 @@ export default function StatsPage() {
 
       {/* Stats List */}
       {stats.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm border border-slate-200 text-center">
-          <BarChart2 className="mx-auto text-slate-300 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-slate-700 mb-2">No stats yet</h3>
-          <p className="text-slate-500 mb-4">Create stats to define the metrics you want to track.</p>
+        <div className="bg-[#0d0d15] rounded-xl p-12 border border-[#2a2a3e] text-center">
+          <BarChart2 className="mx-auto text-slate-500 mb-4" size={48} />
+          <h3 className="text-lg font-medium text-white mb-2">No stats yet</h3>
+          <p className="text-slate-400 mb-4">Create stats to define the metrics you want to track.</p>
           <button
             onClick={() => setIsCreating(true)}
-            className="text-purple-600 hover:text-purple-700 font-medium"
+            className="text-purple-400 hover:text-purple-300 font-medium"
           >
             Create your first stat
           </button>
@@ -487,16 +487,16 @@ export default function StatsPage() {
                     return (
                       <div
                         key={stat.id}
-                        className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+                        className="bg-[#0d0d15] rounded-xl p-5 border border-[#2a2a3e] hover:border-[#3a3a4e] transition-colors"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                              <BarChart2 className="text-purple-600" size={20} />
+                            <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                              <BarChart2 className="text-purple-400" size={20} />
                             </div>
                             <div>
-                              <h4 className="font-semibold text-slate-800">{stat.name}</h4>
-                              <p className="text-sm text-slate-500">
+                              <h4 className="font-semibold text-white">{stat.name}</h4>
+                              <p className="text-sm text-slate-400">
                                 Range: {stat.minValue} - {stat.maxValue}
                               </p>
                             </div>
@@ -504,13 +504,13 @@ export default function StatsPage() {
                           <div className="flex gap-1">
                             <button
                               onClick={() => handleEdit(stat)}
-                              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                             >
                               <Edit2 size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(stat.id)}
-                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -552,7 +552,7 @@ export default function StatsPage() {
                         {categoryStats.map((stat) => (
                           <div
                             key={stat.id}
-                            className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+                            className="bg-[#0d0d15] rounded-xl p-5 border border-[#2a2a3e] hover:border-[#3a3a4e] transition-colors"
                           >
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center gap-3">
@@ -560,8 +560,8 @@ export default function StatsPage() {
                                   <BarChart2 className={category.color.split(' ')[1]} size={20} />
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold text-slate-800">{stat.name}</h4>
-                                  <p className="text-sm text-slate-500">
+                                  <h4 className="font-semibold text-white">{stat.name}</h4>
+                                  <p className="text-sm text-slate-400">
                                     Range: {stat.minValue} - {stat.maxValue}
                                     {stat.weight !== 1 && ` • Weight: ${stat.weight}x`}
                                   </p>
@@ -570,13 +570,13 @@ export default function StatsPage() {
                               <div className="flex gap-1">
                                 <button
                                   onClick={() => handleEdit(stat)}
-                                  className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                                 >
                                   <Edit2 size={16} />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(stat.id)}
-                                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                 >
                                   <Trash2 size={16} />
                                 </button>
@@ -596,7 +596,7 @@ export default function StatsPage() {
                 {grouped.uncategorized.length > 0 && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-[#1a1a2e] text-slate-400">
                         Uncategorized
                       </span>
                       <span className="text-sm text-slate-400">
@@ -607,16 +607,16 @@ export default function StatsPage() {
                       {grouped.uncategorized.map((stat) => (
                         <div
                           key={stat.id}
-                          className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+                          className="bg-[#0d0d15] rounded-xl p-5 border border-[#2a2a3e] hover:border-[#3a3a4e] transition-colors"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                                <BarChart2 className="text-gray-600" size={20} />
+                              <div className="w-10 h-10 rounded-lg bg-[#1a1a2e] flex items-center justify-center">
+                                <BarChart2 className="text-slate-400" size={20} />
                               </div>
                               <div>
-                                <h4 className="font-semibold text-slate-800">{stat.name}</h4>
-                                <p className="text-sm text-slate-500">
+                                <h4 className="font-semibold text-white">{stat.name}</h4>
+                                <p className="text-sm text-slate-400">
                                   Range: {stat.minValue} - {stat.maxValue}
                                   {stat.weight !== 1 && ` • Weight: ${stat.weight}x`}
                                 </p>
@@ -625,13 +625,13 @@ export default function StatsPage() {
                             <div className="flex gap-1">
                               <button
                                 onClick={() => handleEdit(stat)}
-                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                               >
                                 <Edit2 size={16} />
                               </button>
                               <button
                                 onClick={() => handleDelete(stat.id)}
-                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                               >
                                 <Trash2 size={16} />
                               </button>

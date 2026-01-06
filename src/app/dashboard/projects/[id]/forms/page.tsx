@@ -425,9 +425,9 @@ export default function FormsPage() {
       </div>
 
       {stats.length === 0 && (
-        <Card className="rounded-2xl border-yellow-200 bg-yellow-50">
+        <Card className="rounded-2xl border-yellow-500/30 bg-yellow-500/10">
           <CardContent className="pt-4">
-            <p className="text-yellow-800 text-sm">
+            <p className="text-yellow-300 text-sm">
               You need to create stats before creating campaigns. Go to the Stats tab first.
             </p>
           </CardContent>
@@ -436,14 +436,14 @@ export default function FormsPage() {
 
       {/* Forms List */}
       {forms.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm border border-slate-200 text-center">
-          <FileText className="mx-auto text-slate-300 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-slate-700 mb-2">No forms yet</h3>
-          <p className="text-slate-500 mb-4">Create forms to start collecting player feedback.</p>
+        <div className="bg-[#0d0d15] rounded-xl p-12 border border-[#2a2a3e] text-center">
+          <FileText className="mx-auto text-slate-500 mb-4" size={48} />
+          <h3 className="text-lg font-medium text-white mb-2">No forms yet</h3>
+          <p className="text-slate-400 mb-4">Create forms to start collecting player feedback.</p>
           {stats.length > 0 && (
             <button
               onClick={() => setShowWizard(true)}
-              className="text-purple-600 hover:text-purple-700 font-medium"
+              className="text-purple-400 hover:text-purple-300 font-medium"
             >
               Create your first form
             </button>
@@ -452,20 +452,20 @@ export default function FormsPage() {
       ) : (
         <div className="space-y-4">
           {forms.map((form) => (
-            <div key={form.id} className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+            <div key={form.id} className="bg-[#0d0d15] rounded-xl p-5 border border-[#2a2a3e]">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${form.isActive ? 'bg-green-100' : 'bg-slate-100'}`}>
-                    <FileText className={form.isActive ? 'text-green-600' : 'text-slate-400'} size={20} />
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${form.isActive ? 'bg-green-500/20' : 'bg-[#1a1a2e]'}`}>
+                    <FileText className={form.isActive ? 'text-green-400' : 'text-slate-500'} size={20} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-slate-800">{form.title}</h4>
-                    <p className="text-sm text-slate-500">
+                    <h4 className="font-semibold text-white">{form.title}</h4>
+                    <p className="text-sm text-slate-400">
                       {form.questions.length} questions · {form._count.responses} responses
                     </p>
                   </div>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${form.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                <span className={`text-xs px-2 py-1 rounded-full ${form.isActive ? 'bg-green-500/20 text-green-400' : 'bg-[#1a1a2e] text-slate-400'}`}>
                   {form.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
@@ -473,14 +473,14 @@ export default function FormsPage() {
               {/* URL Slug Display/Edit */}
               <div className="mb-3 text-xs">
                 {editingSlug === form.id ? (
-                  <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg">
+                  <div className="flex items-center gap-2 bg-[#1a1a2e] p-2 rounded-lg">
                     <span className="text-slate-500 text-xs">playpulse.vercel.app/f/</span>
                     <input
                       type="text"
                       value={slugInput}
                       onChange={(e) => setSlugInput(e.target.value)}
                       placeholder="custom-url-slug"
-                      className="flex-1 px-2 py-1 border border-slate-300 rounded text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="flex-1 px-2 py-1 border border-[#2a2a3e] rounded text-sm text-white bg-[#0d0d15] focus:outline-none focus:ring-2 focus:ring-purple-500"
                       autoFocus
                     />
                     <button
@@ -491,36 +491,36 @@ export default function FormsPage() {
                     </button>
                     <button
                       onClick={cancelEditSlug}
-                      className="px-2 py-1 bg-slate-200 text-slate-600 rounded text-xs hover:bg-slate-300"
+                      className="px-2 py-1 bg-[#2a2a3e] text-slate-300 rounded text-xs hover:bg-[#3a3a4e]"
                     >
                       Cancel
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1 text-slate-500 bg-slate-50 px-3 py-2 rounded-lg">
+                  <div className="flex items-center gap-1 text-slate-500 bg-[#1a1a2e] px-3 py-2 rounded-lg">
                     <LinkIcon size={12} />
-                    <span className="text-slate-400">playpulse.vercel.app/f/</span>
-                    <span className="font-mono font-semibold text-slate-800">{form.slug || form.id}</span>
-                    {form.slug && <span className="text-green-600 ml-1 text-xs">(custom)</span>}
+                    <span className="text-slate-500">playpulse.vercel.app/f/</span>
+                    <span className="font-mono font-semibold text-white">{form.slug || form.id}</span>
+                    {form.slug && <span className="text-green-400 ml-1 text-xs">(custom)</span>}
                   </div>
                 )}
               </div>
 
               {form.landingTitle && (
-                <p className="text-sm text-slate-600 mb-3">{form.landingTitle}</p>
+                <p className="text-sm text-slate-400 mb-3">{form.landingTitle}</p>
               )}
 
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-3 border-t border-[#2a2a3e]">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => copyShareLink(form)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
                   >
                     {copiedId === form.id ? <><Check size={14} /> Copied!</> : <><LinkIcon size={14} /> Copy Link</>}
                   </button>
                   <button
                     onClick={() => startEditSlug(form)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-lg transition-colors"
                     title="Edit URL"
                   >
                     <Pencil size={14} /> Edit URL
@@ -529,7 +529,7 @@ export default function FormsPage() {
                     href={`/f/${form.slug || form.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                   >
                     <Eye size={14} /> Preview
                   </a>
@@ -537,14 +537,14 @@ export default function FormsPage() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleToggleActive(form)}
-                    className={`p-2 rounded-lg transition-colors ${form.isActive ? 'text-green-600 hover:bg-green-50' : 'text-slate-400 hover:bg-slate-50'}`}
+                    className={`p-2 rounded-lg transition-colors ${form.isActive ? 'text-green-400 hover:bg-green-500/10' : 'text-slate-500 hover:bg-[#1a1a2e]'}`}
                     title={form.isActive ? 'Deactivate' : 'Activate'}
                   >
                     {form.isActive ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                   <button
                     onClick={() => handleDeleteForm(form.id)}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
