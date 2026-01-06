@@ -718,17 +718,17 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
               </Card>
 
               <Tabs defaultValue="updates" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 rounded-2xl">
-                  <TabsTrigger value="updates" className="rounded-2xl">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 rounded-2xl h-auto gap-1 p-1">
+                  <TabsTrigger value="updates" className="rounded-xl text-xs sm:text-sm py-2">
                     Updates
                   </TabsTrigger>
-                  <TabsTrigger value="analytics" className="rounded-2xl">
+                  <TabsTrigger value="analytics" className="rounded-xl text-xs sm:text-sm py-2">
                     Analytics
                   </TabsTrigger>
-                  <TabsTrigger value="progress" className="rounded-2xl">
+                  <TabsTrigger value="progress" className="rounded-xl text-xs sm:text-sm py-2">
                     Progress
                   </TabsTrigger>
-                  <TabsTrigger value="community" className="rounded-2xl">
+                  <TabsTrigger value="community" className="rounded-xl text-xs sm:text-sm py-2">
                     Community
                   </TabsTrigger>
                 </TabsList>
