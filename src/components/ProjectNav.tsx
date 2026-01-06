@@ -63,7 +63,7 @@ export default function ProjectNav({ projectId }: ProjectNavProps) {
             key={item.href || 'overview'}
             href={href}
             className={cn(
-              "flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-xl transition-colors whitespace-nowrap",
+              "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-full transition-colors whitespace-nowrap",
               isActive
                 ? "bg-purple-600 text-white"
                 : "text-slate-400 hover:bg-[#1a1a2e] hover:text-white"
