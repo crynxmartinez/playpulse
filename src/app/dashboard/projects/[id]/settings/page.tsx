@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 
 interface Project {
   id: string
@@ -238,14 +239,13 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Description</label>
-                  <textarea
+                  <p className="text-xs text-muted-foreground">Describe your game. Use formatting to make it stand out.</p>
+                  <RichTextEditor
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[80px] resize-none"
+                    onChange={(value) => setFormData({ ...formData, description: value })}
                     placeholder="A short description of your game..."
-                    maxLength={200}
+                    minHeight="120px"
                   />
-                  <p className="text-xs text-muted-foreground">{formData.description.length}/200 characters</p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">URL Slug</label>
@@ -440,12 +440,12 @@ export default function SettingsPage() {
                   
                   {rulesMode === 'text' ? (
                     <>
-                      <p className="text-xs text-muted-foreground">Write instructions or rules for your game. Supports markdown.</p>
-                      <textarea
+                      <p className="text-xs text-muted-foreground">Write instructions or rules for your game. Use the toolbar to format your text.</p>
+                      <RichTextEditor
                         value={formData.rules}
-                        onChange={(e) => setFormData({ ...formData, rules: e.target.value })}
-                        className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-mono resize-none min-h-[120px]"
-                        placeholder="# How to Play&#10;&#10;1. First, do this...&#10;2. Then, do that..."
+                        onChange={(value) => setFormData({ ...formData, rules: value })}
+                        placeholder="How to Play: Start by explaining the basics..."
+                        minHeight="200px"
                       />
                     </>
                   ) : (
