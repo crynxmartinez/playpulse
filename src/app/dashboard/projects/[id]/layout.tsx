@@ -27,7 +27,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       id: true,
       name: true,
       slug: true,
-      description: true,
+      subtitle: true,
       visibility: true,
     }
   })

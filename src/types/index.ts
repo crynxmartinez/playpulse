@@ -10,7 +10,8 @@ export interface Project {
   id: string
   name: string
   slug: string | null
-  description: string | null
+  subtitle?: string | null
+  description?: string | null
   visibility: Visibility
   bannerUrl?: string | null
   logoUrl?: string | null

@@ -66,7 +66,8 @@ interface PublicGamePageProps {
     id: string;
     name: string;
     slug: string | null;
-    description: string | null;
+    subtitle?: string | null;
+    description?: string | null;
     visibility: 'PRIVATE' | 'UNLISTED' | 'PUBLIC';
     bannerUrl?: string | null;
     logoUrl?: string | null;

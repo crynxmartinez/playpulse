@@ -38,8 +38,8 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
               {config.label}
             </Badge>
           </div>
-          {project.description && (
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{project.description}</p>
+          {project.subtitle && (
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{project.subtitle}</p>
           )}
         </div>
         
