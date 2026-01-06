@@ -722,14 +722,24 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
                   </div>
 
                   <div className="space-y-3">
-                    {filteredUpdates.map((u) => (
-                      <UpdateCard
-                        key={u.id}
-                        u={u}
-                        expanded={expandedId === u.id}
-                        onToggle={() => setExpandedId((cur) => (cur === u.id ? "" : u.id))}
-                      />
-                    ))}
+                    {filteredUpdates.length === 0 ? (
+                      <div className="rounded-xl bg-[#1a1a2e] border border-[#2a2a3e] p-8 text-center">
+                        <Calendar className="mx-auto h-12 w-12 text-slate-500 mb-3" />
+                        <div className="text-white font-medium mb-1">No published updates yet</div>
+                        <div className="text-sm text-slate-400">
+                          {search ? "No updates match your search." : "Updates will appear here once versions are published."}
+                        </div>
+                      </div>
+                    ) : (
+                      filteredUpdates.map((u) => (
+                        <UpdateCard
+                          key={u.id}
+                          u={u}
+                          expanded={expandedId === u.id}
+                          onToggle={() => setExpandedId((cur) => (cur === u.id ? "" : u.id))}
+                        />
+                      ))
+                    )}
                   </div>
                 </TabsContent>
 
