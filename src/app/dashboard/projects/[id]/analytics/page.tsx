@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { 
   LineChart, BarChart2, TrendingUp, TrendingDown, FileText, MessageSquare, 
   Lightbulb, PieChart, Filter, Calendar, Target, ArrowUp, ArrowDown, Minus,
-  Camera, Check, Loader2
+  Camera, Check, Loader2, Pin, PinOff
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -105,6 +105,10 @@ export default function AnalyticsPage() {
     defaultName: string
   } | null>(null)
   const [snapshotName, setSnapshotName] = useState('')
+  
+  // Pin analytics widget state
+  const [pinLoading, setPinLoading] = useState<string | null>(null)
+  const [pinnedWidgets, setPinnedWidgets] = useState<Set<string>>(new Set())
   
   // Refs for snapshot sections
   const overallScoreRef = useRef<HTMLDivElement>(null)
@@ -237,6 +241,37 @@ export default function AnalyticsPage() {
     </button>
   )
 
+  // Pin button component for analytics widgets
+  const PinButton = ({ 
+    widgetType, 
+    title 
+  }: { 
+    widgetType: string
+    title: string 
+  }) => {
+    const isPinned = pinnedWidgets.has(widgetType)
+    return (
+      <button
+        onClick={() => handleTogglePin(widgetType, title)}
+        disabled={pinLoading === widgetType}
+        className={`p-1.5 rounded-lg transition-colors ${
+          isPinned 
+            ? 'bg-purple-600 text-white' 
+            : 'hover:bg-[#1a1a2e] text-slate-400 hover:text-purple-400'
+        }`}
+        title={isPinned ? 'Unpin from Game Page' : 'Pin to Game Page'}
+      >
+        {pinLoading === widgetType ? (
+          <Loader2 size={16} className="animate-spin" />
+        ) : isPinned ? (
+          <PinOff size={16} />
+        ) : (
+          <Pin size={16} />
+        )}
+      </button>
+    )
+  }
+
   const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true)
@@ -250,9 +285,74 @@ export default function AnalyticsPage() {
     }
   }, [projectId, formFilter, timeRange])
 
+  // Fetch pinned analytics widgets
+  const fetchPinnedWidgets = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/projects/${projectId}/pinned`)
+      const data = await res.json()
+      if (data.pinnedSections) {
+        const pinnedIds = new Set<string>(
+          data.pinnedSections
+            .filter((p: { type: string; widgetType: string | null }) => p.type === 'ANALYTICS' && p.widgetType)
+            .map((p: { widgetType: string }) => p.widgetType)
+        )
+        setPinnedWidgets(pinnedIds)
+      }
+    } catch (error) {
+      console.error('Failed to fetch pinned widgets:', error)
+    }
+  }, [projectId])
+
+  // Toggle pin for analytics widget
+  const handleTogglePin = async (widgetType: string, title: string) => {
+    const isPinned = pinnedWidgets.has(widgetType)
+    setPinLoading(widgetType)
+    
+    try {
+      if (isPinned) {
+        // Find and delete the pinned section
+        const res = await fetch(`/api/projects/${projectId}/pinned`)
+        const data = await res.json()
+        const pinnedSection = data.pinnedSections?.find(
+          (p: { type: string; widgetType: string | null }) => p.type === 'ANALYTICS' && p.widgetType === widgetType
+        )
+        if (pinnedSection) {
+          await fetch(`/api/projects/${projectId}/pinned/${pinnedSection.id}`, {
+            method: 'DELETE',
+          })
+          setPinnedWidgets(prev => {
+            const next = new Set(prev)
+            next.delete(widgetType)
+            return next
+          })
+        }
+      } else {
+        // Create new pinned section
+        const res = await fetch(`/api/projects/${projectId}/pinned`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'ANALYTICS',
+            widgetType,
+            title,
+            widgetConfig: { formFilter, timeRange },
+          }),
+        })
+        if (res.ok) {
+          setPinnedWidgets(prev => new Set(prev).add(widgetType))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle pin:', error)
+    } finally {
+      setPinLoading(null)
+    }
+  }
+
   useEffect(() => {
     fetchAnalytics()
-  }, [fetchAnalytics])
+    fetchPinnedWidgets()
+  }, [fetchAnalytics, fetchPinnedWidgets])
 
   const getPercentage = (stat: StatAverage) => {
     return Math.round(((stat.average - stat.min) / (stat.max - stat.min)) * 100)
@@ -665,7 +765,10 @@ export default function AnalyticsPage() {
               <Lightbulb className="text-purple-400" size={20} />
               <h3 className="font-semibold text-white">Key Insights</h3>
             </div>
-            <SnapshotButton sectionRef={insightsRef} type="insights" defaultName="Key Insights" />
+            <div className="flex items-center gap-1">
+              <PinButton widgetType="insights" title="Key Insights" />
+              <SnapshotButton sectionRef={insightsRef} type="insights" defaultName="Key Insights" />
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {data.insights.map((insight, i) => (
@@ -734,7 +837,10 @@ export default function AnalyticsPage() {
         <div ref={statPerformanceRef} className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-white">Stat Performance</h3>
-            <SnapshotButton sectionRef={statPerformanceRef} type="stat-performance" defaultName="Stat Performance" />
+            <div className="flex items-center gap-1">
+              <PinButton widgetType="stat-performance" title="Stat Performance" />
+              <SnapshotButton sectionRef={statPerformanceRef} type="stat-performance" defaultName="Stat Performance" />
+            </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {statsWithData.slice(0, 10).map((stat) => {
@@ -795,6 +901,7 @@ export default function AnalyticsPage() {
               <h3 className="text-lg font-semibold text-white">Category Breakdown</h3>
             </div>
             <div className="flex items-center gap-2">
+              <PinButton widgetType="category-breakdown" title="Category Breakdown" />
               <SnapshotButton sectionRef={categoryBreakdownRef} type="category-breakdown" defaultName="Category Breakdown" />
               <ChartTypeSelector value={categoryChartType} onChange={setCategoryChartType} />
             </div>
@@ -820,6 +927,7 @@ export default function AnalyticsPage() {
             <h3 className="text-lg font-semibold text-white">All Stats</h3>
           </div>
           <div className="flex items-center gap-2">
+            <PinButton widgetType="all-stats" title="All Stats" />
             <SnapshotButton sectionRef={allStatsRef} type="all-stats" defaultName="All Stats" />
             <ChartTypeSelector value={statsChartType} onChange={setStatsChartType} />
           </div>
