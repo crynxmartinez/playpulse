@@ -239,17 +239,17 @@ export default function VersionEditorPage() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b bg-white px-4 py-3">
+      <div className="flex items-center justify-between border-b border-[#2a2a3e] bg-[#0d0d15] px-4 py-3">
         <div className="flex items-center gap-3">
           <Link
             href={`/dashboard/projects/${projectId}/updates`}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-2 text-slate-400 hover:text-white hover:bg-[#2a2a3e] rounded-lg transition-colors"
           >
             <ArrowLeft size={20} />
           </Link>
           <div>
             <div className="text-sm text-slate-500">Version Editor</div>
-            <div className="font-semibold text-slate-800">
+            <div className="font-semibold text-white">
               {version.version} - {version.title}
             </div>
           </div>
@@ -268,10 +268,10 @@ export default function VersionEditorPage() {
       {/* Editor Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sections Sidebar */}
-        <div className="w-64 border-r bg-slate-50 flex flex-col">
-          <div className="p-3 border-b bg-white">
+        <div className="w-64 border-r border-[#2a2a3e] bg-[#1a1a2e] flex flex-col">
+          <div className="p-3 border-b border-[#2a2a3e] bg-[#0d0d15]">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-700">Sections</span>
+              <span className="text-sm font-medium text-slate-300">Sections</span>
               <button
                 onClick={handleAddSection}
                 className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
@@ -303,7 +303,7 @@ export default function VersionEditorPage() {
                   className={`group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                     selectedSectionId === section.id
                       ? 'bg-primary text-white'
-                      : 'hover:bg-slate-200 text-slate-700'
+                      : 'hover:bg-[#2a2a3e] text-slate-300'
                   }`}
                 >
                   <GripVertical size={14} className="opacity-50" />
@@ -330,11 +330,11 @@ export default function VersionEditorPage() {
         </div>
 
         {/* Main Canvas */}
-        <div className="flex-1 bg-slate-100 overflow-y-auto p-6">
+        <div className="flex-1 bg-[#0a0a0f] overflow-y-auto p-6">
           {selectedSection ? (
             <div className="max-w-4xl mx-auto">
               {/* Section Header */}
-              <div className="bg-white rounded-xl shadow-sm border p-4 mb-4">
+              <div className="bg-[#0d0d15] rounded-xl border border-[#2a2a3e] p-4 mb-4">
                 <input
                   type="text"
                   value={selectedSection.title || ''}
@@ -346,15 +346,15 @@ export default function VersionEditorPage() {
                     ))
                   }}
                   placeholder="Section Title"
-                  className="w-full text-lg font-semibold text-slate-800 border-none focus:outline-none focus:ring-0 bg-transparent"
+                  className="w-full text-lg font-semibold text-white border-none focus:outline-none focus:ring-0 bg-transparent placeholder-slate-500"
                 />
               </div>
 
               {/* Blocks Area */}
-              <div className="bg-white rounded-xl shadow-sm border p-6 min-h-[300px]">
+              <div className="bg-[#0d0d15] rounded-xl border border-[#2a2a3e] p-6 min-h-[300px]">
                 {selectedSection.blocks.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-slate-500 mb-4">No blocks in this section</p>
+                    <p className="text-slate-400 mb-4">No blocks in this section</p>
                     <Button variant="outline" className="rounded-xl" onClick={() => setShowBlockPicker(true)}>
                       <Plus size={16} className="mr-2" />
                       Add Block
