@@ -18,13 +18,10 @@ import {
   Type,
   Image as ImageIcon,
   Video,
-  Layout,
-  Columns,
   Square,
   Minus,
   Sparkles,
   GitCompare,
-  BarChart3,
   FileText,
   X,
   Settings,
@@ -73,19 +70,8 @@ interface Element {
   style?: Record<string, unknown>
 }
 
-// Element type definitions
+// Element type definitions (Layout items removed - they are row types, not elements)
 const ELEMENT_CATEGORIES = [
-  {
-    id: 'layout',
-    label: 'Layout',
-    icon: Layout,
-    elements: [
-      { type: 'section', label: 'Section', icon: Square, description: 'Full-width container' },
-      { type: 'row-1', label: '1 Column', icon: Square, description: 'Single column row' },
-      { type: 'row-2', label: '2 Columns', icon: Columns, description: 'Two column layout' },
-      { type: 'row-3', label: '3 Columns', icon: Columns, description: 'Three column layout' },
-    ]
-  },
   {
     id: 'text',
     label: 'Text',
@@ -113,7 +99,6 @@ const ELEMENT_CATEGORIES = [
       { type: 'section-header', label: 'Section Header', icon: Minus, description: 'Colored bar with title' },
       { type: 'change-card', label: 'Change Card', icon: FileText, description: 'Hero/Item with changes' },
       { type: 'comparison', label: 'Comparison', icon: GitCompare, description: 'Before/After view' },
-      { type: 'stat-table', label: 'Stat Table', icon: BarChart3, description: 'Old vs New stats' },
     ]
   },
   {
@@ -155,16 +140,9 @@ const getDefaultElementData = (type: string): Record<string, unknown> => {
     case 'comparison':
       return { 
         layout: 'side-by-side',
-        title: '',
-        before: { image: '', label: 'Before', version: '' },
-        after: { image: '', label: 'After', version: '' },
-        description: ''
-      }
-    case 'stat-table':
-      return { 
-        stats: [
-          { name: 'Stat Name', old: '100', new: '120', change: 'buff' }
-        ]
+        title: 'Comparison',
+        before: { content: 'Old value or description here', label: 'Before', overlay: 'darken' },
+        after: { content: 'New value or description here', label: 'After' }
       }
     case 'divider':
       return { style: 'solid', color: '#333' }
@@ -993,53 +971,56 @@ function ElementRenderer({
       )
 
     case 'comparison':
+      const beforeData = (data.before as { content?: string; label?: string; overlay?: string }) || {}
+      const afterData = (data.after as { content?: string; label?: string }) || {}
+      const overlayStyle = beforeData.overlay === 'red' 
+        ? 'bg-red-500/20 border-red-500/30' 
+        : 'bg-black/30 border-slate-600/30'
+      
       return (
         <div className="bg-[#0d0d15] rounded-lg p-4">
-          <div className="text-center text-white font-medium mb-3">
-            {(data.title as string) || 'Comparison'}
-          </div>
+          {(data.title as string) && (
+            <div className="text-center text-white font-medium mb-3">
+              <InlineEditableText
+                value={(data.title as string) || ''}
+                onChange={(title) => handleUpdate({ title })}
+                isEditing={isEditing}
+                placeholder="Comparison Title"
+              />
+            </div>
+          )}
           <div className={`flex gap-4 ${(data.layout as string) === 'stacked' ? 'flex-col' : ''}`}>
-            <div className="flex-1 p-3 bg-[#1a1a2e]/50 rounded-lg opacity-60">
-              <div className="text-xs text-slate-400 mb-1">Before</div>
-              <div className="h-20 bg-[#2a2a3e] rounded flex items-center justify-center">
-                <ImageIcon size={24} className="text-slate-500" />
+            {/* Before */}
+            <div className={`flex-1 p-3 rounded-lg border ${overlayStyle}`}>
+              <div className="text-xs text-slate-400 mb-2 font-medium">
+                {beforeData.label || 'Before'}
+              </div>
+              <div className="text-sm text-slate-300">
+                <InlineEditableText
+                  value={beforeData.content || ''}
+                  onChange={(content) => handleUpdate({ before: { ...beforeData, content } })}
+                  isEditing={isEditing}
+                  placeholder="Old value or description..."
+                  multiline
+                />
               </div>
             </div>
-            <div className="flex-1 p-3 bg-[#1a1a2e] rounded-lg">
-              <div className="text-xs text-slate-400 mb-1">After</div>
-              <div className="h-20 bg-[#2a2a3e] rounded flex items-center justify-center">
-                <ImageIcon size={24} className="text-slate-500" />
+            {/* After */}
+            <div className="flex-1 p-3 bg-[#1a1a2e] rounded-lg border border-green-500/30">
+              <div className="text-xs text-green-400 mb-2 font-medium">
+                {afterData.label || 'After'}
+              </div>
+              <div className="text-sm text-slate-200">
+                <InlineEditableText
+                  value={afterData.content || ''}
+                  onChange={(content) => handleUpdate({ after: { ...afterData, content } })}
+                  isEditing={isEditing}
+                  placeholder="New value or description..."
+                  multiline
+                />
               </div>
             </div>
           </div>
-        </div>
-      )
-
-    case 'stat-table':
-      return (
-        <div className="bg-[#0d0d15] rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#2a2a3e]">
-                <th className="text-left p-2 text-slate-400 font-medium">Stat</th>
-                <th className="text-center p-2 text-slate-400 font-medium">Old</th>
-                <th className="text-center p-2 text-slate-400 font-medium">New</th>
-              </tr>
-            </thead>
-            <tbody>
-              {((data.stats as Array<{name: string; old: string; new: string; change: string}>) || []).map((stat, i) => (
-                <tr key={i} className="border-b border-[#2a2a3e]/50">
-                  <td className="p-2 text-white">{stat.name}</td>
-                  <td className="p-2 text-center text-slate-400 line-through">{stat.old}</td>
-                  <td className={`p-2 text-center font-medium ${
-                    stat.change === 'buff' ? 'text-green-400' :
-                    stat.change === 'nerf' ? 'text-red-400' :
-                    'text-white'
-                  }`}>{stat.new}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       )
 
@@ -1168,6 +1149,16 @@ function ElementProperties({
       {type === 'change-card' && (
         <>
           <div>
+            <label className="block text-xs text-slate-400 mb-1">Icon Image URL</label>
+            <input
+              type="text"
+              value={(data.icon as string) || ''}
+              onChange={(e) => onUpdate({ icon: e.target.value })}
+              placeholder="https://drive.google.com/..."
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+          </div>
+          <div>
             <label className="block text-xs text-slate-400 mb-1">Title</label>
             <input
               type="text"
@@ -1184,6 +1175,57 @@ function ElementProperties({
               onChange={(e) => onUpdate({ subtitle: e.target.value })}
               className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
             />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-2">Changes</label>
+            <div className="space-y-2">
+              {((data.changes as Array<{type: string; text: string}>) || []).map((change, i) => (
+                <div key={i} className="flex gap-2">
+                  <select
+                    value={change.type}
+                    onChange={(e) => {
+                      const newChanges = [...((data.changes as Array<{type: string; text: string}>) || [])]
+                      newChanges[i] = { ...newChanges[i], type: e.target.value }
+                      onUpdate({ changes: newChanges })
+                    }}
+                    className="w-20 px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="buff">↑ Buff</option>
+                    <option value="nerf">↓ Nerf</option>
+                    <option value="neutral">○ Info</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={change.text}
+                    onChange={(e) => {
+                      const newChanges = [...((data.changes as Array<{type: string; text: string}>) || [])]
+                      newChanges[i] = { ...newChanges[i], text: e.target.value }
+                      onUpdate({ changes: newChanges })
+                    }}
+                    placeholder="Change description"
+                    className="flex-1 px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs focus:outline-none focus:border-purple-500"
+                  />
+                  <button
+                    onClick={() => {
+                      const newChanges = ((data.changes as Array<{type: string; text: string}>) || []).filter((_, idx) => idx !== i)
+                      onUpdate({ changes: newChanges })
+                    }}
+                    className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  const newChanges = [...((data.changes as Array<{type: string; text: string}>) || []), { type: 'buff', text: '' }]
+                  onUpdate({ changes: newChanges })
+                }}
+                className="w-full py-1.5 text-xs text-purple-400 hover:text-purple-300 border border-dashed border-[#2a2a3e] hover:border-purple-500 rounded-lg transition-colors"
+              >
+                + Add Change
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -1207,9 +1249,57 @@ function ElementProperties({
               className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
             >
               <option value="side-by-side">Side by Side</option>
-              <option value="stacked">Stacked</option>
-              <option value="slider">Slider</option>
+              <option value="stacked">Stacked (Up/Down)</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">&quot;Before&quot; Overlay Style</label>
+            <select
+              value={((data.before as { overlay?: string })?.overlay) || 'darken'}
+              onChange={(e) => onUpdate({ before: { ...(data.before as object), overlay: e.target.value } })}
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            >
+              <option value="darken">Darken (Gray)</option>
+              <option value="red">Red Tint</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Before Label</label>
+            <input
+              type="text"
+              value={((data.before as { label?: string })?.label) || 'Before'}
+              onChange={(e) => onUpdate({ before: { ...(data.before as object), label: e.target.value } })}
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Before Content</label>
+            <textarea
+              value={((data.before as { content?: string })?.content) || ''}
+              onChange={(e) => onUpdate({ before: { ...(data.before as object), content: e.target.value } })}
+              rows={3}
+              placeholder="Old value or description..."
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">After Label</label>
+            <input
+              type="text"
+              value={((data.after as { label?: string })?.label) || 'After'}
+              onChange={(e) => onUpdate({ after: { ...(data.after as object), label: e.target.value } })}
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">After Content</label>
+            <textarea
+              value={((data.after as { content?: string })?.content) || ''}
+              onChange={(e) => onUpdate({ after: { ...(data.after as object), content: e.target.value } })}
+              rows={3}
+              placeholder="New value or description..."
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 resize-none"
+            />
           </div>
         </>
       )}
