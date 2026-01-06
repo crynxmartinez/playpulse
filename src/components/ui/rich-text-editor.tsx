@@ -128,6 +128,7 @@ export function RichTextEditor({
       <div
         ref={editorRef}
         contentEditable
+        dir="ltr"
         onInput={handleInput}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
@@ -135,7 +136,7 @@ export function RichTextEditor({
         dangerouslySetInnerHTML={{ __html: value }}
         data-placeholder={placeholder}
         className={cn(
-          "px-3 py-2 text-sm outline-none overflow-y-auto",
+          "px-3 py-2 text-sm outline-none overflow-y-auto text-left",
           "prose prose-sm prose-invert max-w-none",
           "prose-headings:font-semibold prose-headings:text-foreground",
           "prose-h1:text-xl prose-h1:mt-4 prose-h1:mb-2",
