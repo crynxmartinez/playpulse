@@ -414,12 +414,12 @@ export default function VersionEditorPage() {
         {/* Block Picker Modal */}
         {showBlockPicker && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
-              <div className="flex items-center justify-between p-4 border-b">
-                <h3 className="text-lg font-semibold text-slate-800">Add Block</h3>
+            <div className="bg-[#0d0d15] rounded-2xl w-full max-w-lg shadow-2xl border border-[#2a2a3e]">
+              <div className="flex items-center justify-between p-4 border-b border-[#2a2a3e]">
+                <h3 className="text-lg font-semibold text-white">Add Block</h3>
                 <button
                   onClick={() => setShowBlockPicker(false)}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
+                  className="p-2 text-slate-400 hover:text-white hover:bg-[#2a2a3e] rounded-lg"
                 >
                   <X size={16} />
                 </button>
@@ -429,10 +429,10 @@ export default function VersionEditorPage() {
                   <button
                     key={blockType.type}
                     onClick={() => handleAddBlock(blockType.type)}
-                    className="p-4 text-left border rounded-xl hover:border-primary hover:bg-primary/5 transition-colors"
+                    className="p-4 text-left border border-[#2a2a3e] rounded-xl hover:border-purple-500 hover:bg-purple-500/10 transition-colors bg-[#1a1a2e]"
                   >
-                    <div className="font-medium text-slate-800">{blockType.label}</div>
-                    <div className="text-xs text-slate-500 mt-1">{blockType.description}</div>
+                    <div className="font-medium text-white">{blockType.label}</div>
+                    <div className="text-xs text-slate-400 mt-1">{blockType.description}</div>
                   </button>
                 ))}
               </div>
@@ -441,9 +441,9 @@ export default function VersionEditorPage() {
         )}
 
         {/* Properties Panel */}
-        <div className="w-72 border-l bg-white flex flex-col">
-          <div className="p-3 border-b">
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+        <div className="w-72 border-l border-[#2a2a3e] bg-[#0d0d15] flex flex-col">
+          <div className="p-3 border-b border-[#2a2a3e]">
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-300">
               <Settings size={16} />
               Properties
             </div>

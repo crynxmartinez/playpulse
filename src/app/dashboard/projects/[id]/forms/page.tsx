@@ -558,10 +558,10 @@ export default function FormsPage() {
       {/* Wizard Modal */}
       {showWizard && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex">
+          <div className="bg-[#0d0d15] rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex border border-[#2a2a3e]">
             {/* Left Sidebar - Journey Steps */}
-            <div className="w-64 bg-slate-50 border-r border-slate-200 p-6">
-              <h3 className="text-lg font-bold text-slate-800 mb-6">Create Form</h3>
+            <div className="w-64 bg-[#1a1a2e] border-r border-[#2a2a3e] p-6">
+              <h3 className="text-lg font-bold text-white mb-6">Create Form</h3>
               <div className="space-y-4">
                 {WIZARD_STEPS.map((step, index) => (
                   <div key={step.id} className="flex items-start gap-3">
@@ -570,12 +570,12 @@ export default function FormsPage() {
                         ? 'bg-purple-600 text-white' 
                         : wizardStep > step.id 
                           ? 'bg-green-500 text-white' 
-                          : 'bg-slate-200 text-slate-500'
+                          : 'bg-[#2a2a3e] text-slate-400'
                     }`}>
                       {wizardStep > step.id ? <Check size={16} /> : step.id}
                     </div>
                     <div>
-                      <p className={`font-medium ${wizardStep === step.id ? 'text-purple-600' : 'text-slate-700'}`}>
+                      <p className={`font-medium ${wizardStep === step.id ? 'text-purple-400' : 'text-slate-300'}`}>
                         {step.name}
                       </p>
                       <p className="text-xs text-slate-500">{step.description}</p>
@@ -588,13 +588,13 @@ export default function FormsPage() {
             {/* Right Content */}
             <div className="flex-1 flex flex-col">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-slate-200">
-                <h4 className="text-xl font-semibold text-slate-800">
+              <div className="flex items-center justify-between p-6 border-b border-[#2a2a3e]">
+                <h4 className="text-xl font-semibold text-white">
                   {WIZARD_STEPS[wizardStep - 1].name}
                 </h4>
                 <button
                   onClick={resetWizard}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-2 text-slate-400 hover:text-white hover:bg-[#2a2a3e] rounded-lg transition-colors"
                 >
                   <X size={24} />
                 </button>
@@ -606,45 +606,45 @@ export default function FormsPage() {
                 {wizardStep === 1 && (
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Form Title *</label>
+                      <label className="block text-sm font-medium text-slate-400 mb-1">Form Title *</label>
                       <input
                         type="text"
                         value={wizardData.title}
                         onChange={(e) => setWizardData({ ...wizardData, title: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                        className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                         placeholder="e.g., Beta Feedback Survey"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Landing Headline</label>
+                        <label className="block text-sm font-medium text-slate-400 mb-1">Landing Headline</label>
                         <input
                           type="text"
                           value={wizardData.landingTitle}
                           onChange={(e) => setWizardData({ ...wizardData, landingTitle: e.target.value })}
-                          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                          className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                           placeholder="How Good Is Our Game?"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Subtitle</label>
+                        <label className="block text-sm font-medium text-slate-400 mb-1">Subtitle</label>
                         <input
                           type="text"
                           value={wizardData.landingSubtitle}
                           onChange={(e) => setWizardData({ ...wizardData, landingSubtitle: e.target.value })}
-                          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                          className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                           placeholder="Take our 2-minute quiz to find out!"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                      <label className="block text-sm font-medium text-slate-400 mb-1">Description</label>
                       <textarea
                         value={wizardData.landingDescription}
                         onChange={(e) => setWizardData({ ...wizardData, landingDescription: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                        className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                         placeholder="Help us improve by sharing your honest feedback..."
                         rows={3}
                       />
@@ -652,29 +652,29 @@ export default function FormsPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Cover Image URL</label>
+                        <label className="block text-sm font-medium text-slate-400 mb-1">Cover Image URL</label>
                         <input
                           type="text"
                           value={wizardData.landingImage}
                           onChange={(e) => setWizardData({ ...wizardData, landingImage: e.target.value })}
-                          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                          className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                           placeholder="https://..."
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Button Text</label>
+                        <label className="block text-sm font-medium text-slate-400 mb-1">Button Text</label>
                         <input
                           type="text"
                           value={wizardData.ctaText}
                           onChange={(e) => setWizardData({ ...wizardData, ctaText: e.target.value })}
-                          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                          className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                           placeholder="Start Quiz"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Theme Color</label>
+                      <label className="block text-sm font-medium text-slate-400 mb-1">Theme Color</label>
                       <div className="flex items-center gap-3">
                         <input
                           type="color"
@@ -730,7 +730,7 @@ export default function FormsPage() {
                             const allSelected = categoryStats.every(s => wizardData.selectedStatIds.includes(s.id))
                             
                             return (
-                              <div key={category.value} className="border border-slate-200 rounded-lg p-4">
+                              <div key={category.value} className="border border-[#2a2a3e] rounded-lg p-4 bg-[#1a1a2e]">
                                 <div className="flex items-center justify-between mb-3">
                                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${category.color}`}>
                                     {category.label}
@@ -739,7 +739,7 @@ export default function FormsPage() {
                                     type="button"
                                     onClick={() => selectAllInCategory(category.value)}
                                     className={`text-sm px-3 py-1 rounded-lg transition-colors ${
-                                      allSelected ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                      allSelected ? 'bg-purple-500/20 text-purple-400' : 'bg-[#2a2a3e] text-slate-400 hover:bg-[#3a3a4e]'
                                     }`}
                                   >
                                     {allSelected ? 'Deselect All' : 'Select All'}
@@ -753,8 +753,8 @@ export default function FormsPage() {
                                       onClick={() => handleStatToggle(stat.id)}
                                       className={`p-3 rounded-lg border text-left transition-all ${
                                         wizardData.selectedStatIds.includes(stat.id)
-                                          ? 'border-purple-500 bg-purple-50 text-purple-700 shadow-sm'
-                                          : 'border-slate-200 hover:border-slate-300 text-slate-800'
+                                          ? 'border-purple-500 bg-purple-500/20 text-purple-400 shadow-sm'
+                                          : 'border-[#2a2a3e] hover:border-[#3a3a4e] text-slate-300 bg-[#0d0d15]'
                                       }`}
                                     >
                                       <p className="font-medium">{stat.name}</p>
@@ -767,7 +767,7 @@ export default function FormsPage() {
                           })}
 
                           {grouped.uncategorized.length > 0 && (
-                            <div className="border border-slate-200 rounded-lg p-4">
+                            <div className="border border-[#2a2a3e] rounded-lg p-4 bg-[#1a1a2e]">
                               <div className="flex items-center justify-between mb-3">
                                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
                                   Uncategorized
@@ -775,7 +775,7 @@ export default function FormsPage() {
                                 <button
                                   type="button"
                                   onClick={() => selectAllInCategory('uncategorized')}
-                                  className="text-sm px-3 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  className="text-sm px-3 py-1 rounded-lg bg-[#2a2a3e] text-slate-400 hover:bg-[#3a3a4e]"
                                 >
                                   Select All
                                 </button>
@@ -880,19 +880,19 @@ export default function FormsPage() {
 
                             <div className="space-y-4">
                               <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Question Text *</label>
+                                <label className="block text-sm font-medium text-slate-400 mb-1">Question Text *</label>
                                 <input
                                   type="text"
                                   value={question.questionText}
                                   onChange={(e) => updateQuestion(qIndex, { questionText: e.target.value })}
-                                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                                  className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                                   placeholder="e.g., How would you rate the graphics quality?"
                                 />
                               </div>
 
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <label className="block text-sm font-medium text-slate-700 mb-1">Question Type</label>
+                                  <label className="block text-sm font-medium text-slate-400 mb-1">Question Type</label>
                                   <select
                                     value={question.type}
                                     onChange={(e) => updateQuestion(qIndex, { 
@@ -901,7 +901,7 @@ export default function FormsPage() {
                                         ? (e.target.value === 'YES_NO' ? [{ text: 'Yes', points: 10 }, { text: 'No', points: 0 }] : [])
                                         : []
                                     })}
-                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                                    className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                                   >
                                     {QUESTION_TYPES.map(type => (
                                       <option key={type.value} value={type.value}>{type.label}</option>
@@ -910,11 +910,11 @@ export default function FormsPage() {
                                 </div>
 
                                 <div>
-                                  <label className="block text-sm font-medium text-slate-700 mb-1">Connected Stat</label>
+                                  <label className="block text-sm font-medium text-slate-400 mb-1">Connected Stat</label>
                                   <select
                                     value={question.statId}
                                     onChange={(e) => updateQuestion(qIndex, { statId: e.target.value })}
-                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                                    className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                                   >
                                     <option value="">Select a stat...</option>
                                     {stats.filter(s => wizardData.selectedStatIds.includes(s.id)).map(stat => (
@@ -928,21 +928,21 @@ export default function FormsPage() {
                               {question.type === 'SLIDER' && (
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Min Value</label>
+                                    <label className="block text-sm font-medium text-slate-400 mb-1">Min Value</label>
                                     <input
                                       type="number"
                                       value={question.minValue}
                                       onChange={(e) => updateQuestion(qIndex, { minValue: parseInt(e.target.value) || 1 })}
-                                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                                      className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Max Value</label>
+                                    <label className="block text-sm font-medium text-slate-400 mb-1">Max Value</label>
                                     <input
                                       type="number"
                                       value={question.maxValue}
                                       onChange={(e) => updateQuestion(qIndex, { maxValue: parseInt(e.target.value) || 10 })}
-                                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                                      className="w-full px-4 py-2 border border-[#2a2a3e] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                                     />
                                   </div>
                                 </div>

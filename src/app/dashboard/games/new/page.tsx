@@ -74,10 +74,10 @@ export default function NewGamePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-2xl p-6 shadow-sm border">
+        <div className="bg-[#0d0d15] rounded-2xl p-6 border border-[#2a2a3e]">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-400 mb-1">
                 Game Name <span className="text-red-500">*</span>
               </label>
               <Input
@@ -96,20 +96,20 @@ export default function NewGamePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-400 mb-1">
                 Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Brief description of your game..."
-                className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-slate-800 bg-white resize-none"
+                className="w-full px-4 py-2 border border-[#2a2a3e] rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e] resize-none"
                 rows={3}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-400 mb-1">
                 URL Slug
               </label>
               <div className="flex items-center gap-2">
