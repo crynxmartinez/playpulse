@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -187,53 +187,191 @@ function SharePageCard({ projectId, slug }: { projectId: string; slug: string | 
   );
 }
 
+// Activity data types
+interface ActivityBreakdown {
+  form_response?: number;
+  update_published?: number;
+  new_follower?: number;
+  settings_changed?: number;
+  version_released?: number;
+}
+
+interface ActivityDay {
+  total: number;
+  breakdown: ActivityBreakdown;
+}
+
+type ActivityData = Record<string, ActivityDay>; // key = "YYYY-MM-DD"
+
+interface DayCell {
+  date: Date;
+  dateString: string; // "YYYY-MM-DD"
+  activity: ActivityDay | null;
+  isFuture: boolean;
+  isEmpty: boolean; // For padding cells before Jan 1
+}
+
 function ActivityHeatmap({ 
+  activityData = {},
   formResponseCount = 0, 
   updateCount = 0,
   followerCount = 0 
 }: { 
+  activityData?: ActivityData;
   formResponseCount?: number;
   updateCount?: number;
   followerCount?: number;
 }) {
-  const currentYear = new Date().getFullYear();
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  
-  // Generate heatmap data - in future this would come from real activity data
-  const weeksData = useMemo(() => {
-    const weeks: number[][] = [];
-    // 52 weeks, 7 days each
-    for (let w = 0; w < 52; w++) {
-      const week: number[] = [];
-      for (let d = 0; d < 7; d++) {
-        // Random placeholder - replace with real activity data later
-        const r = Math.random();
-        const v = r < 0.6 ? 0 : r < 0.8 ? 1 : r < 0.92 ? 2 : r < 0.98 ? 3 : 4;
-        week.push(v);
-      }
-      weeks.push(week);
-    }
-    return weeks;
-  }, []);
+  const [hoveredDay, setHoveredDay] = useState<DayCell | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const shade = (v: number) => {
-    const colors = [
-      'rgba(148,163,184,0.1)',
-      'rgba(139,92,246,0.3)',
-      'rgba(139,92,246,0.5)',
-      'rgba(139,92,246,0.7)',
-      'rgba(139,92,246,0.9)',
-    ];
-    return colors[clamp(v, 0, 4)];
+  const currentYear = new Date().getFullYear();
+  const today = new Date();
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // Generate grid data from Jan 1 to today
+  const { weeks, monthLabels } = useMemo(() => {
+    const startDate = new Date(currentYear, 0, 1); // Jan 1
+    const endDate = today;
+    
+    // Find what day of week Jan 1 is (0 = Sunday, 1 = Monday, etc.)
+    // We want Monday = 0, so adjust
+    const startDayOfWeek = (startDate.getDay() + 6) % 7; // Monday = 0
+    
+    const weeksArray: DayCell[][] = [];
+    const monthLabelPositions: { month: string; weekIndex: number }[] = [];
+    
+    let currentDate = new Date(startDate);
+    let currentWeek: DayCell[] = [];
+    let weekIndex = 0;
+    
+    // Add empty cells for days before Jan 1
+    for (let i = 0; i < startDayOfWeek; i++) {
+      currentWeek.push({
+        date: new Date(0),
+        dateString: '',
+        activity: null,
+        isFuture: false,
+        isEmpty: true
+      });
+    }
+    
+    // Track which months we've added labels for
+    let lastLabeledMonth = -1;
+    
+    // Generate all days from Jan 1 to today
+    while (currentDate <= endDate) {
+      const dateString = currentDate.toISOString().split('T')[0];
+      const isFuture = currentDate > today;
+      
+      // Check if this is first day of a new month for labeling
+      if (currentDate.getMonth() !== lastLabeledMonth && currentDate.getDate() <= 7) {
+        monthLabelPositions.push({
+          month: months[currentDate.getMonth()],
+          weekIndex: weekIndex
+        });
+        lastLabeledMonth = currentDate.getMonth();
+      }
+      
+      currentWeek.push({
+        date: new Date(currentDate),
+        dateString,
+        activity: activityData[dateString] || null,
+        isFuture,
+        isEmpty: false
+      });
+      
+      // If week is complete (7 days), push and start new week
+      if (currentWeek.length === 7) {
+        weeksArray.push(currentWeek);
+        currentWeek = [];
+        weekIndex++;
+      }
+      
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Push remaining days in last week
+    if (currentWeek.length > 0) {
+      weeksArray.push(currentWeek);
+    }
+    
+    return { weeks: weeksArray, monthLabels: monthLabelPositions };
+  }, [currentYear, activityData]);
+
+  // Color shade based on activity level
+  const getShade = (activity: ActivityDay | null) => {
+    if (!activity || activity.total === 0) {
+      return 'rgba(148,163,184,0.1)';
+    }
+    const total = activity.total;
+    if (total <= 2) return 'rgba(139,92,246,0.3)';
+    if (total <= 5) return 'rgba(139,92,246,0.5)';
+    if (total <= 10) return 'rgba(139,92,246,0.7)';
+    return 'rgba(139,92,246,0.9)';
   };
 
-  // Calculate month positions (approximate - each month ~4.3 weeks)
-  const monthPositions = months.map((_, i) => Math.floor(i * 52 / 12));
+  const legendShades = [
+    'rgba(148,163,184,0.1)',
+    'rgba(139,92,246,0.3)',
+    'rgba(139,92,246,0.5)',
+    'rgba(139,92,246,0.7)',
+    'rgba(139,92,246,0.9)',
+  ];
+
+  // Format date for tooltip
+  const formatDate = (date: Date) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${days[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  };
+
+  // Handle hover
+  const handleMouseEnter = (day: DayCell, e: React.MouseEvent) => {
+    if (day.isEmpty) return;
+    setHoveredDay(day);
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (containerRect) {
+      setTooltipPos({
+        x: rect.left - containerRect.left + rect.width / 2,
+        y: rect.top - containerRect.top - 8
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredDay(null);
+    setTooltipPos(null);
+  };
+
+  // Get breakdown text
+  const getBreakdownText = (breakdown: ActivityBreakdown) => {
+    const items: string[] = [];
+    if (breakdown.form_response && breakdown.form_response > 0) {
+      items.push(`${breakdown.form_response} user${breakdown.form_response > 1 ? 's' : ''} answered the form`);
+    }
+    if (breakdown.update_published && breakdown.update_published > 0) {
+      items.push(`${breakdown.update_published} update${breakdown.update_published > 1 ? 's' : ''} published`);
+    }
+    if (breakdown.new_follower && breakdown.new_follower > 0) {
+      items.push(`${breakdown.new_follower} new follower${breakdown.new_follower > 1 ? 's' : ''}`);
+    }
+    if (breakdown.settings_changed && breakdown.settings_changed > 0) {
+      items.push(`${breakdown.settings_changed} setting${breakdown.settings_changed > 1 ? 's' : ''} changed`);
+    }
+    if (breakdown.version_released && breakdown.version_released > 0) {
+      items.push(`${breakdown.version_released} version${breakdown.version_released > 1 ? 's' : ''} released`);
+    }
+    return items;
+  };
 
   return (
     <Card className="rounded-3xl">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-base">Activity {currentYear}</CardTitle>
             <CardDescription className="text-xs">
@@ -243,11 +381,11 @@ function ActivityHeatmap({
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>Less</span>
             <div className="flex items-center gap-0.5">
-              {[0, 1, 2, 3, 4].map((v) => (
+              {legendShades.map((shade, i) => (
                 <span
-                  key={v}
+                  key={i}
                   className="h-2.5 w-2.5 rounded-sm"
-                  style={{ background: shade(v) }}
+                  style={{ background: shade }}
                 />
               ))}
             </div>
@@ -256,15 +394,15 @@ function ActivityHeatmap({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto relative" ref={containerRef}>
           {/* Month labels */}
-          <div className="flex mb-1 text-[10px] text-muted-foreground" style={{ paddingLeft: '24px' }}>
-            {months.map((month, i) => (
+          <div className="flex mb-1 text-[10px] text-muted-foreground" style={{ paddingLeft: '28px' }}>
+            {monthLabels.map(({ month, weekIndex }, i) => (
               <span 
-                key={month} 
+                key={`${month}-${i}`}
+                className="absolute"
                 style={{ 
-                  width: `${100/12}%`,
-                  minWidth: '40px'
+                  left: `${28 + weekIndex * 12}px`
                 }}
               >
                 {month}
@@ -272,35 +410,80 @@ function ActivityHeatmap({
             ))}
           </div>
           
+          {/* Spacer for month labels */}
+          <div className="h-4" />
+          
           {/* Heatmap grid */}
           <div className="flex gap-1">
             {/* Day labels */}
-            <div className="flex flex-col justify-around text-[9px] text-muted-foreground w-5 shrink-0">
-              <span></span>
-              <span>Mon</span>
-              <span></span>
-              <span>Wed</span>
-              <span></span>
-              <span>Fri</span>
-              <span></span>
+            <div className="flex flex-col text-[9px] text-muted-foreground w-6 shrink-0" style={{ gap: '2px' }}>
+              <span className="h-[10px]"></span>
+              <span className="h-[10px] leading-[10px]">Mon</span>
+              <span className="h-[10px]"></span>
+              <span className="h-[10px] leading-[10px]">Wed</span>
+              <span className="h-[10px]"></span>
+              <span className="h-[10px] leading-[10px]">Fri</span>
+              <span className="h-[10px]"></span>
             </div>
             
             {/* Weeks grid */}
-            <div className="flex gap-[2px] flex-1">
-              {weeksData.map((week, weekIdx) => (
+            <div className="flex gap-[2px]">
+              {weeks.map((week, weekIdx) => (
                 <div key={weekIdx} className="flex flex-col gap-[2px]">
                   {week.map((day, dayIdx) => (
                     <span
                       key={dayIdx}
-                      className="w-[10px] h-[10px] rounded-sm"
-                      style={{ background: shade(day) }}
-                      title={`Activity level: ${day}`}
+                      className={`w-[10px] h-[10px] rounded-sm transition-all ${
+                        day.isEmpty ? 'opacity-0' : 'cursor-pointer hover:ring-1 hover:ring-white/50'
+                      }`}
+                      style={{ background: day.isEmpty ? 'transparent' : getShade(day.activity) }}
+                      onMouseEnter={(e) => handleMouseEnter(day, e)}
+                      onMouseLeave={handleMouseLeave}
                     />
                   ))}
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Tooltip */}
+          {hoveredDay && tooltipPos && !hoveredDay.isEmpty && (
+            <div 
+              className="absolute z-50 bg-[#1a1a2e] border border-[#2a2a3e] rounded-lg shadow-xl p-3 pointer-events-none"
+              style={{
+                left: tooltipPos.x,
+                top: tooltipPos.y,
+                transform: 'translate(-50%, -100%)',
+                minWidth: '180px'
+              }}
+            >
+              <div className="text-xs font-medium text-white mb-1">
+                {formatDate(hoveredDay.date)}
+              </div>
+              <div className="text-sm font-bold text-purple-400 mb-2">
+                {hoveredDay.activity?.total || 0} activit{(hoveredDay.activity?.total || 0) === 1 ? 'y' : 'ies'}
+              </div>
+              {hoveredDay.activity && hoveredDay.activity.total > 0 && (
+                <div className="space-y-1 text-xs text-slate-400 border-t border-[#2a2a3e] pt-2">
+                  {getBreakdownText(hoveredDay.activity.breakdown).map((text, i) => (
+                    <div key={i}>• {text}</div>
+                  ))}
+                </div>
+              )}
+              {(!hoveredDay.activity || hoveredDay.activity.total === 0) && (
+                <div className="text-xs text-slate-500">No activity</div>
+              )}
+              {/* Tooltip arrow */}
+              <div 
+                className="absolute w-2 h-2 bg-[#1a1a2e] border-r border-b border-[#2a2a3e] rotate-45"
+                style={{
+                  bottom: '-5px',
+                  left: '50%',
+                  transform: 'translateX(-50%) rotate(45deg)'
+                }}
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -505,6 +688,28 @@ function UpdateCard({ u, expanded, onToggle }: { u: Update; expanded: boolean; o
 }
 
 export default function PublicGamePage({ project, isOwner = false }: PublicGamePageProps) {
+  // Activity data state
+  const [activityData, setActivityData] = useState<ActivityData>({});
+  const [activityLoading, setActivityLoading] = useState(true);
+
+  // Fetch activity data on mount
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const res = await fetch(`/api/projects/${project.id}/activity`);
+        if (res.ok) {
+          const data = await res.json();
+          setActivityData(data.activity || {});
+        }
+      } catch (error) {
+        console.error('Failed to fetch activity data:', error);
+      } finally {
+        setActivityLoading(false);
+      }
+    };
+    fetchActivity();
+  }, [project.id]);
+
   // Use real project data
   const developerName = project.user?.studioName || project.user?.displayName || project.user?.username || "Developer";
   const tags = project.tags || [];
@@ -871,6 +1076,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
 
               {/* Activity Heatmap - between About and Tabs */}
               <ActivityHeatmap 
+                activityData={activityData}
                 formResponseCount={project.formResponseCount || 0} 
                 updateCount={publishedVersions.length} 
                 followerCount={project._count?.followers || 0} 
