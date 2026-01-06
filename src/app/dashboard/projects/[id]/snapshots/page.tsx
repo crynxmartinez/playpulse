@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Camera, Trash2, Download, ExternalLink, Loader2, Calendar, Tag } from 'lucide-react'
+import { Camera, Trash2, Download, ExternalLink, Loader2, Calendar, Tag, Pin, PinOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -42,6 +42,8 @@ export default function ProjectSnapshotsPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [selectedSnapshot, setSelectedSnapshot] = useState<Snapshot | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [pinning, setPinning] = useState<string | null>(null)
+  const [pinnedSnapshotIds, setPinnedSnapshotIds] = useState<Set<string>>(new Set())
 
   const fetchSnapshots = useCallback(async () => {
     try {
@@ -58,9 +60,27 @@ export default function ProjectSnapshotsPage() {
     }
   }, [projectId])
 
+  const fetchPinnedSections = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/projects/${projectId}/pinned`)
+      const data = await res.json()
+      if (data.pinnedSections) {
+        const pinnedIds = new Set<string>(
+          data.pinnedSections
+            .filter((p: { snapshotId: string | null }) => p.snapshotId)
+            .map((p: { snapshotId: string }) => p.snapshotId)
+        )
+        setPinnedSnapshotIds(pinnedIds)
+      }
+    } catch (error) {
+      console.error('Failed to fetch pinned sections:', error)
+    }
+  }, [projectId])
+
   useEffect(() => {
     fetchSnapshots()
-  }, [fetchSnapshots])
+    fetchPinnedSections()
+  }, [fetchSnapshots, fetchPinnedSections])
 
   const handleDelete = async (snapshotId: string) => {
     setDeleteConfirm(null)
@@ -89,6 +109,50 @@ export default function ProjectSnapshotsPage() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  }
+
+  const handleTogglePin = async (snapshot: Snapshot) => {
+    const isPinned = pinnedSnapshotIds.has(snapshot.id)
+    setPinning(snapshot.id)
+    
+    try {
+      if (isPinned) {
+        // Find and delete the pinned section
+        const res = await fetch(`/api/projects/${projectId}/pinned`)
+        const data = await res.json()
+        const pinnedSection = data.pinnedSections?.find(
+          (p: { snapshotId: string | null }) => p.snapshotId === snapshot.id
+        )
+        if (pinnedSection) {
+          await fetch(`/api/projects/${projectId}/pinned/${pinnedSection.id}`, {
+            method: 'DELETE',
+          })
+          setPinnedSnapshotIds(prev => {
+            const next = new Set(prev)
+            next.delete(snapshot.id)
+            return next
+          })
+        }
+      } else {
+        // Create new pinned section
+        const res = await fetch(`/api/projects/${projectId}/pinned`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'SNAPSHOT',
+            snapshotId: snapshot.id,
+            title: snapshot.name,
+          }),
+        })
+        if (res.ok) {
+          setPinnedSnapshotIds(prev => new Set(prev).add(snapshot.id))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle pin:', error)
+    } finally {
+      setPinning(null)
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -186,14 +250,33 @@ export default function ProjectSnapshotsPage() {
                   <div className="flex items-center gap-2">
                     <Button 
                       size="sm" 
+                      variant={pinnedSnapshotIds.has(snapshot.id) ? "default" : "outline"}
+                      className={`flex-1 rounded-xl ${pinnedSnapshotIds.has(snapshot.id) ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleTogglePin(snapshot)
+                      }}
+                      disabled={pinning === snapshot.id}
+                    >
+                      {pinning === snapshot.id ? (
+                        <Loader2 size={14} className="mr-1 animate-spin" />
+                      ) : pinnedSnapshotIds.has(snapshot.id) ? (
+                        <PinOff size={14} className="mr-1" />
+                      ) : (
+                        <Pin size={14} className="mr-1" />
+                      )}
+                      {pinnedSnapshotIds.has(snapshot.id) ? 'Pinned' : 'Pin'}
+                    </Button>
+                    <Button 
+                      size="sm" 
                       variant="outline" 
-                      className="flex-1 rounded-xl"
+                      className="rounded-xl"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDownload(snapshot)
                       }}
                     >
-                      <Download size={14} className="mr-1" /> Download
+                      <Download size={14} />
                     </Button>
                     <Button 
                       size="sm" 
@@ -254,6 +337,22 @@ export default function ProjectSnapshotsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Button 
+                  size="sm" 
+                  variant={pinnedSnapshotIds.has(selectedSnapshot.id) ? "default" : "outline"}
+                  className={pinnedSnapshotIds.has(selectedSnapshot.id) ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                  onClick={() => handleTogglePin(selectedSnapshot)}
+                  disabled={pinning === selectedSnapshot.id}
+                >
+                  {pinning === selectedSnapshot.id ? (
+                    <Loader2 size={14} className="mr-1 animate-spin" />
+                  ) : pinnedSnapshotIds.has(selectedSnapshot.id) ? (
+                    <PinOff size={14} className="mr-1" />
+                  ) : (
+                    <Pin size={14} className="mr-1" />
+                  )}
+                  {pinnedSnapshotIds.has(selectedSnapshot.id) ? 'Pinned' : 'Pin to Game Page'}
+                </Button>
                 <Button 
                   size="sm" 
                   variant="outline"

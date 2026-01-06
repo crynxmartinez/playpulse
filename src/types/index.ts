@@ -29,11 +29,27 @@ export interface Project {
   }
   versions?: ProjectVersion[]
   forms?: ProjectForm[]
+  pinnedSections?: PinnedSection[]
   _count?: {
     forms?: number
     stats?: number
     versions?: number
   }
+}
+
+export interface PinnedSection {
+  id: string
+  type: 'SNAPSHOT' | 'ANALYTICS' | string
+  title?: string | null
+  order: number
+  snapshot?: {
+    id: string
+    name: string
+    type: string
+    imageData: string
+  } | null
+  widgetType?: string | null
+  widgetConfig?: unknown
 }
 
 export interface ProjectVersion {

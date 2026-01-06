@@ -63,6 +63,25 @@ export default async function GamePage({ params }: PageProps) {
           slug: true,
           isActive: true,
         }
+      },
+      pinnedSections: {
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          order: true,
+          widgetType: true,
+          widgetConfig: true,
+          snapshot: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              imageData: true,
+            }
+          }
+        },
+        orderBy: { order: 'asc' }
       }
     }
   })

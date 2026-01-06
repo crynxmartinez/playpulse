@@ -96,6 +96,20 @@ interface PublicGamePageProps {
       slug?: string | null;
       isActive: boolean;
     }>;
+    pinnedSections?: Array<{
+      id: string;
+      type: 'SNAPSHOT' | 'ANALYTICS' | string;
+      title?: string | null;
+      order: number;
+      snapshot?: {
+        id: string;
+        name: string;
+        type: string;
+        imageData: string;
+      } | null;
+      widgetType?: string | null;
+      widgetConfig?: unknown;
+    }>;
   };
 }
 
@@ -332,6 +346,10 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
   // Get active forms for "Join Playtest" button
   const activeForms = (project.forms || []).filter(f => f.isActive);
   const activePlaytest = activeForms[0];
+  
+  // Get pinned sections sorted by order
+  const pinnedSections = (project.pinnedSections || []).sort((a, b) => a.order - b.order);
+  const pinnedSnapshots = pinnedSections.filter(p => p.type === 'SNAPSHOT' && p.snapshot);
   
   // Convert published versions to Update format for the timeline
   const updates: Update[] = publishedVersions.map(v => ({
@@ -791,16 +809,40 @@ export default function PublicGamePage({ project }: PublicGamePageProps) {
                     </Card>
                   </div>
 
-                  <div className="grid gap-3 lg:grid-cols-2">
-                    <SnapshotCard
-                      title="Progress Board (Live)"
-                      caption="Share the table publicly or keep it unlisted. Export snapshots to WebP/PNG."
-                    />
-                    <SnapshotCard
-                      title="Top Issues Over Time"
-                      caption="Tag clustering from responses — see what keeps appearing each release."
-                    />
-                  </div>
+                  {/* Pinned Snapshots */}
+                  {pinnedSnapshots.length > 0 ? (
+                    <div className="space-y-3">
+                      <div className="text-sm font-semibold text-slate-400">Pinned Snapshots</div>
+                      <div className="grid gap-3 lg:grid-cols-2">
+                        {pinnedSnapshots.map((pinned) => (
+                          <Card key={pinned.id} className="rounded-2xl border-[#2a2a3e] bg-[#0d0d15] overflow-hidden">
+                            <div className="aspect-video bg-[#1a1a2e] relative overflow-hidden">
+                              <img 
+                                src={pinned.snapshot!.imageData} 
+                                alt={pinned.title || pinned.snapshot!.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <CardContent className="p-3">
+                              <div className="text-sm font-medium text-white truncate">
+                                {pinned.title || pinned.snapshot!.name}
+                              </div>
+                              <div className="text-xs text-slate-500 mt-1">
+                                {pinned.snapshot!.type}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      <SnapshotCard
+                        title="No Pinned Snapshots"
+                        caption="Pin analytics snapshots from the Workspace to display them here."
+                      />
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Progress */}
