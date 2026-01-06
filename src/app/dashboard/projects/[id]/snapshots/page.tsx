@@ -158,7 +158,7 @@ export default function ProjectSnapshotsPage() {
                 onClick={() => setSelectedSnapshot(snapshot)}
               >
                 {/* Image Preview */}
-                <div className="aspect-video bg-slate-100 relative overflow-hidden">
+                <div className="aspect-video bg-[#1a1a2e] relative overflow-hidden">
                   <img 
                     src={snapshot.imageData} 
                     alt={snapshot.name}
@@ -173,7 +173,7 @@ export default function ProjectSnapshotsPage() {
                 
                 {/* Info */}
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-slate-800 truncate mb-1">
+                  <h3 className="font-semibold text-white truncate mb-1">
                     {snapshot.name}
                   </h3>
                   <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
@@ -197,7 +197,7 @@ export default function ProjectSnapshotsPage() {
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50"
+                      className="rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDelete(snapshot.id)
@@ -225,14 +225,14 @@ export default function ProjectSnapshotsPage() {
           onClick={() => setSelectedSnapshot(null)}
         >
           <div 
-            className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            className="bg-[#0d0d15] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-[#2a2a3e]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center justify-between p-4 border-b border-[#2a2a3e]">
               <div>
-                <h2 className="font-semibold text-lg">{selectedSnapshot.name}</h2>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
+                <h2 className="font-semibold text-lg text-white">{selectedSnapshot.name}</h2>
+                <div className="flex items-center gap-2 text-sm text-slate-400">
                   <Tag size={14} />
                   {getTypeInfo(selectedSnapshot.type).label}
                   <span className="mx-1">•</span>
