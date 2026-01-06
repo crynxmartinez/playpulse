@@ -229,6 +229,60 @@ function SnapshotCard({ title, caption }: { title: string; caption: string }) {
   );
 }
 
+// GitHub-style timeline item
+function TimelineItem({ u, projectId }: { u: Update; projectId: string }) {
+  return (
+    <div className="relative flex gap-4">
+      {/* Vertical line connector */}
+      <div className="flex flex-col items-center">
+        <div className="w-3 h-3 rounded-full bg-purple-500 border-2 border-[#0d0d15] z-10" />
+        <div className="w-0.5 flex-1 bg-[#2a2a3e]" />
+      </div>
+      
+      {/* Content */}
+      <div className="flex-1 pb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="text-sm font-semibold text-white">{u.title}</span>
+              <Badge variant="secondary" className="rounded-md text-xs px-1.5 py-0">
+                {u.version}
+              </Badge>
+            </div>
+            <div className="text-sm text-slate-400 line-clamp-2 mb-2">
+              {u.summary || "No description provided."}
+            </div>
+            <a 
+              href={`/updates/${u.id}`}
+              className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 hover:underline"
+            >
+              <ExternalLink className="h-3 w-3" />
+              View update page
+            </a>
+          </div>
+          <div className="text-xs text-slate-500 whitespace-nowrap">
+            {u.date}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Group updates by month
+function groupUpdatesByMonth(updates: Update[]): Map<string, Update[]> {
+  const groups = new Map<string, Update[]>();
+  updates.forEach(u => {
+    const date = new Date(u.date);
+    const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    if (!groups.has(monthYear)) {
+      groups.set(monthYear, []);
+    }
+    groups.get(monthYear)!.push(u);
+  });
+  return groups;
+}
+
 function UpdateCard({ u, expanded, onToggle }: { u: Update; expanded: boolean; onToggle: () => void }) {
   return (
     <div className="rounded-2xl border bg-background/60 shadow-sm">
@@ -762,7 +816,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     <div>
                       <div className="text-lg font-semibold tracking-tight">Timeline</div>
                       <div className="text-sm text-muted-foreground">
-                        Devlogs + playtests in one place. Click to expand.
+                        Devlogs and updates in one place.
                       </div>
                     </div>
                     <div className="flex w-full max-w-md items-center gap-2 sm:w-auto">
@@ -775,26 +829,67 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     </div>
                   </div>
 
-                  <div className="space-y-3">
-                    {filteredUpdates.length === 0 ? (
-                      <div className="rounded-xl bg-[#1a1a2e] border border-[#2a2a3e] p-8 text-center">
-                        <Calendar className="mx-auto h-12 w-12 text-slate-500 mb-3" />
-                        <div className="text-white font-medium mb-1">No published updates yet</div>
-                        <div className="text-sm text-slate-400">
-                          {search ? "No updates match your search." : "Updates will appear here once versions are published."}
-                        </div>
+                  {filteredUpdates.length === 0 ? (
+                    <div className="rounded-xl bg-[#1a1a2e] border border-[#2a2a3e] p-8 text-center">
+                      <Calendar className="mx-auto h-12 w-12 text-slate-500 mb-3" />
+                      <div className="text-white font-medium mb-1">No published updates yet</div>
+                      <div className="text-sm text-slate-400">
+                        {search ? "No updates match your search." : "Updates will appear here once versions are published."}
                       </div>
-                    ) : (
-                      filteredUpdates.map((u) => (
-                        <UpdateCard
-                          key={u.id}
-                          u={u}
-                          expanded={expandedId === u.id}
-                          onToggle={() => setExpandedId((cur) => (cur === u.id ? "" : u.id))}
-                        />
-                      ))
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {Array.from(groupUpdatesByMonth(filteredUpdates)).map(([monthYear, monthUpdates]) => (
+                        <div key={monthYear}>
+                          {/* Month header */}
+                          <div className="text-sm font-semibold text-purple-400 mb-4">
+                            {monthYear}
+                          </div>
+                          {/* Timeline items */}
+                          <div className="ml-1">
+                            {monthUpdates.map((u, idx) => (
+                              <div key={u.id} className="relative flex gap-4">
+                                {/* Vertical line connector */}
+                                <div className="flex flex-col items-center">
+                                  <div className="w-3 h-3 rounded-full bg-purple-500 border-2 border-[#0d0d15] z-10 shrink-0" />
+                                  {idx < monthUpdates.length - 1 && (
+                                    <div className="w-0.5 flex-1 bg-[#2a2a3e] min-h-[40px]" />
+                                  )}
+                                </div>
+                                
+                                {/* Content */}
+                                <div className="flex-1 pb-6">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                                        <span className="text-sm font-semibold text-white">{u.title}</span>
+                                        <Badge variant="secondary" className="rounded-md text-xs px-1.5 py-0">
+                                          {u.version}
+                                        </Badge>
+                                      </div>
+                                      <div className="text-sm text-slate-400 line-clamp-2 mb-2">
+                                        {u.summary || "No description provided."}
+                                      </div>
+                                      <a 
+                                        href={`/updates/${u.id}`}
+                                        className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 hover:underline"
+                                      >
+                                        <ExternalLink className="h-3 w-3" />
+                                        View update page
+                                      </a>
+                                    </div>
+                                    <div className="text-xs text-slate-500 whitespace-nowrap">
+                                      {u.date}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Analytics */}
