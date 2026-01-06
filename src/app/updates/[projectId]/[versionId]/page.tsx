@@ -7,9 +7,6 @@ import {
   ArrowLeft,
   Square,
   Image as ImageIcon,
-  Monitor,
-  Tablet,
-  Smartphone,
 } from 'lucide-react'
 
 interface Element {
@@ -61,7 +58,6 @@ export default function PublicUpdatePage() {
   const [content, setContent] = useState<PageContent>({ rows: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [devicePreview, setDevicePreview] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
 
   useEffect(() => {
     fetchData()
@@ -138,46 +134,12 @@ export default function PublicUpdatePage() {
               <p className="text-xs text-slate-400">Version {version?.version}</p>
             </div>
           </div>
-          
-          {/* Device Preview Toggle */}
-          <div className="flex items-center gap-1 bg-[#0d0d15] rounded-lg p-1">
-            <button
-              onClick={() => setDevicePreview('desktop')}
-              className={`p-2 rounded-md transition-colors ${
-                devicePreview === 'desktop' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Monitor size={18} />
-            </button>
-            <button
-              onClick={() => setDevicePreview('tablet')}
-              className={`p-2 rounded-md transition-colors ${
-                devicePreview === 'tablet' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Tablet size={18} />
-            </button>
-            <button
-              onClick={() => setDevicePreview('mobile')}
-              className={`p-2 rounded-md transition-colors ${
-                devicePreview === 'mobile' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Smartphone size={18} />
-            </button>
-          </div>
         </div>
       </header>
 
       {/* Content */}
       <main className="py-8 px-4">
-        <div 
-          className={`mx-auto bg-[#1a1a2e] min-h-[50vh] rounded-lg shadow-2xl transition-all ${
-            devicePreview === 'desktop' ? 'max-w-full' :
-            devicePreview === 'tablet' ? 'max-w-2xl' :
-            'max-w-sm'
-          }`}
-        >
+        <div className="mx-auto bg-[#1a1a2e] min-h-[50vh] rounded-lg shadow-2xl">
           {content.rows.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="text-4xl mb-4">📄</div>
