@@ -28,7 +28,7 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
   }
 
   return (
-    <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="sticky top-0 z-40 border-b border-[#1a1a2e] bg-[#0a0a0f]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0a0a0f]/60">
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         {/* Left Section - Logo + Hamburger */}
         <div className="flex items-center gap-3">
@@ -44,7 +44,7 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
 
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl border bg-background">
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#2a2a3e] bg-[#1a1a2e]">
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div className="hidden sm:block">
@@ -58,7 +58,7 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
         <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
           <Input
             placeholder="Search games, tags, studios…"
-            className="rounded-2xl w-full"
+            className="rounded-2xl w-full bg-[#1a1a2e] border-[#2a2a3e] text-white placeholder:text-slate-500"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -95,7 +95,7 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
           </Button>
 
           {/* User Avatar */}
-          <div className="h-9 w-9 rounded-2xl border bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-sm font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+          <div className="h-9 w-9 rounded-2xl border border-[#2a2a3e] bg-gradient-to-br from-purple-500/20 to-purple-500/40 flex items-center justify-center text-sm font-semibold cursor-pointer hover:opacity-80 transition-opacity text-white">
             {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
           <form onSubmit={handleSearch} className="flex gap-2">
             <Input
               placeholder="Search games, tags, studios…"
-              className="rounded-2xl flex-1"
+              className="rounded-2xl flex-1 bg-[#1a1a2e] border-[#2a2a3e] text-white placeholder:text-slate-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus

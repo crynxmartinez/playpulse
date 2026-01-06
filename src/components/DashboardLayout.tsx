@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import TopBar from '@/components/TopBar'
 import NewSidebar from '@/components/NewSidebar'
+import StarsBackground from '@/components/ui/stars-background'
 import { User } from '@/types'
 
 interface DashboardLayoutProps {
@@ -38,7 +39,8 @@ export default function DashboardLayout({ user, children }: DashboardLayoutProps
   }, [isSidebarOpen])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-[#0a0a0f] relative">
+      <StarsBackground starCount={100} />
       <TopBar 
         user={user} 
         onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -60,7 +62,7 @@ export default function DashboardLayout({ user, children }: DashboardLayoutProps
           transform transition-transform duration-300 ease-in-out
           lg:sticky lg:top-[57px] lg:translate-x-0 lg:block
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          bg-background lg:bg-transparent
+          bg-[#0a0a0f] lg:bg-transparent
           border-r lg:border-r-0
           overflow-y-auto
         `}>

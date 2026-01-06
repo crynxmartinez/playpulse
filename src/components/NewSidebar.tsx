@@ -87,7 +87,7 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
   return (
     <div className="space-y-2">
       {/* Navigation Card */}
-      <Card className="rounded-3xl">
+      <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e]">
         <CardContent className="p-3">
           <div className="space-y-1">
             {NAV_ITEMS.map((item) => {
@@ -101,8 +101,8 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
                   className={cn(
                     "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:bg-muted/50"
+                      ? "bg-[#1a1a2e] text-white"
+                      : "text-slate-400 hover:bg-[#1a1a2e]/50 hover:text-white"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -115,31 +115,31 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
       </Card>
 
       {/* Selected Game Card */}
-      <Card className="rounded-3xl">
+      <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e]">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Selected Game</CardTitle>
+          <CardTitle className="text-sm text-white">Selected Game</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {loading ? (
             <div className="flex items-center justify-center py-4">
-              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : games.length === 0 ? (
-            <div className="text-sm text-muted-foreground text-center py-2">
+            <div className="text-sm text-slate-400 text-center py-2">
               No games yet
             </div>
           ) : (
             <div className="relative">
               <Button 
                 variant="outline" 
-                className="w-full justify-between rounded-2xl" 
+                className="w-full justify-between rounded-2xl bg-[#1a1a2e] border-[#2a2a3e] text-white hover:bg-[#2a2a3e]" 
                 onClick={() => setIsGameSelectorOpen(!isGameSelectorOpen)}
               >
                 <span>{games.find(g => g.id === selectedGameId)?.name || 'Select a game'}</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${isGameSelectorOpen ? 'rotate-180' : ''}`} />
               </Button>
               {isGameSelectorOpen && (
-                <Card className="absolute z-10 mt-2 w-full rounded-2xl border bg-card shadow-lg">
+                <Card className="absolute z-10 mt-2 w-full rounded-2xl border border-[#2a2a3e] bg-[#0d0d15] shadow-lg">
                   <CardContent className="p-2">
                     {games.map((game) => {
                       const isSelected = game.id === selectedGameId
@@ -153,16 +153,16 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
                             handleSelectGame(game.id)
                             setIsGameSelectorOpen(false)
                           }}
-                          className="flex cursor-pointer items-center justify-between rounded-xl p-2 text-sm hover:bg-muted"
+                          className="flex cursor-pointer items-center justify-between rounded-xl p-2 text-sm text-white hover:bg-[#1a1a2e]"
                         >
                           <div className="flex flex-col">
                             <span>{game.name}</span>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1 text-xs text-slate-400">
                               <Icon className="h-3 w-3" />
                               {config.label}
                             </div>
                           </div>
-                          {isSelected && <Check className="h-4 w-4" />}
+                          {isSelected && <Check className="h-4 w-4 text-purple-400" />}
                         </div>
                       )
                     })}

@@ -20,6 +20,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import StarsBackground from '@/components/ui/stars-background'
 
 interface Version {
   id: string
@@ -111,23 +112,27 @@ export default function PublicGamePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center relative">
+        <StarsBackground starCount={100} />
+        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin relative z-10" />
       </div>
     )
   }
 
   if (error || !game) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center text-white">
-        <Gamepad2 className="h-16 w-16 mb-4 opacity-50" />
-        <h1 className="text-2xl font-bold mb-2">Game Not Found</h1>
-        <p className="text-white/60 mb-6">{error || 'This game does not exist or is private.'}</p>
-        <Link href="/">
-          <Button variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Home
-          </Button>
-        </Link>
+      <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white relative">
+        <StarsBackground starCount={100} />
+        <div className="relative z-10 text-center">
+          <Gamepad2 className="h-16 w-16 mb-4 opacity-50 mx-auto" />
+          <h1 className="text-2xl font-bold mb-2">Game Not Found</h1>
+          <p className="text-white/60 mb-6">{error || 'This game does not exist or is private.'}</p>
+          <Link href="/">
+            <Button variant="outline" className="rounded-2xl border-[#2a2a3e] text-white hover:bg-[#1a1a2e]">
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Home
+            </Button>
+          </Link>
+        </div>
       </div>
     )
   }
@@ -135,7 +140,8 @@ export default function PublicGamePage() {
   const developerName = game.user.studioName || game.user.displayName || game.user.username || 'Unknown Developer'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-[#0a0a0f] relative">
+      <StarsBackground starCount={100} />
       {/* Banner */}
       <div className="relative h-64 md:h-80 overflow-hidden">
         {game.bannerUrl ? (
@@ -147,7 +153,7 @@ export default function PublicGamePage() {
         ) : (
           <div className="w-full h-full bg-gradient-to-r from-purple-600 to-indigo-600" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/50 to-transparent" />
         
         {/* Back button */}
         <div className="absolute top-4 left-4">
@@ -164,7 +170,7 @@ export default function PublicGamePage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row gap-6 mb-8">
           {/* Logo */}
-          <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden bg-slate-800 border-4 border-slate-900 shadow-xl flex-shrink-0">
+          <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden bg-[#1a1a2e] border-4 border-[#0a0a0f] shadow-xl flex-shrink-0">
             {game.logoUrl ? (
               <img src={game.logoUrl} alt={game.name} className="w-full h-full object-cover" />
             ) : (
@@ -238,7 +244,7 @@ export default function PublicGamePage() {
 
         {/* Description */}
         {game.description && (
-          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+          <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e] mb-6">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-white/80">About</CardTitle>
             </CardHeader>
@@ -250,7 +256,7 @@ export default function PublicGamePage() {
 
         {/* Key Features */}
         {game.features && game.features.length > 0 && (
-          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+          <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e] mb-6">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-white/80 flex items-center gap-2">
                 <Sparkles className="h-4 w-4" /> Key Features
@@ -271,7 +277,7 @@ export default function PublicGamePage() {
 
         {/* Game Rules */}
         {game.rules && (
-          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+          <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e] mb-6">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-white/80 flex items-center gap-2">
                 <BookOpen className="h-4 w-4" /> How to Play
@@ -287,7 +293,7 @@ export default function PublicGamePage() {
 
         {/* Updates Timeline (GitHub-style) */}
         {game.updates && game.updates.length > 0 && (
-          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+          <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e] mb-6">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-white/80 flex items-center gap-2">
                 <Activity className="h-4 w-4" /> Updates
@@ -365,7 +371,7 @@ export default function PublicGamePage() {
 
         {/* Game Versions */}
         {game.versions && game.versions.length > 0 && (
-          <Card className="rounded-3xl bg-white/5 border-white/10 mb-6">
+          <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e] mb-6">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-white/80 flex items-center gap-2">
                 <GitBranch className="h-4 w-4" /> Versions
