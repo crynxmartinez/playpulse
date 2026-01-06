@@ -183,41 +183,36 @@ function SharePageCard({ projectId, slug }: { projectId: string; slug: string | 
   );
 }
 
-function Heatmap({ weeks = 52 }: { weeks?: number }) {
-  // Generate month labels for the past year
-  const monthLabels = useMemo(() => {
-    const labels: { month: string; weekIndex: number }[] = [];
-    const today = new Date();
-    
-    for (let w = 0; w < weeks; w++) {
-      const weekDate = new Date(today);
-      weekDate.setDate(today.getDate() - (weeks - 1 - w) * 7);
+function Heatmap() {
+  const currentYear = new Date().getFullYear();
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  // Generate data for each month (4-5 weeks per month, 7 days per week)
+  const monthData = useMemo(() => {
+    return months.map((month, monthIndex) => {
+      // Get number of days in this month
+      const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
+      const weeksInMonth = Math.ceil(daysInMonth / 7);
       
-      // Check if this is the first week of a month
-      const dayOfMonth = weekDate.getDate();
-      if (dayOfMonth <= 7 || w === 0) {
-        labels.push({
-          month: weekDate.toLocaleDateString('en-US', { month: 'short' }),
-          weekIndex: w
-        });
+      // Generate activity data for each day
+      const days: number[] = [];
+      for (let d = 0; d < weeksInMonth * 7; d++) {
+        if (d < daysInMonth) {
+          const r = Math.random();
+          const v = r < 0.55 ? 0 : r < 0.78 ? 1 : r < 0.92 ? 2 : r < 0.985 ? 3 : 4;
+          days.push(v);
+        } else {
+          days.push(-1); // Empty cell for padding
+        }
       }
-    }
-    return labels;
-  }, [weeks]);
-
-  const data = useMemo(() => {
-    const cells: number[] = [];
-    for (let i = 0; i < weeks * 7; i++) {
-      const r = Math.random();
-      const v = r < 0.55 ? 0 : r < 0.78 ? 1 : r < 0.92 ? 2 : r < 0.985 ? 3 : 4;
-      cells.push(v);
-    }
-    return cells;
-  }, [weeks]);
+      return { month, days, weeksInMonth };
+    });
+  }, [currentYear]);
 
   const shade = (v: number) => {
+    if (v === -1) return 'transparent';
     const colors = [
-      'rgba(148,163,184,0.06)',
+      'rgba(148,163,184,0.1)',
       'rgba(139,92,246,0.3)',
       'rgba(139,92,246,0.5)',
       'rgba(139,92,246,0.7)',
@@ -226,16 +221,12 @@ function Heatmap({ weeks = 52 }: { weeks?: number }) {
     return colors[clamp(v, 0, 4)];
   };
 
-  // Cell size for calculating month label positions
-  const cellSize = 10; // 2.5 * 4 (h-2.5 = 10px)
-  const gap = 3;
-
   return (
     <Card className="rounded-3xl">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">Activity</CardTitle>
+            <CardTitle className="text-base">Activity {currentYear}</CardTitle>
             <CardDescription className="text-xs">Devlogs + playtests published</CardDescription>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -244,7 +235,7 @@ function Heatmap({ weeks = 52 }: { weeks?: number }) {
               {[0, 1, 2, 3, 4].map((v) => (
                 <span
                   key={v}
-                  className="h-2.5 w-2.5 rounded-sm"
+                  className="h-2 w-2 rounded-sm"
                   style={{ background: shade(v) }}
                   aria-label={`activity level ${v}`}
                 />
@@ -255,53 +246,31 @@ function Heatmap({ weeks = 52 }: { weeks?: number }) {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        {/* Month labels */}
-        <div className="overflow-x-auto">
-          <div className="min-w-max">
-            <div className="flex text-xs text-muted-foreground mb-1 ml-8">
-              {monthLabels.map((label, idx) => (
-                <span 
-                  key={idx} 
-                  className="text-[10px]"
-                  style={{ 
-                    position: 'relative',
-                    left: `${label.weekIndex * (cellSize + gap)}px`,
-                    marginRight: idx < monthLabels.length - 1 
-                      ? `${(monthLabels[idx + 1]?.weekIndex - label.weekIndex - 1) * (cellSize + gap) - 20}px` 
-                      : 0
-                  }}
-                >
-                  {label.month}
-                </span>
-              ))}
-            </div>
-            
-            {/* Grid with day labels */}
-            <div className="flex gap-1">
-              {/* Day labels */}
-              <div className="flex flex-col justify-between text-[10px] text-muted-foreground pr-1" style={{ height: `${7 * (cellSize + gap) - gap}px` }}>
-                <span></span>
-                <span>Mon</span>
-                <span></span>
-                <span>Wed</span>
-                <span></span>
-                <span>Fri</span>
-                <span></span>
-              </div>
-              
-              {/* Heatmap grid */}
-              <div className="inline-grid grid-flow-col grid-rows-7 gap-[3px]">
-                {data.map((v, i) => (
-                  <span
-                    key={i}
-                    className="h-2.5 w-2.5 rounded-sm"
-                    style={{ background: shade(v) }}
-                    title={`Activity level: ${v}`}
-                  />
+        <div className="grid grid-cols-12 gap-1">
+          {monthData.map(({ month, days, weeksInMonth }) => (
+            <div key={month} className="flex flex-col">
+              {/* Month label */}
+              <div className="text-[9px] text-muted-foreground mb-1 text-center">{month}</div>
+              {/* Days grid - 7 rows (days of week) */}
+              <div className="grid grid-rows-7 gap-[2px]">
+                {Array.from({ length: 7 }).map((_, dayOfWeek) => (
+                  <div key={dayOfWeek} className="flex gap-[2px]">
+                    {Array.from({ length: weeksInMonth }).map((_, weekIndex) => {
+                      const dayIndex = weekIndex * 7 + dayOfWeek;
+                      const value = days[dayIndex] ?? -1;
+                      return (
+                        <span
+                          key={weekIndex}
+                          className="h-[6px] w-[6px] rounded-[1px]"
+                          style={{ background: shade(value) }}
+                        />
+                      );
+                    })}
+                  </div>
                 ))}
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -871,7 +840,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
               </Card>
 
               {/* Activity Heatmap - between About and Tabs */}
-              <Heatmap weeks={52} />
+              <Heatmap />
 
               <Tabs defaultValue="updates" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 rounded-2xl h-auto gap-1 p-1">
