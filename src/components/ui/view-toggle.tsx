@@ -11,14 +11,14 @@ interface ViewToggleProps {
 
 export function ViewToggle({ workspaceUrl, gamePageUrl, activeView }: ViewToggleProps) {
   return (
-    <div className="flex items-center rounded-2xl border bg-muted/50 p-1">
+    <div className="flex items-center rounded-full border border-[#2a2a3e] bg-[#0d0d15] p-1">
       <Link
         href={workspaceUrl}
         className={cn(
-          "px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors",
+          "px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-full transition-colors",
           activeView === 'workspace'
-            ? "bg-background text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground"
+            ? "bg-purple-600 text-white shadow-sm"
+            : "text-slate-400 hover:text-white"
         )}
       >
         Workspace
@@ -26,10 +26,10 @@ export function ViewToggle({ workspaceUrl, gamePageUrl, activeView }: ViewToggle
       <Link
         href={gamePageUrl}
         className={cn(
-          "px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-xl transition-colors",
+          "px-3 py-1.5 text-xs sm:text-sm sm:px-4 font-medium rounded-full transition-colors",
           activeView === 'gamepage'
-            ? "bg-background text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground"
+            ? "bg-purple-600 text-white shadow-sm"
+            : "text-slate-400 hover:text-white"
         )}
       >
         Game Page
