@@ -153,47 +153,47 @@ export default function UpdatesPage() {
 
       {/* Create/Edit Form */}
       {isCreating && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">
+        <div className="bg-[#0d0d15] rounded-xl p-6 border border-[#2a2a3e]">
+          <h3 className="text-lg font-semibold text-white mb-4">
             {editingVersion ? 'Edit Version' : 'Create New Version'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-400 mb-1">
                 Version *
               </label>
               <input
                 type="text"
                 value={formData.version}
                 onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-slate-800 bg-white"
+                className="w-full px-4 py-2 border border-[#2a2a3e] rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                 placeholder="e.g., v0.1.0"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-400 mb-1">
                 Title *
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-slate-800 bg-white"
+                className="w-full px-4 py-2 border border-[#2a2a3e] rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e]"
                 placeholder="e.g., New Combat System"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-400 mb-1">
                 Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-slate-800 bg-white resize-none"
+                className="w-full px-4 py-2 border border-[#2a2a3e] rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#1a1a2e] resize-none"
                 placeholder="Brief description of this version..."
                 rows={3}
               />
@@ -218,10 +218,10 @@ export default function UpdatesPage() {
 
       {/* Versions Table */}
       {versions.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm border border-slate-200 text-center">
-          <GitBranch className="mx-auto text-slate-300 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-slate-700 mb-2">No versions yet</h3>
-          <p className="text-slate-500 mb-4">Create your first version to start tracking updates.</p>
+        <div className="bg-[#0d0d15] rounded-xl p-12 border border-[#2a2a3e] text-center">
+          <GitBranch className="mx-auto text-slate-500 mb-4" size={48} />
+          <h3 className="text-lg font-medium text-white mb-2">No versions yet</h3>
+          <p className="text-slate-400 mb-4">Create your first version to start tracking updates.</p>
           <Button
             variant="link"
             onClick={() => setIsCreating(true)}
@@ -231,30 +231,30 @@ export default function UpdatesPage() {
           </Button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-[#0d0d15] rounded-xl border border-[#2a2a3e] overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="text-left px-4 py-3 text-sm font-medium text-slate-600">Version</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-slate-600">Title</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-slate-600">Date</th>
-                <th className="text-right px-4 py-3 text-sm font-medium text-slate-600">Actions</th>
+              <tr className="border-b border-[#2a2a3e] bg-[#1a1a2e]">
+                <th className="text-left px-4 py-3 text-sm font-medium text-purple-400">Version</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">Title</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">Date</th>
+                <th className="text-right px-4 py-3 text-sm font-medium text-slate-400">Actions</th>
               </tr>
             </thead>
             <tbody>
               {versions.map((version) => (
-                <tr key={version.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <tr key={version.id} className="border-b border-[#2a2a3e] hover:bg-[#1a1a2e] transition-colors">
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-2 font-mono text-sm font-medium text-slate-800">
+                    <span className="inline-flex items-center gap-2 font-mono text-sm font-medium text-purple-400">
                       <GitBranch size={14} className="text-slate-400" />
                       {version.version}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div>
-                      <div className="text-sm font-medium text-slate-800">{version.title}</div>
+                      <div className="text-sm font-medium text-white">{version.title}</div>
                       {version.description && (
-                        <div className="text-xs text-slate-500 line-clamp-1">{version.description}</div>
+                        <div className="text-xs text-slate-400 line-clamp-1">{version.description}</div>
                       )}
                     </div>
                   </td>
@@ -268,21 +268,21 @@ export default function UpdatesPage() {
                     <div className="flex items-center justify-end gap-1">
                       <Link
                         href={`/editor/${projectId}/${version.id}`}
-                        className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
                         title="Edit Page"
                       >
                         <ExternalLink size={16} />
                       </Link>
                       <button
                         onClick={() => handleEdit(version)}
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                         title="Edit Details"
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(version.id)}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                         title="Delete"
                       >
                         <Trash2 size={16} />
