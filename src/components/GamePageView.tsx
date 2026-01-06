@@ -13,10 +13,11 @@ import { Project, User } from '@/types'
 
 interface GamePageViewProps {
   project: Project
-  user: User
+  user?: User | null
+  isOwner?: boolean
 }
 
-export default function GamePageView({ project, user }: GamePageViewProps) {
+export default function GamePageView({ project, user, isOwner = false }: GamePageViewProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -85,16 +86,24 @@ export default function GamePageView({ project, user }: GamePageViewProps) {
             </Button>
 
             {/* User Avatar */}
-            <div className="h-9 w-9 rounded-2xl border bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-sm font-semibold cursor-pointer hover:opacity-80 transition-opacity">
-              {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-            </div>
+            {user ? (
+              <div className="h-9 w-9 rounded-2xl border bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-sm font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+                {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+              </div>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" size="sm" className="rounded-xl">
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
 
       {/* Game Page Content - Full width, no sidebar */}
       <main className="p-4 lg:p-6 relative z-10">
-        <PublicGamePage project={project} isOwner={true} />
+        <PublicGamePage project={project} isOwner={isOwner} />
       </main>
     </div>
   )

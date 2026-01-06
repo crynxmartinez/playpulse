@@ -126,11 +126,11 @@ export default function PublicUpdatePage() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link 
-              href={project?.slug ? `/games/${project.slug}` : '/'}
+              href={project?.id ? `/game/${project.id}` : '/'}
               className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
             >
               <ArrowLeft size={20} />
-              <span className="text-sm hidden sm:inline">{project?.name || 'Back'}</span>
+              <span className="text-sm hidden sm:inline">{project?.name || 'Back to Game'}</span>
             </Link>
             <div className="h-6 w-px bg-[#2a2a3e]" />
             <div>

@@ -9,20 +9,24 @@ interface PageProps {
 
 export default async function GamePage({ params }: PageProps) {
   const user = await getCurrentUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
   const { id } = await params
 
+  // First try to find the project
   const project = await prisma.project.findFirst({
     where: { 
       id,
-      userId: user.id 
+      OR: [
+        // Owner can always see their project
+        ...(user ? [{ userId: user.id }] : []),
+        // Anyone can see PUBLIC projects
+        { visibility: 'PUBLIC' },
+        // Anyone with the link can see UNLISTED projects
+        { visibility: 'UNLISTED' },
+      ]
     },
     select: {
       id: true,
+      userId: true,
       name: true,
       slug: true,
       description: true,
@@ -87,8 +91,13 @@ export default async function GamePage({ params }: PageProps) {
   })
 
   if (!project) {
-    redirect('/dashboard')
+    // If not found and user is not logged in, redirect to login
+    // If logged in but project not found, redirect to dashboard
+    redirect(user ? '/dashboard' : '/login')
   }
 
-  return <GamePageView project={project} user={user} />
+  // Determine if current user is the owner
+  const isOwner = user?.id === project.userId
+
+  return <GamePageView project={project} user={user} isOwner={isOwner} />
 }
