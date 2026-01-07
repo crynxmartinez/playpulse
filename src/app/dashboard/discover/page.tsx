@@ -224,7 +224,7 @@ export default function DiscoverPage() {
                         <div className="w-full h-full bg-gradient-to-r from-purple-500 to-indigo-600" />
                       )}
                       {/* Logo overlay */}
-                      <div className="absolute -bottom-6 left-4">
+                      <div className="absolute -bottom-6 left-4 z-10">
                         <div className="w-14 h-14 rounded-xl overflow-hidden bg-background border-2 border-background shadow-lg">
                           {game.logoUrl ? (
                             <img src={game.logoUrl} alt={game.name} className="w-full h-full object-cover" />
