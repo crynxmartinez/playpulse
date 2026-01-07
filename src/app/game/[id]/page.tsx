@@ -29,6 +29,7 @@ export default async function GamePage({ params }: PageProps) {
       userId: true,
       name: true,
       slug: true,
+      subtitle: true,
       description: true,
       visibility: true,
       bannerUrl: true,

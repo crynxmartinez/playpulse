@@ -829,10 +829,9 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     </Badge>
                   </div>
                   <div className="mt-1 text-sm text-slate-400">by {developerName}</div>
-                  <div 
-                    className="mt-1 text-sm text-slate-300"
-                    dangerouslySetInnerHTML={{ __html: project.description || "A game in development." }}
-                  />
+                  {project.subtitle && (
+                    <div className="mt-1 text-sm text-slate-300">{project.subtitle}</div>
+                  )}
                 </div>
               </div>
 
