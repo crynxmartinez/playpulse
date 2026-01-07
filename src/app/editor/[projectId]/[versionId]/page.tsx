@@ -57,8 +57,15 @@ interface VersionWithCards {
   cards: ChangeCardData[]
 }
 
+interface PageSettings {
+  backgroundColor?: string
+  backgroundOpacity?: number
+  backgroundImage?: string
+}
+
 interface PageContent {
   rows: Row[]
+  settings?: PageSettings
 }
 
 interface Row {
@@ -203,7 +210,7 @@ export default function VersionEditorPage() {
   const [insertPosition, setInsertPosition] = useState<{ rowIndex: number; colIndex: number } | null>(null)
   const [activeColumn, setActiveColumn] = useState<{ rowIndex: number; colIndex: number } | null>(null)
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
-  const [rightPanelTab, setRightPanelTab] = useState<'properties' | 'row'>('properties')
+  const [rightPanelTab, setRightPanelTab] = useState<'properties' | 'row' | 'page'>('properties')
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [copied, setCopied] = useState(false)
   const [versionsWithCards, setVersionsWithCards] = useState<VersionWithCards[]>([])
@@ -561,6 +568,14 @@ export default function VersionEditorPage() {
     updateContentWithHistory({ ...content, rows: newRows })
   }
 
+  // Update page settings
+  const updatePageSettings = (settings: Partial<PageSettings>) => {
+    updateContentWithHistory({ 
+      ...content, 
+      settings: { ...content.settings, ...settings } 
+    })
+  }
+
   // Find selected element
   const findSelectedElement = (): Element | null => {
     for (const row of content.rows) {
@@ -863,7 +878,17 @@ export default function VersionEditorPage() {
         )}
 
         {/* Center Canvas */}
-        <div className="flex-1 bg-[#0d0d15] overflow-y-auto p-6">
+        <div 
+          className="flex-1 overflow-y-auto p-6"
+          style={{
+            backgroundColor: content.settings?.backgroundColor 
+              ? `rgba(${parseInt(content.settings.backgroundColor.slice(1, 3), 16)}, ${parseInt(content.settings.backgroundColor.slice(3, 5), 16)}, ${parseInt(content.settings.backgroundColor.slice(5, 7), 16)}, ${content.settings?.backgroundOpacity ?? 1})`
+              : '#0d0d15',
+            backgroundImage: content.settings?.backgroundImage ? `url(${content.settings.backgroundImage})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
           <div 
             className={`mx-auto bg-[#1a1a2e] min-h-full rounded-lg shadow-2xl transition-all ${
               devicePreview === 'desktop' ? 'max-w-full' :
@@ -1154,28 +1179,38 @@ export default function VersionEditorPage() {
           <div className="flex border-b border-[#2a2a3e]">
             <button
               onClick={() => setRightPanelTab('properties')}
-              className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-2 py-2 text-xs font-medium transition-colors ${
                 rightPanelTab === 'properties' 
                   ? 'text-white border-b-2 border-purple-500 bg-purple-500/10' 
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Properties
+              Element
             </button>
             <button
               onClick={() => setRightPanelTab('row')}
-              className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 px-2 py-2 text-xs font-medium transition-colors ${
                 rightPanelTab === 'row' 
                   ? 'text-white border-b-2 border-purple-500 bg-purple-500/10' 
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Row Settings
+              Row
+            </button>
+            <button
+              onClick={() => setRightPanelTab('page')}
+              className={`flex-1 px-2 py-2 text-xs font-medium transition-colors ${
+                rightPanelTab === 'page' 
+                  ? 'text-white border-b-2 border-purple-500 bg-purple-500/10' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Page
             </button>
           </div>
           
           <div className="flex-1 overflow-y-auto p-4">
-            {rightPanelTab === 'properties' ? (
+            {rightPanelTab === 'properties' && (
               selectedElement ? (
                 <ElementProperties 
                   element={selectedElement} 
@@ -1192,8 +1227,9 @@ export default function VersionEditorPage() {
                   </p>
                 </div>
               )
-            ) : (
-              /* Row Settings Tab */
+            )}
+            
+            {rightPanelTab === 'row' && (
               selectedRowIndex !== null && content.rows[selectedRowIndex] ? (
                 <div className="space-y-4">
                   <div className="text-sm text-slate-400 mb-2">Row {selectedRowIndex + 1} Settings</div>
@@ -1250,6 +1286,54 @@ export default function VersionEditorPage() {
                   </p>
                 </div>
               )
+            )}
+            
+            {rightPanelTab === 'page' && (
+              <div className="space-y-4">
+                <div className="text-sm text-slate-400 mb-2">Page Background</div>
+                
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Background Color</label>
+                  <input
+                    type="color"
+                    value={content.settings?.backgroundColor || '#0d0d15'}
+                    onChange={(e) => updatePageSettings({ backgroundColor: e.target.value })}
+                    className="w-full h-8 rounded cursor-pointer"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">
+                    Opacity: {Math.round((content.settings?.backgroundOpacity ?? 1) * 100)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={(content.settings?.backgroundOpacity ?? 1) * 100}
+                    onChange={(e) => updatePageSettings({ backgroundOpacity: parseInt(e.target.value) / 100 })}
+                    className="w-full h-2 bg-[#3a3a4e] rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Background Image URL</label>
+                  <input
+                    type="text"
+                    value={content.settings?.backgroundImage || ''}
+                    onChange={(e) => updatePageSettings({ backgroundImage: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 bg-[#0d0d15] border border-[#3a3a4e] rounded-lg text-sm text-white"
+                  />
+                </div>
+                
+                <button
+                  onClick={() => updatePageSettings({ backgroundColor: '#0d0d15', backgroundOpacity: 1, backgroundImage: '' })}
+                  className="w-full text-sm text-slate-400 hover:text-white py-2 border border-[#3a3a4e] rounded-lg hover:border-slate-500 transition-colors"
+                >
+                  Reset to Default
+                </button>
+              </div>
             )}
           </div>
         </div>
