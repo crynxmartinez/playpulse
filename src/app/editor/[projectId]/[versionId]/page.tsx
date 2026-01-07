@@ -139,11 +139,11 @@ const generateId = () => Math.random().toString(36).substring(2, 11)
 const getDefaultElementData = (type: string): Record<string, unknown> => {
   switch (type) {
     case 'heading':
-      return { text: 'Heading', level: 'h2' }
+      return { text: 'Heading', level: 'h2', align: 'left', fontSize: '24', fontFamily: 'inherit' }
     case 'paragraph':
-      return { text: 'Enter your text here...' }
+      return { text: 'Enter your text here...', align: 'left', fontSize: '14', fontFamily: 'inherit' }
     case 'list':
-      return { items: ['Item 1', 'Item 2', 'Item 3'] }
+      return { items: ['Item 1', 'Item 2', 'Item 3'], bulletStyle: 'disc', align: 'left', indent: 0, fontSize: '14', fontFamily: 'inherit' }
     case 'image':
       return { src: '', alt: '', caption: '' }
     case 'video':
@@ -474,6 +474,80 @@ export default function VersionEditorPage() {
   // Delete row
   const deleteRow = (rowIndex: number) => {
     const newRows = content.rows.filter((_, i) => i !== rowIndex)
+    updateContentWithHistory({ ...content, rows: newRows })
+  }
+
+  // Duplicate row
+  const duplicateRow = (rowIndex: number) => {
+    const rowToDuplicate = content.rows[rowIndex]
+    const duplicatedRow: Row = {
+      ...rowToDuplicate,
+      id: `row-${Date.now()}`,
+      columns: rowToDuplicate.columns.map(col => ({
+        ...col,
+        id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        elements: col.elements.map(el => ({
+          ...el,
+          id: `el-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        }))
+      }))
+    }
+    const newRows = [...content.rows]
+    newRows.splice(rowIndex + 1, 0, duplicatedRow)
+    updateContentWithHistory({ ...content, rows: newRows })
+  }
+
+  // Duplicate column (adds a copy of the column to the same row)
+  const duplicateColumn = (rowIndex: number, colIndex: number) => {
+    const colToDuplicate = content.rows[rowIndex].columns[colIndex]
+    const duplicatedCol: Column = {
+      ...colToDuplicate,
+      id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      elements: colToDuplicate.elements.map(el => ({
+        ...el,
+        id: `el-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      }))
+    }
+    const newRows = [...content.rows]
+    newRows[rowIndex].columns.splice(colIndex + 1, 0, duplicatedCol)
+    // Recalculate widths
+    const colCount = newRows[rowIndex].columns.length
+    newRows[rowIndex].columns = newRows[rowIndex].columns.map(col => ({
+      ...col,
+      width: `${100 / colCount}%`
+    }))
+    updateContentWithHistory({ ...content, rows: newRows })
+  }
+
+  // Move column to another row
+  const moveColumnToRow = (fromRowIndex: number, fromColIndex: number, toRowIndex: number) => {
+    if (fromRowIndex === toRowIndex) return
+    const newRows = [...content.rows]
+    const [movedCol] = newRows[fromRowIndex].columns.splice(fromColIndex, 1)
+    
+    // If source row is now empty, remove it
+    if (newRows[fromRowIndex].columns.length === 0) {
+      newRows.splice(fromRowIndex, 1)
+      // Adjust toRowIndex if needed
+      if (toRowIndex > fromRowIndex) toRowIndex--
+    } else {
+      // Recalculate source row widths
+      const srcColCount = newRows[fromRowIndex].columns.length
+      newRows[fromRowIndex].columns = newRows[fromRowIndex].columns.map(col => ({
+        ...col,
+        width: `${100 / srcColCount}%`
+      }))
+    }
+    
+    // Add to target row
+    newRows[toRowIndex].columns.push(movedCol)
+    // Recalculate target row widths
+    const tgtColCount = newRows[toRowIndex].columns.length
+    newRows[toRowIndex].columns = newRows[toRowIndex].columns.map(col => ({
+      ...col,
+      width: `${100 / tgtColCount}%`
+    }))
+    
     updateContentWithHistory({ ...content, rows: newRows })
   }
 
@@ -851,15 +925,26 @@ export default function VersionEditorPage() {
                     {!isPreviewMode && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <div className="flex items-center gap-1 bg-[#2a2a3e] rounded-lg px-2 py-1">
-                        <button className="p-1 text-slate-400 hover:text-white cursor-grab">
+                        <button className="p-1 text-slate-400 hover:text-white cursor-grab" title="Drag to reorder">
                           <GripVertical size={14} />
                         </button>
-                        <button className="p-1 text-slate-400 hover:text-white">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            duplicateRow(rowIndex)
+                          }}
+                          className="p-1 text-slate-400 hover:text-white"
+                          title="Duplicate row"
+                        >
                           <Copy size={14} />
                         </button>
                         <button 
-                          onClick={() => deleteRow(rowIndex)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deleteRow(rowIndex)
+                          }}
                           className="p-1 text-slate-400 hover:text-red-500"
+                          title="Delete row"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -890,7 +975,7 @@ export default function VersionEditorPage() {
                               setSelectedElementId(null)
                             }
                           }}
-                          className={`flex-1 min-h-[100px] rounded-lg p-2 transition-all ${
+                          className={`flex-1 min-h-[100px] rounded-lg p-2 transition-all relative group/col ${
                             !isPreviewMode ? 'border border-dashed cursor-pointer' : ''
                           } ${
                             !isPreviewMode && activeColumn?.rowIndex === rowIndex && activeColumn?.colIndex === colIndex
@@ -899,6 +984,43 @@ export default function VersionEditorPage() {
                           }`}
                           style={{ width: col.width }}
                         >
+                          {/* Column Controls */}
+                          {!isPreviewMode && (
+                            <div className="absolute -top-2 right-1 opacity-0 group-hover/col:opacity-100 transition-opacity z-10 flex items-center gap-0.5">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  duplicateColumn(rowIndex, colIndex)
+                                }}
+                                className="p-1 bg-[#2a2a3e] rounded text-slate-400 hover:text-white text-xs"
+                                title="Duplicate column"
+                              >
+                                <Copy size={10} />
+                              </button>
+                              {content.rows.length > 1 && (
+                                <select
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => {
+                                    const targetRowIndex = parseInt(e.target.value)
+                                    if (!isNaN(targetRowIndex)) {
+                                      moveColumnToRow(rowIndex, colIndex, targetRowIndex)
+                                    }
+                                    e.target.value = ''
+                                  }}
+                                  className="p-1 bg-[#2a2a3e] rounded text-slate-400 hover:text-white text-xs cursor-pointer"
+                                  title="Move to row"
+                                  defaultValue=""
+                                >
+                                  <option value="" disabled>Move</option>
+                                  {content.rows.map((_, rIdx) => (
+                                    rIdx !== rowIndex && (
+                                      <option key={rIdx} value={rIdx}>Row {rIdx + 1}</option>
+                                    )
+                                  ))}
+                                </select>
+                              )}
+                            </div>
+                          )}
                           {col.elements.length === 0 ? (
                             !isPreviewMode ? (
                             <button
@@ -1326,12 +1448,18 @@ function ElementRenderer({
   switch (type) {
     case 'heading':
       const HeadingTag = (data.level as string) || 'h2'
+      const headingAlign = (data.align as string) || 'left'
+      const headingFontSize = (data.fontSize as string) || '24'
+      const headingFontFamily = (data.fontFamily as string) || 'inherit'
       return (
-        <div className={`font-bold text-white ${
-          HeadingTag === 'h1' ? 'text-3xl' :
-          HeadingTag === 'h2' ? 'text-2xl' :
-          'text-xl'
-        }`}>
+        <div 
+          className="font-bold text-white"
+          style={{ 
+            textAlign: headingAlign as 'left' | 'center' | 'right',
+            fontSize: `${headingFontSize}px`,
+            fontFamily: headingFontFamily === 'inherit' ? 'inherit' : headingFontFamily
+          }}
+        >
           <InlineRichText
             value={(data.text as string) || ''}
             onChange={(text) => handleUpdate({ text })}
@@ -1342,8 +1470,18 @@ function ElementRenderer({
       )
 
     case 'paragraph':
+      const paraAlign = (data.align as string) || 'left'
+      const paraFontSize = (data.fontSize as string) || '14'
+      const paraFontFamily = (data.fontFamily as string) || 'inherit'
       return (
-        <div className="text-slate-300 text-sm leading-relaxed">
+        <div 
+          className="text-slate-300 leading-relaxed"
+          style={{ 
+            textAlign: paraAlign as 'left' | 'center' | 'right',
+            fontSize: `${paraFontSize}px`,
+            fontFamily: paraFontFamily === 'inherit' ? 'inherit' : paraFontFamily
+          }}
+        >
           <InlineRichText
             value={(data.text as string) || ''}
             onChange={(text) => handleUpdate({ text })}
@@ -1614,11 +1752,44 @@ function ElementRenderer({
 
     case 'list':
       const items = (data.items as string[]) || ['Item 1', 'Item 2']
+      const bulletStyle = (data.bulletStyle as string) || 'disc'
+      const listAlign = (data.align as string) || 'left'
+      const listIndent = (data.indent as number) || 0
+      const listFontSize = (data.fontSize as string) || '14'
+      const listFontFamily = (data.fontFamily as string) || 'inherit'
+      
+      // Bullet shape mapping
+      const getBulletShape = (style: string) => {
+        switch (style) {
+          case 'disc': return '●'
+          case 'circle': return '○'
+          case 'square': return '■'
+          case 'diamond': return '◆'
+          case 'triangle': return '▶'
+          case 'heart': return '♥'
+          case 'star': return '★'
+          case 'arrow': return '→'
+          case 'check': return '✓'
+          case 'dash': return '—'
+          default: return '●'
+        }
+      }
+      
       return (
-        <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
+        <ul 
+          className="text-slate-300 space-y-1"
+          style={{ 
+            textAlign: listAlign as 'left' | 'center' | 'right',
+            paddingLeft: `${listIndent * 16}px`,
+            fontSize: `${listFontSize}px`,
+            fontFamily: listFontFamily === 'inherit' ? 'inherit' : listFontFamily
+          }}
+        >
           {items.map((item, i) => (
             <li key={i} className="flex items-start gap-2 group">
-              <span className="mt-1.5 w-1.5 h-1.5 bg-slate-400 rounded-full shrink-0" />
+              <span className="shrink-0 text-slate-400" style={{ fontSize: `${parseInt(listFontSize) * 0.7}px` }}>
+                {getBulletShape(bulletStyle)}
+              </span>
               {isEditing ? (
                 <input
                   type="text"
@@ -1716,19 +1887,112 @@ function ElementProperties({
               <option value="h3">Heading 3</option>
             </select>
           </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Alignment</label>
+            <div className="flex gap-1">
+              {['left', 'center', 'right'].map((align) => (
+                <button
+                  key={align}
+                  onClick={() => onUpdate({ align })}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs ${
+                    (data.align || 'left') === align 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-[#0d0d15] text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {align.charAt(0).toUpperCase() + align.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Font Size (px)</label>
+            <input
+              type="number"
+              value={(data.fontSize as string) || '24'}
+              onChange={(e) => onUpdate({ fontSize: e.target.value })}
+              min="12"
+              max="72"
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Font Family</label>
+            <select
+              value={(data.fontFamily as string) || 'inherit'}
+              onChange={(e) => onUpdate({ fontFamily: e.target.value })}
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            >
+              <option value="inherit">Default</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="'Courier New', monospace">Courier New</option>
+              <option value="Verdana, sans-serif">Verdana</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+              <option value="Impact, sans-serif">Impact</option>
+            </select>
+          </div>
         </>
       )}
 
       {type === 'paragraph' && (
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">Text</label>
-          <textarea
-            value={(data.text as string) || ''}
-            onChange={(e) => onUpdate({ text: e.target.value })}
-            rows={4}
-            className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 resize-none"
-          />
-        </div>
+        <>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Text</label>
+            <textarea
+              value={(data.text as string) || ''}
+              onChange={(e) => onUpdate({ text: e.target.value })}
+              rows={4}
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Alignment</label>
+            <div className="flex gap-1">
+              {['left', 'center', 'right'].map((align) => (
+                <button
+                  key={align}
+                  onClick={() => onUpdate({ align })}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs ${
+                    (data.align || 'left') === align 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-[#0d0d15] text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {align.charAt(0).toUpperCase() + align.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Font Size (px)</label>
+            <input
+              type="number"
+              value={(data.fontSize as string) || '14'}
+              onChange={(e) => onUpdate({ fontSize: e.target.value })}
+              min="10"
+              max="48"
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Font Family</label>
+            <select
+              value={(data.fontFamily as string) || 'inherit'}
+              onChange={(e) => onUpdate({ fontFamily: e.target.value })}
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            >
+              <option value="inherit">Default</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="'Courier New', monospace">Courier New</option>
+              <option value="Verdana, sans-serif">Verdana</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+            </select>
+          </div>
+        </>
       )}
 
       {type === 'section-header' && (
@@ -1750,6 +2014,85 @@ function ElementProperties({
               onChange={(e) => onUpdate({ color: e.target.value })}
               className="w-full h-10 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg cursor-pointer"
             />
+          </div>
+        </>
+      )}
+
+      {type === 'list' && (
+        <>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Bullet Style</label>
+            <select
+              value={(data.bulletStyle as string) || 'disc'}
+              onChange={(e) => onUpdate({ bulletStyle: e.target.value })}
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            >
+              <option value="disc">● Disc</option>
+              <option value="circle">○ Circle</option>
+              <option value="square">■ Square</option>
+              <option value="diamond">◆ Diamond</option>
+              <option value="triangle">▶ Triangle</option>
+              <option value="heart">♥ Heart</option>
+              <option value="star">★ Star</option>
+              <option value="arrow">→ Arrow</option>
+              <option value="check">✓ Check</option>
+              <option value="dash">— Dash</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Alignment</label>
+            <div className="flex gap-1">
+              {['left', 'center', 'right'].map((align) => (
+                <button
+                  key={align}
+                  onClick={() => onUpdate({ align })}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs ${
+                    (data.align || 'left') === align 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-[#0d0d15] text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {align.charAt(0).toUpperCase() + align.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Indentation: {(data.indent as number) || 0}</label>
+            <input
+              type="range"
+              value={(data.indent as number) || 0}
+              onChange={(e) => onUpdate({ indent: parseInt(e.target.value) })}
+              min="0"
+              max="4"
+              className="w-full h-2 bg-[#3a3a4e] rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Font Size (px)</label>
+            <input
+              type="number"
+              value={(data.fontSize as string) || '14'}
+              onChange={(e) => onUpdate({ fontSize: e.target.value })}
+              min="10"
+              max="36"
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Font Family</label>
+            <select
+              value={(data.fontFamily as string) || 'inherit'}
+              onChange={(e) => onUpdate({ fontFamily: e.target.value })}
+              className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+            >
+              <option value="inherit">Default</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="'Courier New', monospace">Courier New</option>
+              <option value="Verdana, sans-serif">Verdana</option>
+            </select>
           </div>
         </>
       )}
