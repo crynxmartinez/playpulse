@@ -186,9 +186,9 @@ const getDefaultElementData = (type: string): Record<string, unknown> => {
         overlay: 'none'
       }
     case 'divider':
-      return { style: 'solid', color: '#333' }
+      return { style: 'solid', color: '#333', spacing: 5 }
     case 'spacer':
-      return { height: 40 }
+      return { height: 20 }
     default:
       return {}
   }
@@ -1846,25 +1846,38 @@ function ElementRenderer({
       )
 
     case 'divider':
+      const dividerSpacing = (data.spacing as number) || 5
       return (
-        <hr 
-          className="border-t my-1"
-          style={{ borderColor: (data.color as string) || '#333', borderWidth: '1px' }}
-        />
+        <div style={{ paddingTop: dividerSpacing, paddingBottom: dividerSpacing }}>
+          <hr 
+            className="border-t"
+            style={{ borderColor: (data.color as string) || '#333', borderWidth: '1px' }}
+          />
+        </div>
       )
 
     case 'spacer':
       return (
-        <div style={{ height: (data.height as number) || 40 }} />
+        <div style={{ height: (data.height as number) || 20 }} />
       )
 
     case 'image':
       return (
-        <div className="bg-[#2a2a3e] rounded-lg flex items-center justify-center w-full">
+        <div className="rounded-lg flex items-center justify-center w-full">
           {data.src ? (
-            <img src={data.src as string} alt={data.alt as string} className="w-full h-auto rounded-lg object-contain" />
+            <img 
+              src={data.src as string} 
+              alt={data.alt as string} 
+              className="w-full max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              onClick={(e) => {
+                e.stopPropagation()
+                window.open(data.src as string, '_blank')
+              }}
+              title="Click to view full size"
+            />
           ) : (
-            <div className="text-center text-slate-500 py-8">
+            <div className="text-center text-slate-500 py-8 bg-[#2a2a3e] w-full rounded-lg">
               <ImageIcon size={32} className="mx-auto mb-2" />
               <span className="text-xs">Click to add image</span>
             </div>
@@ -2389,13 +2402,40 @@ function ElementProperties({
       )}
 
       {type === 'divider' && (
+        <>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Color</label>
+            <input
+              type="color"
+              value={(data.color as string) || '#333333'}
+              onChange={(e) => onUpdate({ color: e.target.value })}
+              className="w-full h-10 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg cursor-pointer"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Spacing: {(data.spacing as number) || 5}px</label>
+            <input
+              type="range"
+              min="0"
+              max="50"
+              value={(data.spacing as number) || 5}
+              onChange={(e) => onUpdate({ spacing: parseInt(e.target.value) })}
+              className="w-full h-2 bg-[#3a3a4e] rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+        </>
+      )}
+
+      {type === 'spacer' && (
         <div>
-          <label className="block text-xs text-slate-400 mb-1">Color</label>
+          <label className="block text-xs text-slate-400 mb-1">Height: {(data.height as number) || 20}px</label>
           <input
-            type="color"
-            value={(data.color as string) || '#333333'}
-            onChange={(e) => onUpdate({ color: e.target.value })}
-            className="w-full h-10 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg cursor-pointer"
+            type="range"
+            min="5"
+            max="200"
+            value={(data.height as number) || 20}
+            onChange={(e) => onUpdate({ height: parseInt(e.target.value) })}
+            className="w-full h-2 bg-[#3a3a4e] rounded-lg appearance-none cursor-pointer"
           />
         </div>
       )}
