@@ -99,6 +99,7 @@ model Project {
   pinnedSections PinnedSection[]
   followers     ProjectFollower[]
   feedbackThreads FeedbackThread[]
+  galleryImages GalleryImage[]
 }
 
 // Tracks all updates/changes to the project (like GitHub contributions)
@@ -384,4 +385,17 @@ enum NotificationType {
   FEEDBACK_REPLY      // Reply to thread you participated in
   UPDATE_PUBLISHED    // New update published on a game you follow
   FORM_RELEASED       // New form released on a game you follow
+}
+
+// Gallery images for project showcase
+model GalleryImage {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  imageUrl    String   // URL to the uploaded image
+  title       String?  // Optional title/caption
+  description String?  // Optional description
+  order       Int      @default(0) // For ordering images
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

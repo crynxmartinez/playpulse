@@ -42,6 +42,7 @@ import {
 import Link from "next/link";
 import { FollowButton } from "@/components/FollowButton";
 import { FeedbackSection } from "@/components/FeedbackSection";
+import { GallerySection } from "@/components/GallerySection";
 
 type Update = {
   id: string;
@@ -1192,8 +1193,8 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   <TabsTrigger value="feedback" className="rounded-xl text-xs sm:text-sm py-2">
                     Feedback
                   </TabsTrigger>
-                  <TabsTrigger value="community" className="rounded-xl text-xs sm:text-sm py-2">
-                    Community
+                  <TabsTrigger value="gallery" className="rounded-xl text-xs sm:text-sm py-2">
+                    Gallery
                   </TabsTrigger>
                 </TabsList>
 
@@ -1394,63 +1395,16 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   <FeedbackSection projectId={project.id} isOwner={isOwner} />
                 </TabsContent>
 
-                {/* Community */}
-                <TabsContent value="community" className="mt-4 space-y-4">
-                  <Card className="rounded-3xl">
-                    <CardHeader>
-                      <CardTitle className="text-base">Community</CardTitle>
-                      <CardDescription>
-                        PlayPulse routes everyone into one Discord hub so players discover more games (and devs get
-                        more testers).
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="rounded-2xl border bg-muted/20 p-4">
-                        <div className="flex items-start gap-3">
-                          <Users className="mt-0.5 h-5 w-5" />
-                          <div>
-                            <div className="text-sm font-semibold">Tester incentives (optional)</div>
-                            <ul className="mt-1 list-disc pl-5 text-sm text-muted-foreground">
-                              <li>Badges: Tested 10 games, Returned 5 times, Found 20 bugs</li>
-                              <li>"My Tests" dashboard for testers</li>
-                              <li>Dev can reward top testers (role, credit, early keys)</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
+                {/* Gallery */}
+                <TabsContent value="gallery" className="mt-4 space-y-4">
+                  <div>
+                    <div className="text-lg font-semibold tracking-tight">Gallery</div>
+                    <div className="text-sm text-muted-foreground">
+                      Screenshots, artwork, and media from the game.
+                    </div>
+                  </div>
 
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <Card className="rounded-2xl">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-sm">Latest shoutouts</CardTitle>
-                            <CardDescription>Testimonials and comments</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="rounded-2xl border bg-background/60 p-3">
-                              <div className="text-sm text-muted-foreground text-center py-4">
-                                No shoutouts yet
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card className="rounded-2xl">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-sm">Join the hub</CardTitle>
-                            <CardDescription>Meet devs, find games, recruit testers</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <Button className="w-full rounded-2xl gap-2">
-                              <MessageSquare className="h-4 w-4" /> Join Discord
-                            </Button>
-                            <Button variant="secondary" className="w-full rounded-2xl">
-                              Browse other games
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <GallerySection projectId={project.id} />
                 </TabsContent>
               </Tabs>
 
