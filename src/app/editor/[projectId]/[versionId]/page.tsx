@@ -1027,7 +1027,7 @@ export default function VersionEditorPage() {
 
         {/* Right Sidebar - Properties (hidden in preview mode) */}
         {!isPreviewMode && (
-        <div className="w-72 bg-[#1a1a2e] border-l border-[#2a2a3e] flex flex-col overflow-hidden shrink-0">
+        <div className="w-64 bg-[#1a1a2e] border-l border-[#2a2a3e] flex flex-col overflow-hidden shrink-0">
           {/* Tabs */}
           <div className="flex border-b border-[#2a2a3e]">
             <button
