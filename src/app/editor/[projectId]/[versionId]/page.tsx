@@ -2528,98 +2528,115 @@ function ElementProperties({
       <div className="border-t border-[#2a2a3e] pt-3 mt-3">
         <label className="block text-xs text-slate-400 mb-2">Margin & Padding</label>
         
-        {/* Visual Box Model */}
-        <div className="relative bg-[#0d0d15] rounded-lg p-2">
-          {/* Margin Box */}
-          <div className="text-xs text-slate-500 mb-1">MARGIN</div>
-          <div className="border border-dashed border-slate-600 p-2 rounded">
+        {/* Compact GHL-style Box Model */}
+        <div className="relative bg-[#0d0d15] rounded-lg p-3">
+          {/* Outer container - Margin */}
+          <div className="relative border border-dashed border-slate-600 rounded">
+            {/* Margin label */}
+            <span className="absolute -top-2 left-2 bg-[#0d0d15] px-1 text-[10px] text-slate-500">MARGIN</span>
+            
             {/* Margin Top */}
-            <div className="flex justify-center mb-1">
+            <div className="absolute -top-2 right-2 bg-[#0d0d15] px-0.5">
               <input
                 type="number"
                 value={(data.marginTop as number) || 0}
                 onChange={(e) => onUpdate({ marginTop: parseInt(e.target.value) || 0 })}
-                className="w-12 px-1 py-0.5 bg-transparent border border-[#3a3a4e] rounded text-center text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+                className="w-8 bg-transparent text-center text-[10px] text-slate-400 focus:outline-none"
                 min="0"
-              />
+              /><span className="text-[10px] text-slate-500">PX</span>
             </div>
             
-            <div className="flex items-center gap-1">
-              {/* Margin Left */}
-              <input
-                type="number"
-                value={(data.marginLeft as number) || 0}
-                onChange={(e) => onUpdate({ marginLeft: parseInt(e.target.value) || 0 })}
-                className="w-12 px-1 py-0.5 bg-transparent border border-[#3a3a4e] rounded text-center text-xs text-slate-300 focus:outline-none focus:border-purple-500"
-                min="0"
-              />
-              
-              {/* Padding Box */}
-              <div className="flex-1 border border-purple-500/30 bg-purple-500/5 rounded p-2">
-                <div className="text-xs text-purple-400 text-center mb-1">PADDING</div>
+            <div className="p-3">
+              {/* Inner container - Padding */}
+              <div className="relative border border-purple-500/40 rounded bg-purple-500/5">
+                {/* Padding label */}
+                <span className="absolute -top-2 left-2 bg-[#0d0d15] px-1 text-[10px] text-purple-400">PADDING</span>
+                
                 {/* Padding Top */}
-                <div className="flex justify-center mb-1">
+                <div className="absolute -top-2 right-2 bg-[#0d0d15] px-0.5">
                   <input
                     type="number"
                     value={(data.paddingTop as number) || 0}
                     onChange={(e) => onUpdate({ paddingTop: parseInt(e.target.value) || 0 })}
-                    className="w-10 px-1 py-0.5 bg-[#1a1a2e] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+                    className="w-8 bg-transparent text-center text-[10px] text-purple-300 focus:outline-none"
                     min="0"
-                  />
+                  /><span className="text-[10px] text-slate-500">PX</span>
                 </div>
-                <div className="flex items-center justify-between">
+                
+                {/* Middle row with left, center box, right */}
+                <div className="flex items-center justify-between p-2">
                   {/* Padding Left */}
-                  <input
-                    type="number"
-                    value={(data.paddingLeft as number) || 0}
-                    onChange={(e) => onUpdate({ paddingLeft: parseInt(e.target.value) || 0 })}
-                    className="w-10 px-1 py-0.5 bg-[#1a1a2e] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
-                    min="0"
-                  />
-                  <div className="w-8 h-6 bg-[#2a2a3e] rounded" />
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      value={(data.paddingLeft as number) || 0}
+                      onChange={(e) => onUpdate({ paddingLeft: parseInt(e.target.value) || 0 })}
+                      className="w-6 bg-transparent text-center text-[10px] text-purple-300 focus:outline-none"
+                      min="0"
+                    /><span className="text-[10px] text-slate-500">PX</span>
+                  </div>
+                  
+                  {/* Center content box */}
+                  <div className="w-12 h-6 border border-[#3a3a4e] rounded bg-[#1a1a2e]" />
+                  
                   {/* Padding Right */}
-                  <input
-                    type="number"
-                    value={(data.paddingRight as number) || 0}
-                    onChange={(e) => onUpdate({ paddingRight: parseInt(e.target.value) || 0 })}
-                    className="w-10 px-1 py-0.5 bg-[#1a1a2e] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
-                    min="0"
-                  />
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      value={(data.paddingRight as number) || 0}
+                      onChange={(e) => onUpdate({ paddingRight: parseInt(e.target.value) || 0 })}
+                      className="w-6 bg-transparent text-center text-[10px] text-purple-300 focus:outline-none"
+                      min="0"
+                    /><span className="text-[10px] text-slate-500">PX</span>
+                  </div>
                 </div>
+                
                 {/* Padding Bottom */}
-                <div className="flex justify-center mt-1">
+                <div className="absolute -bottom-2 right-2 bg-[#0d0d15] px-0.5">
                   <input
                     type="number"
                     value={(data.paddingBottom as number) || 0}
                     onChange={(e) => onUpdate({ paddingBottom: parseInt(e.target.value) || 0 })}
-                    className="w-10 px-1 py-0.5 bg-[#1a1a2e] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+                    className="w-8 bg-transparent text-center text-[10px] text-purple-300 focus:outline-none"
                     min="0"
-                  />
+                  /><span className="text-[10px] text-slate-500">PX</span>
                 </div>
               </div>
-              
-              {/* Margin Right */}
+            </div>
+            
+            {/* Margin Left */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-1 flex items-center">
+              <input
+                type="number"
+                value={(data.marginLeft as number) || 0}
+                onChange={(e) => onUpdate({ marginLeft: parseInt(e.target.value) || 0 })}
+                className="w-6 bg-transparent text-center text-[10px] text-slate-400 focus:outline-none"
+                min="0"
+              /><span className="text-[10px] text-slate-500">PX</span>
+            </div>
+            
+            {/* Margin Right */}
+            <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
               <input
                 type="number"
                 value={(data.marginRight as number) || 0}
                 onChange={(e) => onUpdate({ marginRight: parseInt(e.target.value) || 0 })}
-                className="w-12 px-1 py-0.5 bg-transparent border border-[#3a3a4e] rounded text-center text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+                className="w-6 bg-transparent text-center text-[10px] text-slate-400 focus:outline-none"
                 min="0"
-              />
+              /><span className="text-[10px] text-slate-500">PX</span>
             </div>
             
             {/* Margin Bottom */}
-            <div className="flex justify-center mt-1">
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#0d0d15] px-0.5">
               <input
                 type="number"
                 value={(data.marginBottom as number) || 0}
                 onChange={(e) => onUpdate({ marginBottom: parseInt(e.target.value) || 0 })}
-                className="w-12 px-1 py-0.5 bg-transparent border border-[#3a3a4e] rounded text-center text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+                className="w-8 bg-transparent text-center text-[10px] text-slate-400 focus:outline-none"
                 min="0"
-              />
+              /><span className="text-[10px] text-slate-500">PX</span>
             </div>
           </div>
-          <p className="text-xs text-slate-500 mt-1 text-center">Values in pixels</p>
         </div>
       </div>
     </div>
