@@ -60,14 +60,14 @@ function RadarChart({ scores }: { scores: CategoryScore[] }) {
 
   const getPoint = (index: number, value: number) => {
     const angle = startAngle + index * angleStep
-    const radius = (value / 10) * maxRadius // value is 0-10, so divide by 10
+    const radius = (value / 100) * maxRadius // value is 0-100 (percentage)
     return {
       x: center + radius * Math.cos(angle),
       y: center + radius * Math.sin(angle),
     }
   }
 
-  const gridLevels = [2.5, 5, 7.5, 10]
+  const gridLevels = [25, 50, 75, 100]
 
   const dataPoints = scores.map((s, i) => getPoint(i, s.score))
   const pathD = dataPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z'
@@ -81,7 +81,7 @@ function RadarChart({ scores }: { scores: CategoryScore[] }) {
             key={level}
             cx={center}
             cy={center}
-            r={(level / 10) * maxRadius}
+            r={(level / 100) * maxRadius}
             fill="none"
             stroke="rgba(255,255,255,0.1)"
             strokeWidth="1"
@@ -90,7 +90,7 @@ function RadarChart({ scores }: { scores: CategoryScore[] }) {
 
         {/* Axis lines */}
         {scores.map((_, i) => {
-          const point = getPoint(i, 10)
+          const point = getPoint(i, 100)
           return (
             <line
               key={i}
@@ -125,7 +125,7 @@ function RadarChart({ scores }: { scores: CategoryScore[] }) {
 
         {/* Labels */}
         {scores.map((s, i) => {
-          const labelPoint = getPoint(i, 13)
+          const labelPoint = getPoint(i, 130)
           const label = CATEGORY_LABELS[s.category] || s.category
           return (
             <g key={i}>
@@ -143,7 +143,7 @@ function RadarChart({ scores }: { scores: CategoryScore[] }) {
                 textAnchor="middle"
                 className="fill-purple-400 text-[10px] font-semibold"
               >
-                {Math.round(s.score * 10)}%
+                {Math.round(s.score)}%
               </text>
             </g>
           )
@@ -163,13 +163,13 @@ function BarChart({ scores }: { scores: CategoryScore[] }) {
         <div key={cat.category} className="space-y-1">
           <div className="flex justify-between text-xs">
             <span className="text-slate-400">{CATEGORY_LABELS[cat.category] || cat.category}</span>
-            <span className="font-medium text-white">{Math.round(cat.score * 10)}%</span>
+            <span className="font-medium text-white">{Math.round(cat.score)}%</span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div 
               className="h-full rounded-full transition-all"
               style={{ 
-                width: `${cat.score * 10}%`,
+                width: `${cat.score}%`,
                 backgroundColor: CATEGORY_COLORS[cat.category] || '#6b7280'
               }}
             />
@@ -224,7 +224,7 @@ function DonutChart({ scores }: { scores: CategoryScore[] }) {
               style={{ backgroundColor: CATEGORY_COLORS[cat.category] || '#6b7280' }}
             />
             <span className="text-slate-400">{CATEGORY_LABELS[cat.category] || cat.category}</span>
-            <span className="font-medium text-white ml-auto">{Math.round(cat.score * 10)}%</span>
+            <span className="font-medium text-white ml-auto">{Math.round(cat.score)}%</span>
           </div>
         ))}
       </div>
