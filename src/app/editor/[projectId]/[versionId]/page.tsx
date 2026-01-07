@@ -61,6 +61,9 @@ interface PageSettings {
   backgroundColor?: string
   backgroundOpacity?: number
   backgroundImage?: string
+  contentBackgroundColor?: string
+  contentBackgroundOpacity?: number
+  contentBackgroundImage?: string
 }
 
 interface PageContent {
@@ -890,11 +893,19 @@ export default function VersionEditorPage() {
           }}
         >
           <div 
-            className={`mx-auto bg-[#1a1a2e] min-h-full rounded-lg shadow-2xl transition-all ${
+            className={`mx-auto min-h-full rounded-lg shadow-2xl transition-all ${
               devicePreview === 'desktop' ? 'max-w-full' :
               devicePreview === 'tablet' ? 'max-w-2xl' :
               'max-w-sm'
             }`}
+            style={{
+              backgroundColor: content.settings?.contentBackgroundColor 
+                ? `rgba(${parseInt(content.settings.contentBackgroundColor.slice(1, 3), 16)}, ${parseInt(content.settings.contentBackgroundColor.slice(3, 5), 16)}, ${parseInt(content.settings.contentBackgroundColor.slice(5, 7), 16)}, ${content.settings?.contentBackgroundOpacity ?? 1})`
+                : '#1a1a2e',
+              backgroundImage: content.settings?.contentBackgroundImage ? `url(${content.settings.contentBackgroundImage})` : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
           >
             {content.rows.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -1022,28 +1033,6 @@ export default function VersionEditorPage() {
                               >
                                 <Copy size={10} />
                               </button>
-                              {content.rows.length > 1 && (
-                                <select
-                                  onClick={(e) => e.stopPropagation()}
-                                  onChange={(e) => {
-                                    const targetRowIndex = parseInt(e.target.value)
-                                    if (!isNaN(targetRowIndex)) {
-                                      moveColumnToRow(rowIndex, colIndex, targetRowIndex)
-                                    }
-                                    e.target.value = ''
-                                  }}
-                                  className="p-1 bg-[#2a2a3e] rounded text-slate-400 hover:text-white text-xs cursor-pointer"
-                                  title="Move to row"
-                                  defaultValue=""
-                                >
-                                  <option value="" disabled>Move</option>
-                                  {content.rows.map((_, rIdx) => (
-                                    rIdx !== rowIndex && (
-                                      <option key={rIdx} value={rIdx}>Row {rIdx + 1}</option>
-                                    )
-                                  ))}
-                                </select>
-                              )}
                             </div>
                           )}
                           {col.elements.length === 0 ? (
@@ -1290,10 +1279,11 @@ export default function VersionEditorPage() {
             
             {rightPanelTab === 'page' && (
               <div className="space-y-4">
-                <div className="text-sm text-slate-400 mb-2">Page Background</div>
+                {/* Outer Background */}
+                <div className="text-sm text-slate-400 mb-2">Outer Background</div>
                 
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">Background Color</label>
+                  <label className="block text-xs text-slate-500 mb-1">Color</label>
                   <input
                     type="color"
                     value={content.settings?.backgroundColor || '#0d0d15'}
@@ -1317,7 +1307,7 @@ export default function VersionEditorPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">Background Image URL</label>
+                  <label className="block text-xs text-slate-500 mb-1">Image URL</label>
                   <input
                     type="text"
                     value={content.settings?.backgroundImage || ''}
@@ -1326,12 +1316,58 @@ export default function VersionEditorPage() {
                     className="w-full px-3 py-2 bg-[#0d0d15] border border-[#3a3a4e] rounded-lg text-sm text-white"
                   />
                 </div>
+
+                <div className="border-t border-[#3a3a4e] pt-4 mt-4">
+                  <div className="text-sm text-slate-400 mb-2">Content Container (Grey Layer)</div>
+                </div>
+                
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Color</label>
+                  <input
+                    type="color"
+                    value={content.settings?.contentBackgroundColor || '#1a1a2e'}
+                    onChange={(e) => updatePageSettings({ contentBackgroundColor: e.target.value })}
+                    className="w-full h-8 rounded cursor-pointer"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">
+                    Opacity: {Math.round((content.settings?.contentBackgroundOpacity ?? 1) * 100)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={(content.settings?.contentBackgroundOpacity ?? 1) * 100}
+                    onChange={(e) => updatePageSettings({ contentBackgroundOpacity: parseInt(e.target.value) / 100 })}
+                    className="w-full h-2 bg-[#3a3a4e] rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Image URL</label>
+                  <input
+                    type="text"
+                    value={content.settings?.contentBackgroundImage || ''}
+                    onChange={(e) => updatePageSettings({ contentBackgroundImage: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 bg-[#0d0d15] border border-[#3a3a4e] rounded-lg text-sm text-white"
+                  />
+                </div>
                 
                 <button
-                  onClick={() => updatePageSettings({ backgroundColor: '#0d0d15', backgroundOpacity: 1, backgroundImage: '' })}
+                  onClick={() => updatePageSettings({ 
+                    backgroundColor: '#0d0d15', 
+                    backgroundOpacity: 1, 
+                    backgroundImage: '',
+                    contentBackgroundColor: '#1a1a2e',
+                    contentBackgroundOpacity: 1,
+                    contentBackgroundImage: ''
+                  })}
                   className="w-full text-sm text-slate-400 hover:text-white py-2 border border-[#3a3a4e] rounded-lg hover:border-slate-500 transition-colors"
                 >
-                  Reset to Default
+                  Reset All to Default
                 </button>
               </div>
             )}
