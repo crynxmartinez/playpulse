@@ -1121,14 +1121,14 @@ export default function VersionEditorPage() {
                                       ? 'opacity-50' : ''
                                   }`}
                                   style={{
-                                    marginTop: (element.data.marginTop as number) || 0,
-                                    marginRight: (element.data.marginRight as number) || 0,
-                                    marginBottom: (element.data.marginBottom as number) || 0,
-                                    marginLeft: (element.data.marginLeft as number) || 0,
-                                    paddingTop: ((element.data.paddingTop as number) || 0) + 12,
-                                    paddingRight: ((element.data.paddingRight as number) || 0) + 12,
-                                    paddingBottom: ((element.data.paddingBottom as number) || 0) + 12,
-                                    paddingLeft: ((element.data.paddingLeft as number) || 0) + 12,
+                                    marginTop: element.data.marginTop === 'auto' ? 'auto' : (typeof element.data.marginTop === 'number' ? element.data.marginTop : 0),
+                                    marginRight: element.data.marginRight === 'auto' ? 'auto' : (typeof element.data.marginRight === 'number' ? element.data.marginRight : 0),
+                                    marginBottom: element.data.marginBottom === 'auto' ? 'auto' : (typeof element.data.marginBottom === 'number' ? element.data.marginBottom : 0),
+                                    marginLeft: element.data.marginLeft === 'auto' ? 'auto' : (typeof element.data.marginLeft === 'number' ? element.data.marginLeft : 0),
+                                    paddingTop: (element.data.paddingTop === 'auto' ? 0 : (typeof element.data.paddingTop === 'number' ? element.data.paddingTop : 0)) + 12,
+                                    paddingRight: (element.data.paddingRight === 'auto' ? 0 : (typeof element.data.paddingRight === 'number' ? element.data.paddingRight : 0)) + 12,
+                                    paddingBottom: (element.data.paddingBottom === 'auto' ? 0 : (typeof element.data.paddingBottom === 'number' ? element.data.paddingBottom : 0)) + 12,
+                                    paddingLeft: (element.data.paddingLeft === 'auto' ? 0 : (typeof element.data.paddingLeft === 'number' ? element.data.paddingLeft : 0)) + 12,
                                   }}
                                 >
                                   {/* Element Renderer with inline editing */}
@@ -2528,116 +2528,92 @@ function ElementProperties({
       <div className="border-t border-[#2a2a3e] pt-3 mt-3">
         <label className="block text-xs text-slate-400 mb-2">Margin & Padding</label>
         
-        {/* Compact GHL-style Box Model */}
-        <div className="relative bg-[#0d0d15] rounded-lg p-3">
-          {/* Outer container - Margin */}
-          <div className="relative border border-dashed border-slate-600 rounded">
-            {/* Margin label */}
-            <span className="absolute -top-2 left-2 bg-[#0d0d15] px-1 text-[10px] text-slate-500">MARGIN</span>
-            
-            {/* Margin Top */}
-            <div className="absolute -top-2 right-2 bg-[#0d0d15] px-0.5">
+        {/* Margin */}
+        <div className="mb-3">
+          <div className="text-xs text-slate-500 mb-1">Margin</div>
+          <div className="grid grid-cols-4 gap-1">
+            <div>
+              <label className="block text-[10px] text-slate-500 mb-0.5">Top</label>
               <input
-                type="number"
-                value={(data.marginTop as number) || 0}
-                onChange={(e) => onUpdate({ marginTop: parseInt(e.target.value) || 0 })}
-                className="w-8 bg-transparent text-center text-[10px] text-slate-400 focus:outline-none"
-                min="0"
-              /><span className="text-[10px] text-slate-500">PX</span>
+                type="text"
+                value={(data.marginTop as string) ?? 'auto'}
+                onChange={(e) => onUpdate({ marginTop: e.target.value === 'auto' ? 'auto' : parseInt(e.target.value) || 0 })}
+                className="w-full px-1 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+              />
             </div>
-            
-            <div className="p-3">
-              {/* Inner container - Padding */}
-              <div className="relative border border-purple-500/40 rounded bg-purple-500/5">
-                {/* Padding label */}
-                <span className="absolute -top-2 left-2 bg-[#0d0d15] px-1 text-[10px] text-purple-400">PADDING</span>
-                
-                {/* Padding Top */}
-                <div className="absolute -top-2 right-2 bg-[#0d0d15] px-0.5">
-                  <input
-                    type="number"
-                    value={(data.paddingTop as number) || 0}
-                    onChange={(e) => onUpdate({ paddingTop: parseInt(e.target.value) || 0 })}
-                    className="w-8 bg-transparent text-center text-[10px] text-purple-300 focus:outline-none"
-                    min="0"
-                  /><span className="text-[10px] text-slate-500">PX</span>
-                </div>
-                
-                {/* Middle row with left, center box, right */}
-                <div className="flex items-center justify-between p-2">
-                  {/* Padding Left */}
-                  <div className="flex items-center">
-                    <input
-                      type="number"
-                      value={(data.paddingLeft as number) || 0}
-                      onChange={(e) => onUpdate({ paddingLeft: parseInt(e.target.value) || 0 })}
-                      className="w-6 bg-transparent text-center text-[10px] text-purple-300 focus:outline-none"
-                      min="0"
-                    /><span className="text-[10px] text-slate-500">PX</span>
-                  </div>
-                  
-                  {/* Center content box */}
-                  <div className="w-12 h-6 border border-[#3a3a4e] rounded bg-[#1a1a2e]" />
-                  
-                  {/* Padding Right */}
-                  <div className="flex items-center">
-                    <input
-                      type="number"
-                      value={(data.paddingRight as number) || 0}
-                      onChange={(e) => onUpdate({ paddingRight: parseInt(e.target.value) || 0 })}
-                      className="w-6 bg-transparent text-center text-[10px] text-purple-300 focus:outline-none"
-                      min="0"
-                    /><span className="text-[10px] text-slate-500">PX</span>
-                  </div>
-                </div>
-                
-                {/* Padding Bottom */}
-                <div className="absolute -bottom-2 right-2 bg-[#0d0d15] px-0.5">
-                  <input
-                    type="number"
-                    value={(data.paddingBottom as number) || 0}
-                    onChange={(e) => onUpdate({ paddingBottom: parseInt(e.target.value) || 0 })}
-                    className="w-8 bg-transparent text-center text-[10px] text-purple-300 focus:outline-none"
-                    min="0"
-                  /><span className="text-[10px] text-slate-500">PX</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Margin Left */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-1 flex items-center">
+            <div>
+              <label className="block text-[10px] text-slate-500 mb-0.5">Bottom</label>
               <input
-                type="number"
-                value={(data.marginLeft as number) || 0}
-                onChange={(e) => onUpdate({ marginLeft: parseInt(e.target.value) || 0 })}
-                className="w-6 bg-transparent text-center text-[10px] text-slate-400 focus:outline-none"
-                min="0"
-              /><span className="text-[10px] text-slate-500">PX</span>
+                type="text"
+                value={(data.marginBottom as string) ?? 'auto'}
+                onChange={(e) => onUpdate({ marginBottom: e.target.value === 'auto' ? 'auto' : parseInt(e.target.value) || 0 })}
+                className="w-full px-1 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+              />
             </div>
-            
-            {/* Margin Right */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
+            <div>
+              <label className="block text-[10px] text-slate-500 mb-0.5">Left</label>
               <input
-                type="number"
-                value={(data.marginRight as number) || 0}
-                onChange={(e) => onUpdate({ marginRight: parseInt(e.target.value) || 0 })}
-                className="w-6 bg-transparent text-center text-[10px] text-slate-400 focus:outline-none"
-                min="0"
-              /><span className="text-[10px] text-slate-500">PX</span>
+                type="text"
+                value={(data.marginLeft as string) ?? 'auto'}
+                onChange={(e) => onUpdate({ marginLeft: e.target.value === 'auto' ? 'auto' : parseInt(e.target.value) || 0 })}
+                className="w-full px-1 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+              />
             </div>
-            
-            {/* Margin Bottom */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#0d0d15] px-0.5">
+            <div>
+              <label className="block text-[10px] text-slate-500 mb-0.5">Right</label>
               <input
-                type="number"
-                value={(data.marginBottom as number) || 0}
-                onChange={(e) => onUpdate({ marginBottom: parseInt(e.target.value) || 0 })}
-                className="w-8 bg-transparent text-center text-[10px] text-slate-400 focus:outline-none"
-                min="0"
-              /><span className="text-[10px] text-slate-500">PX</span>
+                type="text"
+                value={(data.marginRight as string) ?? 'auto'}
+                onChange={(e) => onUpdate({ marginRight: e.target.value === 'auto' ? 'auto' : parseInt(e.target.value) || 0 })}
+                className="w-full px-1 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+              />
             </div>
           </div>
         </div>
+        
+        {/* Padding */}
+        <div>
+          <div className="text-xs text-slate-500 mb-1">Padding</div>
+          <div className="grid grid-cols-4 gap-1">
+            <div>
+              <label className="block text-[10px] text-slate-500 mb-0.5">Top</label>
+              <input
+                type="text"
+                value={(data.paddingTop as string) ?? 'auto'}
+                onChange={(e) => onUpdate({ paddingTop: e.target.value === 'auto' ? 'auto' : parseInt(e.target.value) || 0 })}
+                className="w-full px-1 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-slate-500 mb-0.5">Bottom</label>
+              <input
+                type="text"
+                value={(data.paddingBottom as string) ?? 'auto'}
+                onChange={(e) => onUpdate({ paddingBottom: e.target.value === 'auto' ? 'auto' : parseInt(e.target.value) || 0 })}
+                className="w-full px-1 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-slate-500 mb-0.5">Left</label>
+              <input
+                type="text"
+                value={(data.paddingLeft as string) ?? 'auto'}
+                onChange={(e) => onUpdate({ paddingLeft: e.target.value === 'auto' ? 'auto' : parseInt(e.target.value) || 0 })}
+                className="w-full px-1 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-slate-500 mb-0.5">Right</label>
+              <input
+                type="text"
+                value={(data.paddingRight as string) ?? 'auto'}
+                onChange={(e) => onUpdate({ paddingRight: e.target.value === 'auto' ? 'auto' : parseInt(e.target.value) || 0 })}
+                className="w-full px-1 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+              />
+            </div>
+          </div>
+        </div>
+        <p className="text-[10px] text-slate-500 mt-1">Use px values or "auto"</p>
       </div>
     </div>
   )

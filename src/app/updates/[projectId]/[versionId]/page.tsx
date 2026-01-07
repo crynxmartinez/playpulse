@@ -226,14 +226,14 @@ export default function PublicUpdatePage() {
                             <div 
                               key={element.id} 
                               style={{
-                                marginTop: (element.data.marginTop as number) || 0,
-                                marginRight: (element.data.marginRight as number) || 0,
-                                marginBottom: (element.data.marginBottom as number) || 0,
-                                marginLeft: (element.data.marginLeft as number) || 0,
-                                paddingTop: (element.data.paddingTop as number) || 0,
-                                paddingRight: (element.data.paddingRight as number) || 0,
-                                paddingBottom: (element.data.paddingBottom as number) || 0,
-                                paddingLeft: (element.data.paddingLeft as number) || 0,
+                                marginTop: element.data.marginTop === 'auto' ? 'auto' : (typeof element.data.marginTop === 'number' ? element.data.marginTop : 0),
+                                marginRight: element.data.marginRight === 'auto' ? 'auto' : (typeof element.data.marginRight === 'number' ? element.data.marginRight : 0),
+                                marginBottom: element.data.marginBottom === 'auto' ? 'auto' : (typeof element.data.marginBottom === 'number' ? element.data.marginBottom : 0),
+                                marginLeft: element.data.marginLeft === 'auto' ? 'auto' : (typeof element.data.marginLeft === 'number' ? element.data.marginLeft : 0),
+                                paddingTop: element.data.paddingTop === 'auto' ? 0 : (typeof element.data.paddingTop === 'number' ? element.data.paddingTop : 0),
+                                paddingRight: element.data.paddingRight === 'auto' ? 0 : (typeof element.data.paddingRight === 'number' ? element.data.paddingRight : 0),
+                                paddingBottom: element.data.paddingBottom === 'auto' ? 0 : (typeof element.data.paddingBottom === 'number' ? element.data.paddingBottom : 0),
+                                paddingLeft: element.data.paddingLeft === 'auto' ? 0 : (typeof element.data.paddingLeft === 'number' ? element.data.paddingLeft : 0),
                               }}
                             >
                               <ElementRenderer element={element} onImageClick={setLightboxImage} />
