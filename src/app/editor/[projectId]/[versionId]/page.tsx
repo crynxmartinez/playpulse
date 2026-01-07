@@ -1868,13 +1868,15 @@ function ElementRenderer({
             <img 
               src={data.src as string} 
               alt={data.alt as string} 
-              className="w-full max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+              className={`w-full max-w-full rounded-lg transition-opacity ${!isEditing ? 'cursor-pointer hover:opacity-90' : ''}`}
               style={{ maxHeight: '400px', objectFit: 'contain' }}
               onClick={(e) => {
-                e.stopPropagation()
-                window.open(data.src as string, '_blank')
+                if (!isEditing) {
+                  e.stopPropagation()
+                  window.open(data.src as string, '_blank')
+                }
               }}
-              title="Click to view full size"
+              title={!isEditing ? "Click to view full size" : undefined}
             />
           ) : (
             <div className="text-center text-slate-500 py-8 bg-[#2a2a3e] w-full rounded-lg">
