@@ -10,22 +10,134 @@ interface LiveAnalyticsWidgetProps {
   title: string
 }
 
+interface CategoryScore {
+  category: string
+  score: number
+  statCount: number
+}
+
 interface AnalyticsData {
-  categoryScores?: Array<{ category: string; score: number; statCount: number }>
+  categoryScores?: CategoryScore[]
   statAverages?: Array<{ id: string; name: string; average: number; category: string | null }>
   overallScore?: number
   totalResponses?: number
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  gameplay: '#3b82f6',
-  visuals: '#a855f7',
-  ux: '#22c55e',
-  balance: '#f97316',
-  progression: '#ec4899',
-  multiplayer: '#06b6d4',
-  overall: '#64748b',
-  uncategorized: '#6b7280',
+const CATEGORY_LABELS: Record<string, string> = {
+  gameplay: 'Gameplay',
+  visuals: 'Visuals & Audio',
+  ux: 'User Experience',
+  balance: 'Balance',
+  progression: 'Progression',
+  multiplayer: 'Multiplayer',
+  overall: 'Overall',
+  uncategorized: 'Other',
+}
+
+// Radar Chart Component
+function RadarChart({ scores }: { scores: CategoryScore[] }) {
+  if (scores.length === 0) return null
+
+  const size = 280
+  const center = size / 2
+  const maxRadius = size / 2 - 40
+
+  const angleStep = (2 * Math.PI) / scores.length
+  const startAngle = -Math.PI / 2
+
+  const getPoint = (index: number, value: number) => {
+    const angle = startAngle + index * angleStep
+    const radius = (value / 100) * maxRadius
+    return {
+      x: center + radius * Math.cos(angle),
+      y: center + radius * Math.sin(angle),
+    }
+  }
+
+  const gridLevels = [25, 50, 75, 100]
+
+  const dataPoints = scores.map((s, i) => getPoint(i, s.score * 10))
+  const pathD = dataPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z'
+
+  return (
+    <div className="flex justify-center">
+      <svg width={size} height={size} className="overflow-visible">
+        {/* Grid circles */}
+        {gridLevels.map((level) => (
+          <circle
+            key={level}
+            cx={center}
+            cy={center}
+            r={(level / 100) * maxRadius}
+            fill="none"
+            stroke="rgba(255,255,255,0.1)"
+            strokeWidth="1"
+          />
+        ))}
+
+        {/* Axis lines */}
+        {scores.map((_, i) => {
+          const point = getPoint(i, 100)
+          return (
+            <line
+              key={i}
+              x1={center}
+              y1={center}
+              x2={point.x}
+              y2={point.y}
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="1"
+            />
+          )
+        })}
+
+        {/* Data polygon */}
+        <path
+          d={pathD}
+          fill="rgba(139, 92, 246, 0.3)"
+          stroke="#8b5cf6"
+          strokeWidth="2"
+        />
+
+        {/* Data points */}
+        {dataPoints.map((point, i) => (
+          <circle
+            key={i}
+            cx={point.x}
+            cy={point.y}
+            r="4"
+            fill="#8b5cf6"
+          />
+        ))}
+
+        {/* Labels */}
+        {scores.map((s, i) => {
+          const labelPoint = getPoint(i, 120)
+          const label = CATEGORY_LABELS[s.category] || s.category
+          return (
+            <g key={i}>
+              <text
+                x={labelPoint.x}
+                y={labelPoint.y - 8}
+                textAnchor="middle"
+                className="fill-slate-400 text-[10px]"
+              >
+                {label}
+              </text>
+              <text
+                x={labelPoint.x}
+                y={labelPoint.y + 6}
+                textAnchor="middle"
+                className="fill-purple-400 text-[11px] font-semibold"
+              >
+                {Math.round(s.score * 10)}%
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
 }
 
 export function LiveAnalyticsWidget({ projectId, widgetType, title }: LiveAnalyticsWidgetProps) {
@@ -88,27 +200,11 @@ export function LiveAnalyticsWidget({ projectId, widgetType, title }: LiveAnalyt
           <CardTitle className="text-base">{title}</CardTitle>
           <CardDescription>Score breakdown by category</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent>
           {data.categoryScores.length === 0 ? (
             <div className="text-sm text-muted-foreground text-center py-4">No category data yet</div>
           ) : (
-            data.categoryScores.map((cat) => (
-              <div key={cat.category} className="space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="capitalize">{cat.category}</span>
-                  <span className="font-medium">{cat.score.toFixed(1)}/10</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all"
-                    style={{ 
-                      width: `${(cat.score / 10) * 100}%`,
-                      backgroundColor: CATEGORY_COLORS[cat.category] || '#6b7280'
-                    }}
-                  />
-                </div>
-              </div>
-            ))
+            <RadarChart scores={data.categoryScores} />
           )}
         </CardContent>
       </Card>
