@@ -68,6 +68,11 @@ export default async function GamePage({ params }: PageProps) {
           title: true,
           slug: true,
           isActive: true,
+          _count: {
+            select: {
+              responses: true,
+            }
+          }
         }
       },
       pinnedSections: {
