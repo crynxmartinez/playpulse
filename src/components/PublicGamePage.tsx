@@ -796,6 +796,9 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
   // Activity data state
   const [activityData, setActivityData] = useState<ActivityData>({});
   const [activityLoading, setActivityLoading] = useState(true);
+  
+  // PDF viewer state
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
 
   // Fetch activity data on mount
   useEffect(() => {
@@ -1135,15 +1138,13 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                       <div className="text-sm font-semibold text-white mb-2">How to Play</div>
                       {project.rulesPdfUrl ? (
                         <div className="space-y-3">
-                          <a 
-                            href={project.rulesPdfUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
+                          <button 
+                            onClick={() => setPdfViewerOpen(true)}
                             className="inline-flex items-center gap-2 text-sm text-primary hover:underline cursor-pointer"
                           >
                             <ExternalLink className="h-4 w-4" /> 
                             {project.rules || 'View Rules PDF'}
-                          </a>
+                          </button>
                         </div>
                       ) : (
                         <div className="text-sm text-slate-400 whitespace-pre-wrap">
@@ -1399,6 +1400,42 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
           <div className="text-sm text-muted-foreground">PlayPulse • Public Game Page</div>
         </div>
       </div>
+
+      {/* PDF Viewer Modal */}
+      {pdfViewerOpen && project.rulesPdfUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/80" 
+            onClick={() => setPdfViewerOpen(false)} 
+          />
+          <div className="relative w-full max-w-5xl h-[90vh] overflow-hidden rounded-3xl border bg-background shadow-xl flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b">
+              <div className="text-base font-semibold">{project.rules || 'Rules PDF'}</div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={project.rulesPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Open in new tab
+                </a>
+                <Button variant="ghost" onClick={() => setPdfViewerOpen(false)} className="rounded-2xl">
+                  Close
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                src={project.rulesPdfUrl}
+                className="w-full h-full border-0"
+                title="Rules PDF"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
