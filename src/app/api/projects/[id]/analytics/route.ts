@@ -8,17 +8,17 @@ export async function GET(
 ) {
   try {
     const user = await getCurrentUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { id } = await params
     const url = new URL(request.url)
     const formFilter = url.searchParams.get('formId') || 'all'
     const timeRange = url.searchParams.get('timeRange') || '30' // days
 
+    // For public access, check if project is public or unlisted
+    // For owner access, allow full access
     const project = await prisma.project.findFirst({
-      where: { id, userId: user.id },
+      where: user 
+        ? { id, userId: user.id }
+        : { id, visibility: { in: ['PUBLIC', 'UNLISTED'] } },
       include: {
         stats: true,
         forms: {

@@ -108,6 +108,11 @@ export default async function GamePage({ params }: PageProps) {
     redirect(user ? '/dashboard' : '/login')
   }
 
+  // If project has a slug, redirect to the slug-based URL
+  if (project.slug) {
+    redirect(`/g/${project.slug}`)
+  }
+
   // Determine if current user is the owner
   const isOwner = user?.id === project.userId
 

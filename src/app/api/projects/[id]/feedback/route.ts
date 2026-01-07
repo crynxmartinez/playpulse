@@ -9,19 +9,17 @@ export async function GET(
 ) {
   try {
     const user = await getCurrentUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { id: projectId } = await params
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') // FEATURE, BUG, IMPROVEMENT, OTHER
     const status = searchParams.get('status') // OPEN, IN_PROGRESS, COMPLETED, DECLINED
     const sort = searchParams.get('sort') || 'votes' // votes, new
 
-    // Check if project exists
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
+    // Check if project exists and is accessible
+    const project = await prisma.project.findFirst({
+      where: user
+        ? { id: projectId }
+        : { id: projectId, visibility: { in: ['PUBLIC', 'UNLISTED'] } },
       select: { id: true, userId: true }
     })
 
@@ -65,10 +63,10 @@ export async function GET(
 
     // Calculate vote scores and user's vote
     const threadsWithScores = threads.map(thread => {
-      const upvotes = thread.votes.filter(v => v.value === 1).length
-      const downvotes = thread.votes.filter(v => v.value === -1).length
+      const upvotes = thread.votes.filter((v: { value: number }) => v.value === 1).length
+      const downvotes = thread.votes.filter((v: { value: number }) => v.value === -1).length
       const score = upvotes - downvotes
-      const userVote = thread.votes.find(v => v.userId === user.id)?.value || 0
+      const userVote = user ? thread.votes.find((v: { userId: string }) => v.userId === user.id)?.value || 0 : 0
 
       return {
         id: thread.id,
@@ -85,8 +83,8 @@ export async function GET(
         downvotes,
         userVote,
         commentCount: thread._count.comments,
-        isAuthor: thread.authorId === user.id,
-        isOwner: project.userId === user.id
+        isAuthor: user ? thread.authorId === user.id : false,
+        isOwner: user ? project.userId === user.id : false
       }
     })
 
