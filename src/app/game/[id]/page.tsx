@@ -93,6 +93,11 @@ export default async function GamePage({ params }: PageProps) {
           }
         },
         orderBy: { order: 'asc' }
+      },
+      _count: {
+        select: {
+          followers: true
+        }
       }
     }
   })

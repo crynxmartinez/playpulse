@@ -40,6 +40,8 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { FollowButton } from "@/components/FollowButton";
+import { FeedbackSection } from "@/components/FeedbackSection";
 
 type Update = {
   id: string;
@@ -867,10 +869,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 </Button>
               )}
               {!isOwner && (
-                <Button variant="secondary" className="rounded-2xl gap-2">
-                  <Heart className="h-4 w-4" />
-                  Follow
-                </Button>
+                <FollowButton projectId={project.id} />
               )}
               {project.discordUrl && (
                 <a href={project.discordUrl} target="_blank" rel="noopener noreferrer">
@@ -931,7 +930,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <SmallKpi label="Followers" value="0" />
+                    <SmallKpi label="Followers" value={`${project._count?.followers || 0}`} />
                     <SmallKpi label="Respondents" value={`${(project.forms || []).reduce((sum, form) => sum + (form._count?.responses || 0), 0)}`} />
                     <SmallKpi label="Updates" value={`${publishedVersions.length}`} />
                     <SmallKpi label="Forms" value={`${(project.forms || []).length}`} />
@@ -1103,8 +1102,8 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   <TabsTrigger value="analytics" className="rounded-xl text-xs sm:text-sm py-2">
                     Analytics
                   </TabsTrigger>
-                  <TabsTrigger value="progress" className="rounded-xl text-xs sm:text-sm py-2">
-                    Progress
+                  <TabsTrigger value="feedback" className="rounded-xl text-xs sm:text-sm py-2">
+                    Feedback
                   </TabsTrigger>
                   <TabsTrigger value="community" className="rounded-xl text-xs sm:text-sm py-2">
                     Community
@@ -1290,88 +1289,16 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   )}
                 </TabsContent>
 
-                {/* Progress */}
-                <TabsContent value="progress" className="mt-4 space-y-4">
+                {/* Feedback */}
+                <TabsContent value="feedback" className="mt-4 space-y-4">
                   <div>
-                    <div className="text-lg font-semibold tracking-tight">Progress Board</div>
+                    <div className="text-lg font-semibold tracking-tight">Feedback & Discussion</div>
                     <div className="text-sm text-muted-foreground">
-                      A shareable, live "table view" of iteration — great for investors and communities.
+                      Share your thoughts, suggestions, and feedback about the game.
                     </div>
                   </div>
 
-                  <Card className="rounded-3xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base">Versions</CardTitle>
-                      <CardDescription>Stats per release (delta vs previous)</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="text-left text-xs text-muted-foreground">
-                              <th className="py-2 pr-4">Version</th>
-                              <th className="py-2 pr-4">Date</th>
-                              <th className="py-2 pr-4">Responses</th>
-                              <th className="py-2 pr-4">Fun</th>
-                              <th className="py-2 pr-4">Difficulty</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {progressRows.length === 0 ? (
-                              <tr>
-                                <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                                  No playtest data yet. Create a playtest from Workspace.
-                                </td>
-                              </tr>
-                            ) : (
-                              progressRows
-                                .slice()
-                                .reverse()
-                                .map((r) => (
-                                  <tr key={r.version} className="border-t">
-                                    <td className="py-3 pr-4">
-                                      <Badge variant="secondary" className="rounded-xl">
-                                        {r.version}
-                                      </Badge>
-                                    </td>
-                                    <td className="py-3 pr-4 text-muted-foreground">{r.date}</td>
-                                    <td className="py-3 pr-4">{r.responses}</td>
-                                    <td className="py-3 pr-4">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-semibold">{r.fun.toFixed(1)}</span>
-                                        <span className="text-xs text-muted-foreground">({formatDelta(r.funDelta)})</span>
-                                      </div>
-                                    </td>
-                                    <td className="py-3 pr-4">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-semibold">{r.difficulty.toFixed(1)}</span>
-                                        <span className="text-xs text-muted-foreground">
-                                          ({formatDelta(r.diffDelta)})
-                                        </span>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <Button variant="secondary" className="rounded-2xl gap-2">
-                          <Sparkles className="h-4 w-4" />
-                          Share Live Link
-                        </Button>
-                        <Button variant="outline" className="rounded-2xl gap-2">
-                          <Link2 className="h-4 w-4" />
-                          Copy Embed
-                        </Button>
-                        <Button variant="outline" className="rounded-2xl gap-2">
-                          Save Snapshot
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <FeedbackSection projectId={project.id} isOwner={isOwner} />
                 </TabsContent>
 
                 {/* Community */}

@@ -381,5 +381,7 @@ enum FeedbackStatus {
 enum NotificationType {
   FEEDBACK_COMMENT    // Someone commented on your thread
   FEEDBACK_STATUS     // Thread status changed
-  FEEDBACK_REPLY      // Reply to thread you voted on
+  FEEDBACK_REPLY      // Reply to thread you participated in
+  UPDATE_PUBLISHED    // New update published on a game you follow
+  FORM_RELEASED       // New form released on a game you follow
 }
