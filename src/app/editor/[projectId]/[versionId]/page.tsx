@@ -1635,12 +1635,12 @@ function ElementRenderer({
               ) : (
                 <span>{item}</span>
               )}
-              {isEditing && (
+              {isEditing && items.length > 1 && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     const newItems = items.filter((_, idx) => idx !== i)
-                    handleUpdate({ items: newItems.length > 0 ? newItems : ['Item 1'] })
+                    handleUpdate({ items: newItems })
                   }}
                   className="opacity-0 group-hover:opacity-100 p-0.5 text-red-400 hover:text-red-300 transition-opacity"
                 >
