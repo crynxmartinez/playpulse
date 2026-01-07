@@ -16,9 +16,18 @@ interface CategoryScore {
   statCount: number
 }
 
+interface StatAverage {
+  id: string
+  name: string
+  average: number
+  min: number
+  max: number
+  category: string | null
+}
+
 interface AnalyticsData {
   categoryScores?: CategoryScore[]
-  statAverages?: Array<{ id: string; name: string; average: number; category: string | null }>
+  statAverages?: StatAverage[]
   overallScore?: number
   totalResponses?: number
 }
@@ -232,6 +241,196 @@ function DonutChart({ scores }: { scores: CategoryScore[] }) {
   )
 }
 
+// Stats Radar Chart Component
+function StatsRadarChart({ stats }: { stats: StatAverage[] }) {
+  if (stats.length === 0) return null
+
+  // Limit to first 8 stats for radar chart readability
+  const displayStats = stats.slice(0, 8)
+  
+  const size = 200
+  const center = size / 2
+  const maxRadius = size / 2 - 30
+
+  const angleStep = (2 * Math.PI) / displayStats.length
+  const startAngle = -Math.PI / 2
+
+  const getPoint = (index: number, value: number) => {
+    const angle = startAngle + index * angleStep
+    const radius = (value / 100) * maxRadius
+    return {
+      x: center + radius * Math.cos(angle),
+      y: center + radius * Math.sin(angle),
+    }
+  }
+
+  const gridLevels = [25, 50, 75, 100]
+
+  const dataPoints = displayStats.map((s, i) => {
+    const percentage = ((s.average - s.min) / (s.max - s.min)) * 100
+    return getPoint(i, percentage)
+  })
+  const pathD = dataPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z'
+
+  return (
+    <div className="flex justify-center py-2">
+      <svg width={size} height={size} className="overflow-visible">
+        {gridLevels.map((level) => (
+          <circle
+            key={level}
+            cx={center}
+            cy={center}
+            r={(level / 100) * maxRadius}
+            fill="none"
+            stroke="rgba(255,255,255,0.1)"
+            strokeWidth="1"
+          />
+        ))}
+
+        {displayStats.map((_, i) => {
+          const point = getPoint(i, 100)
+          return (
+            <line
+              key={i}
+              x1={center}
+              y1={center}
+              x2={point.x}
+              y2={point.y}
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="1"
+            />
+          )
+        })}
+
+        <path
+          d={pathD}
+          fill="rgba(59, 130, 246, 0.3)"
+          stroke="#3b82f6"
+          strokeWidth="2"
+        />
+
+        {dataPoints.map((point, i) => (
+          <circle
+            key={i}
+            cx={point.x}
+            cy={point.y}
+            r="3"
+            fill="#3b82f6"
+          />
+        ))}
+
+        {displayStats.map((s, i) => {
+          const labelPoint = getPoint(i, 130)
+          const percentage = Math.round(((s.average - s.min) / (s.max - s.min)) * 100)
+          return (
+            <g key={i}>
+              <text
+                x={labelPoint.x}
+                y={labelPoint.y - 6}
+                textAnchor="middle"
+                className="fill-slate-400 text-[8px]"
+              >
+                {s.name.length > 10 ? s.name.slice(0, 10) + '...' : s.name}
+              </text>
+              <text
+                x={labelPoint.x}
+                y={labelPoint.y + 6}
+                textAnchor="middle"
+                className="fill-blue-400 text-[10px] font-semibold"
+              >
+                {percentage}%
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
+// Stats Bar Chart Component
+function StatsBarChart({ stats }: { stats: StatAverage[] }) {
+  if (stats.length === 0) return null
+
+  return (
+    <div className="space-y-2 py-2 max-h-48 overflow-y-auto">
+      {stats.map((stat) => {
+        const percentage = ((stat.average - stat.min) / (stat.max - stat.min)) * 100
+        return (
+          <div key={stat.id} className="space-y-1">
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-400 truncate mr-2">{stat.name}</span>
+              <span className="font-medium text-white shrink-0">{Math.round(percentage)}%</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full rounded-full transition-all"
+                style={{ 
+                  width: `${percentage}%`,
+                  backgroundColor: CATEGORY_COLORS[stat.category || 'uncategorized'] || '#3b82f6'
+                }}
+              />
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// Stats List Component (original style)
+function StatsList({ stats }: { stats: StatAverage[] }) {
+  if (stats.length === 0) return null
+
+  return (
+    <div className="space-y-2 max-h-64 overflow-y-auto">
+      {stats.map((stat) => (
+        <div key={stat.id} className="flex justify-between items-center text-sm py-1 border-b border-muted last:border-0">
+          <span className="truncate mr-2">{stat.name}</span>
+          <span className="font-medium shrink-0">{stat.average.toFixed(1)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Stats Chart Type Toggle (radar, bar, list)
+type StatsChartType = 'radar' | 'bar' | 'list'
+
+function StatsChartToggle({ chartType, setChartType }: { chartType: StatsChartType; setChartType: (t: StatsChartType) => void }) {
+  return (
+    <div className="flex gap-1">
+      <button
+        onClick={() => setChartType('radar')}
+        className={`p-1.5 rounded-lg transition-colors ${
+          chartType === 'radar' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-muted'
+        }`}
+        title="Radar"
+      >
+        <Target size={14} />
+      </button>
+      <button
+        onClick={() => setChartType('bar')}
+        className={`p-1.5 rounded-lg transition-colors ${
+          chartType === 'bar' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-muted'
+        }`}
+        title="Bar"
+      >
+        <BarChart2 size={14} />
+      </button>
+      <button
+        onClick={() => setChartType('list')}
+        className={`p-1.5 rounded-lg transition-colors ${
+          chartType === 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-muted'
+        }`}
+        title="List"
+      >
+        <PieChart size={14} />
+      </button>
+    </div>
+  )
+}
+
 // Chart Type Toggle
 function ChartToggle({ chartType, setChartType }: { chartType: ChartType; setChartType: (t: ChartType) => void }) {
   return (
@@ -272,6 +471,7 @@ export function LiveAnalyticsWidget({ projectId, widgetType, title }: LiveAnalyt
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [chartType, setChartType] = useState<ChartType>('radar')
+  const [statsChartType, setStatsChartType] = useState<StatsChartType>('list')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -349,20 +549,22 @@ export function LiveAnalyticsWidget({ projectId, widgetType, title }: LiveAnalyt
   if (widgetType === 'all-stats' && data.statAverages) {
     return (
       <Card className="rounded-3xl">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{title}</CardTitle>
-          <CardDescription>All stat averages</CardDescription>
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-base">{title}</CardTitle>
+            <CardDescription>All stat averages</CardDescription>
+          </div>
+          <StatsChartToggle chartType={statsChartType} setChartType={setStatsChartType} />
         </CardHeader>
-        <CardContent className="space-y-2 max-h-64 overflow-y-auto">
+        <CardContent>
           {data.statAverages.length === 0 ? (
             <div className="text-sm text-muted-foreground text-center py-4">No stats data yet</div>
           ) : (
-            data.statAverages.map((stat) => (
-              <div key={stat.id} className="flex justify-between items-center text-sm py-1 border-b border-muted last:border-0">
-                <span className="truncate mr-2">{stat.name}</span>
-                <span className="font-medium shrink-0">{stat.average.toFixed(1)}</span>
-              </div>
-            ))
+            <>
+              {statsChartType === 'radar' && <StatsRadarChart stats={data.statAverages} />}
+              {statsChartType === 'bar' && <StatsBarChart stats={data.statAverages} />}
+              {statsChartType === 'list' && <StatsList stats={data.statAverages} />}
+            </>
           )}
         </CardContent>
       </Card>
