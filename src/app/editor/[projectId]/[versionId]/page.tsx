@@ -1011,12 +1011,14 @@ export default function VersionEditorPage() {
                               setSelectedElementId(null)
                             }
                           }}
-                          className={`flex-1 min-h-[100px] rounded-lg p-2 transition-all relative group/col ${
+                          className={`flex-1 rounded-lg p-2 transition-all relative group/col ${
+                            col.elements.length === 0 ? 'min-h-[100px]' : 'min-h-[20px]'
+                          } ${
                             !isPreviewMode ? 'border border-dashed cursor-pointer' : ''
                           } ${
                             !isPreviewMode && activeColumn?.rowIndex === rowIndex && activeColumn?.colIndex === colIndex
                               ? 'border-purple-500 bg-purple-500/5'
-                              : !isPreviewMode ? 'border-[#3a3a4e] hover:border-purple-400/50' : ''
+                              : !isPreviewMode ? 'border-transparent hover:border-purple-400/50' : ''
                           }`}
                           style={{ width: col.width }}
                         >
@@ -1846,8 +1848,8 @@ function ElementRenderer({
     case 'divider':
       return (
         <hr 
-          className="border-t"
-          style={{ borderColor: (data.color as string) || '#333' }}
+          className="border-t my-1"
+          style={{ borderColor: (data.color as string) || '#333', borderWidth: '1px' }}
         />
       )
 
@@ -1858,11 +1860,11 @@ function ElementRenderer({
 
     case 'image':
       return (
-        <div className="bg-[#2a2a3e] rounded-lg h-32 flex items-center justify-center">
+        <div className="bg-[#2a2a3e] rounded-lg flex items-center justify-center w-full">
           {data.src ? (
-            <img src={data.src as string} alt={data.alt as string} className="max-h-full rounded-lg" />
+            <img src={data.src as string} alt={data.alt as string} className="w-full h-auto rounded-lg object-contain" />
           ) : (
-            <div className="text-center text-slate-500">
+            <div className="text-center text-slate-500 py-8">
               <ImageIcon size={32} className="mx-auto mb-2" />
               <span className="text-xs">Click to add image</span>
             </div>
