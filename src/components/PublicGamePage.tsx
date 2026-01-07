@@ -147,6 +147,92 @@ function SmallKpi({ label, value, hint }: { label: string; value: string; hint?:
   );
 }
 
+// Snapshot Image Card with click-to-enlarge modal
+function SnapshotImageCard({ imageData, title, type }: { imageData: string; title: string; type: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [scale, setScale] = useState(1);
+
+  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5));
+  const handleReset = () => setScale(1);
+
+  return (
+    <>
+      <Card 
+        className="rounded-2xl border-[#2a2a3e] bg-[#0d0d15] overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
+        onClick={() => setIsOpen(true)}
+      >
+        <div className="relative">
+          <img 
+            src={imageData} 
+            alt={title}
+            className="w-full h-auto"
+          />
+        </div>
+        <CardContent className="p-3">
+          <div className="text-sm font-medium text-white truncate">{title}</div>
+          <div className="text-xs text-slate-500 mt-1">{type}</div>
+        </CardContent>
+      </Card>
+
+      {/* Fullscreen Modal */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setIsOpen(false)}
+        >
+          <div className="absolute top-4 right-4 flex gap-2 z-10">
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleZoomOut(); }}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleReset(); }}
+              className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm transition"
+            >
+              {Math.round(scale * 100)}%
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleZoomIn(); }}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition ml-2"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div 
+            className="max-w-[90vw] max-h-[90vh] overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={imageData} 
+              alt={title}
+              className="transition-transform duration-200"
+              style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+            />
+          </div>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-4 py-2 rounded-xl">
+            {title}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function SharePageCard({ projectId, slug }: { projectId: string; slug: string | null }) {
   const [copied, setCopied] = useState(false);
   const pageUrl = typeof window !== 'undefined' 
@@ -744,6 +830,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
   // Get pinned sections sorted by order
   const pinnedSections = (project.pinnedSections || []).sort((a, b) => a.order - b.order);
   const pinnedSnapshots = pinnedSections.filter(p => p.type === 'SNAPSHOT' && p.snapshot);
+  const pinnedAnalytics = pinnedSections.filter(p => p.type === 'ANALYTICS');
   
   // Convert published versions to Update format for the timeline
   const updates: Update[] = publishedVersions.map(v => ({
@@ -1206,7 +1293,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 </TabsContent>
 
                 {/* Analytics */}
-                <TabsContent value="analytics" className="mt-4 space-y-4">
+                <TabsContent value="analytics" className="mt-4 space-y-6">
                   <div>
                     <div className="text-lg font-semibold tracking-tight">Public Analytics</div>
                     <div className="text-sm text-muted-foreground">
@@ -1214,79 +1301,85 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     </div>
                   </div>
 
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <Card className="rounded-3xl">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Trend by version</CardTitle>
-                        <CardDescription>Fun & difficulty across releases</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-56">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="version" fontSize={12} />
-                            <YAxis fontSize={12} domain={[0, 10]} />
-                            <Tooltip />
-                            <Area type="monotone" dataKey="fun" fillOpacity={0.25} strokeWidth={2} />
-                            <Area type="monotone" dataKey="difficulty" fillOpacity={0.18} strokeWidth={2} />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="rounded-3xl">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Response volume</CardTitle>
-                        <CardDescription>How much data backs each version</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-56">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="version" fontSize={12} />
-                            <YAxis fontSize={12} />
-                            <Tooltip />
-                            <Area type="monotone" dataKey="responses" fillOpacity={0.25} strokeWidth={2} />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Pinned Snapshots */}
-                  {pinnedSnapshots.length > 0 ? (
-                    <div className="space-y-3">
-                      <div className="text-sm font-semibold text-slate-400">Pinned Snapshots</div>
-                      <div className="grid gap-3 lg:grid-cols-2">
-                        {pinnedSnapshots.map((pinned) => (
-                          <Card key={pinned.id} className="rounded-2xl border-[#2a2a3e] bg-[#0d0d15] overflow-hidden">
-                            <div className="aspect-video bg-[#1a1a2e] relative overflow-hidden">
-                              <img 
-                                src={pinned.snapshot!.imageData} 
-                                alt={pinned.title || pinned.snapshot!.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <CardContent className="p-3">
-                              <div className="text-sm font-medium text-white truncate">
-                                {pinned.title || pinned.snapshot!.name}
-                              </div>
-                              <div className="text-xs text-slate-500 mt-1">
-                                {pinned.snapshot!.type}
-                              </div>
+                  {/* Live Analytics Section (max 2) */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                      <div className="text-sm font-semibold text-slate-400">Live Analytics</div>
+                    </div>
+                    {pinnedAnalytics.length > 0 ? (
+                      <div className="space-y-4">
+                        {pinnedAnalytics.slice(0, 2).map((pinned) => (
+                          <Card key={pinned.id} className="rounded-3xl">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-base">{pinned.title || 'Analytics'}</CardTitle>
+                              <CardDescription>{pinned.widgetType || 'Live data'}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-64">
+                              {pinned.widgetType === 'trend-chart' && (
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="version" fontSize={12} />
+                                    <YAxis fontSize={12} domain={[0, 10]} />
+                                    <Tooltip />
+                                    <Area type="monotone" dataKey="fun" fillOpacity={0.25} strokeWidth={2} />
+                                    <Area type="monotone" dataKey="difficulty" fillOpacity={0.18} strokeWidth={2} />
+                                  </AreaChart>
+                                </ResponsiveContainer>
+                              )}
+                              {pinned.widgetType === 'response-volume' && (
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="version" fontSize={12} />
+                                    <YAxis fontSize={12} />
+                                    <Tooltip />
+                                    <Area type="monotone" dataKey="responses" fillOpacity={0.25} strokeWidth={2} />
+                                  </AreaChart>
+                                </ResponsiveContainer>
+                              )}
                             </CardContent>
                           </Card>
                         ))}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="grid gap-3 lg:grid-cols-2">
-                      <SnapshotCard
-                        title="No Pinned Snapshots"
-                        caption="Pin analytics snapshots from the Workspace to display them here."
-                      />
-                    </div>
-                  )}
+                    ) : (
+                      <Card className="rounded-3xl border-dashed border-2 border-[#2a2a3e] bg-transparent">
+                        <CardContent className="py-12 text-center">
+                          <div className="text-muted-foreground">
+                            <div className="text-sm font-medium">No pinned analytics yet</div>
+                            <div className="text-xs mt-1">Pin up to 2 live analytics from Workspace</div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+
+                  {/* Pinned Snapshots Section (max 5) */}
+                  <div className="space-y-3">
+                    <div className="text-sm font-semibold text-slate-400">Pinned Snapshots</div>
+                    {pinnedSnapshots.length > 0 ? (
+                      <div className="space-y-4">
+                        {pinnedSnapshots.slice(0, 5).map((pinned) => (
+                          <SnapshotImageCard 
+                            key={pinned.id}
+                            imageData={pinned.snapshot!.imageData}
+                            title={pinned.title || pinned.snapshot!.name}
+                            type={pinned.snapshot!.type}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="rounded-3xl border-dashed border-2 border-[#2a2a3e] bg-transparent">
+                        <CardContent className="py-12 text-center">
+                          <div className="text-muted-foreground">
+                            <div className="text-sm font-medium">No pinned snapshots yet</div>
+                            <div className="text-xs mt-1">Pin up to 5 snapshots from Workspace</div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
                 </TabsContent>
 
                 {/* Feedback */}

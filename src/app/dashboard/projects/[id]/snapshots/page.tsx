@@ -111,8 +111,18 @@ export default function ProjectSnapshotsPage() {
     document.body.removeChild(link)
   }
 
+  // Max 5 pinned snapshots allowed
+  const MAX_PINNED_SNAPSHOTS = 5
+  
   const handleTogglePin = async (snapshot: Snapshot) => {
     const isPinned = pinnedSnapshotIds.has(snapshot.id)
+    
+    // Check limit before pinning
+    if (!isPinned && pinnedSnapshotIds.size >= MAX_PINNED_SNAPSHOTS) {
+      alert(`You can only pin up to ${MAX_PINNED_SNAPSHOTS} snapshots. Unpin one first.`)
+      return
+    }
+    
     setPinning(snapshot.id)
     
     try {

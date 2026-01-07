@@ -303,9 +303,18 @@ export default function AnalyticsPage() {
     }
   }, [projectId])
 
-  // Toggle pin for analytics widget
+  // Toggle pin for analytics widget (max 2 allowed)
+  const MAX_PINNED_ANALYTICS = 2
+  
   const handleTogglePin = async (widgetType: string, title: string) => {
     const isPinned = pinnedWidgets.has(widgetType)
+    
+    // Check limit before pinning
+    if (!isPinned && pinnedWidgets.size >= MAX_PINNED_ANALYTICS) {
+      alert(`You can only pin up to ${MAX_PINNED_ANALYTICS} live analytics. Unpin one first.`)
+      return
+    }
+    
     setPinLoading(widgetType)
     
     try {
