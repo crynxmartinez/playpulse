@@ -214,12 +214,17 @@ export default function PublicUpdatePage() {
                     backgroundPosition: 'center',
                   }}
                 >
-                  <div className="flex gap-4 p-4">
-                    {row.columns.map((col) => (
+                  <div className={`grid gap-4 p-4 ${
+                      row.columns.length === 1 
+                        ? 'grid-cols-1' 
+                        : row.columns.length === 2 
+                          ? 'grid-cols-1 md:grid-cols-2' 
+                          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    }`}>
+                    {row.columns.map((col, colIndex) => (
                       <div
                         key={col.id}
-                        className="flex-1"
-                        style={{ width: col.width }}
+                        className="w-full"
                       >
                         <div className="space-y-3">
                           {col.elements.map((element) => (

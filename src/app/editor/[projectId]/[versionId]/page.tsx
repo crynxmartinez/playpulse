@@ -1014,7 +1014,13 @@ export default function VersionEditorPage() {
                     
                     {/* Columns */}
                     <div 
-                      className="flex gap-4 p-4 relative"
+                      className={`grid gap-4 p-4 relative ${
+                        row.columns.length === 1 
+                          ? 'grid-cols-1' 
+                          : row.columns.length === 2 
+                            ? 'grid-cols-1 md:grid-cols-2' 
+                            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                      }`}
                       style={{ 
                         backgroundColor: row.settings.backgroundColor !== 'transparent' 
                           ? `rgba(${parseInt(row.settings.backgroundColor?.slice(1, 3) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(3, 5) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(5, 7) || '2e', 16)}, ${row.settings.backgroundOpacity ?? 1})`
@@ -1034,7 +1040,7 @@ export default function VersionEditorPage() {
                               setSelectedElementId(null)
                             }
                           }}
-                          className={`flex-1 rounded-lg p-2 transition-all relative group/col ${
+                          className={`w-full rounded-lg p-2 transition-all relative group/col ${
                             col.elements.length === 0 ? 'min-h-[100px]' : 'min-h-[20px]'
                           } ${
                             !isPreviewMode ? 'border border-dashed cursor-pointer' : ''
@@ -1043,7 +1049,6 @@ export default function VersionEditorPage() {
                               ? 'border-purple-500 bg-purple-500/5'
                               : !isPreviewMode ? 'border-transparent hover:border-purple-400/50' : ''
                           }`}
-                          style={{ width: col.width }}
                         >
                           {/* Column Controls */}
                           {!isPreviewMode && (
