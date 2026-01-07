@@ -40,6 +40,7 @@ export default async function GamePage({ params }: PageProps) {
       websiteUrl: true,
       discordUrl: true,
       rules: true,
+      rulesPdfUrl: true,
       features: true,
       user: {
         select: {

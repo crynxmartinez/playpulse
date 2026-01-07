@@ -829,7 +829,10 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     </Badge>
                   </div>
                   <div className="mt-1 text-sm text-slate-400">by {developerName}</div>
-                  <div className="mt-1 text-sm text-slate-300">{project.description || "A game in development."}</div>
+                  <div 
+                    className="mt-1 text-sm text-slate-300"
+                    dangerouslySetInnerHTML={{ __html: project.description || "A game in development." }}
+                  />
                 </div>
               </div>
 
@@ -1017,9 +1020,9 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
               <Card className="rounded-3xl border-[#2a2a3e] bg-[#0d0d15]">
                 <CardHeader>
                   <CardTitle className="text-base text-white">About</CardTitle>
-                  <CardDescription>
-                    {project.description || "A game in development on PlayPulse."}
-                  </CardDescription>
+                  <CardDescription 
+                    dangerouslySetInnerHTML={{ __html: project.description || "A game in development on PlayPulse." }}
+                  />
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
                   {/* How to Play / Rules */}
@@ -1028,18 +1031,14 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                       <div className="text-sm font-semibold text-white mb-2">How to Play</div>
                       {project.rulesPdfUrl ? (
                         <div className="space-y-3">
-                          <iframe
-                            src={`https://docs.google.com/viewer?url=${encodeURIComponent(project.rulesPdfUrl)}&embedded=true`}
-                            className="w-full h-[400px] rounded-lg border border-[#2a2a3e]"
-                            title="Rules PDF"
-                          />
                           <a 
                             href={project.rulesPdfUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-xs text-primary hover:underline"
+                            className="inline-flex items-center gap-2 text-sm text-primary hover:underline cursor-pointer"
                           >
-                            <ExternalLink className="h-3 w-3" /> Open PDF in new tab
+                            <ExternalLink className="h-4 w-4" /> 
+                            {project.rules || 'View Rules PDF'}
                           </a>
                         </div>
                       ) : (
