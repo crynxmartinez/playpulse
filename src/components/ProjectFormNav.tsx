@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Eye, FileText, Megaphone, ImageIcon } from 'lucide-react'
+import { Eye, FileText, Megaphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ProjectFormNavProps {
@@ -16,8 +16,7 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
   // Determine active mode based on URL
   const isFormMode = pathname.includes('/forms') || pathname.includes('/stats') || pathname.includes('/responses') || pathname.includes('/analytics') || pathname.includes('/snapshots')
   const isUpdatesMode = pathname.includes('/updates')
-  const isGalleryMode = pathname.includes('/gallery')
-  const isOverviewMode = !isFormMode && !isUpdatesMode && !isGalleryMode
+  const isOverviewMode = !isFormMode && !isUpdatesMode && !pathname.includes('/gallery') && !pathname.includes('/feedback') && !pathname.includes('/settings')
   
   return (
     <div className="mb-3">
@@ -57,18 +56,6 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
         >
           <Megaphone size={14} />
           <span>Updates</span>
-        </Link>
-        <Link
-          href={`${basePath}/gallery`}
-          className={cn(
-            "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
-            isGalleryMode
-              ? "bg-purple-600 text-white shadow-sm"
-              : "text-slate-400 hover:text-white"
-          )}
-        >
-          <ImageIcon size={14} />
-          <span>Gallery</span>
         </Link>
       </div>
     </div>
