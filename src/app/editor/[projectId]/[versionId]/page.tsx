@@ -202,6 +202,8 @@ export default function VersionEditorPage() {
   const [showElementPicker, setShowElementPicker] = useState(false)
   const [insertPosition, setInsertPosition] = useState<{ rowIndex: number; colIndex: number } | null>(null)
   const [activeColumn, setActiveColumn] = useState<{ rowIndex: number; colIndex: number } | null>(null)
+  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
+  const [rightPanelTab, setRightPanelTab] = useState<'properties' | 'row'>('properties')
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [copied, setCopied] = useState(false)
   const [versionsWithCards, setVersionsWithCards] = useState<VersionWithCards[]>([])
@@ -830,10 +832,17 @@ export default function VersionEditorPage() {
                     onDragLeave={handleRowDragLeave}
                     onDrop={(e) => handleRowDrop(e, rowIndex)}
                     onDragEnd={handleRowDragEnd}
+                    onClick={() => {
+                      if (!isPreviewMode) {
+                        setSelectedRowIndex(rowIndex)
+                        setRightPanelTab('row')
+                      }
+                    }}
                     className={`group relative border-2 rounded-lg transition-all ${
-                      !isPreviewMode ? 'hover:border-purple-500/50 cursor-grab active:cursor-grabbing' : ''
+                      !isPreviewMode ? 'hover:border-purple-500/50 cursor-pointer' : ''
                     } ${
-                      dragOverRowIndex === rowIndex ? 'border-purple-500 bg-purple-500/10' : 'border-transparent'
+                      dragOverRowIndex === rowIndex ? 'border-purple-500 bg-purple-500/10' : 
+                      selectedRowIndex === rowIndex ? 'border-purple-500/30' : 'border-transparent'
                     } ${
                       draggedRowIndex === rowIndex ? 'opacity-50' : ''
                     }`}
@@ -858,53 +867,7 @@ export default function VersionEditorPage() {
                     </div>
                     )}
                     
-                    {/* Row Background Settings (hidden in preview mode) */}
-                    {!isPreviewMode && (
-                    <div className="absolute -right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <div className="bg-[#2a2a3e] rounded-lg p-2 shadow-lg">
-                        <div className="text-xs text-slate-400 mb-2">Row Background</div>
-                        <div className="space-y-2">
-                          <div>
-                            <label className="block text-xs text-slate-500 mb-1">Color</label>
-                            <input
-                              type="color"
-                              value={row.settings.backgroundColor === 'transparent' ? '#1a1a2e' : (row.settings.backgroundColor || '#1a1a2e')}
-                              onChange={(e) => updateRowSettings(rowIndex, { backgroundColor: e.target.value })}
-                              className="w-full h-6 rounded cursor-pointer"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-slate-500 mb-1">Opacity: {Math.round((row.settings.backgroundOpacity ?? 1) * 100)}%</label>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              value={(row.settings.backgroundOpacity ?? 1) * 100}
-                              onChange={(e) => updateRowSettings(rowIndex, { backgroundOpacity: parseInt(e.target.value) / 100 })}
-                              className="w-full h-1 bg-[#3a3a4e] rounded-lg appearance-none cursor-pointer"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-slate-500 mb-1">Image URL</label>
-                            <input
-                              type="text"
-                              value={row.settings.backgroundImage || ''}
-                              onChange={(e) => updateRowSettings(rowIndex, { backgroundImage: e.target.value })}
-                              placeholder="https://..."
-                              className="w-full px-2 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-xs text-white"
-                            />
-                          </div>
-                          <button
-                            onClick={() => updateRowSettings(rowIndex, { backgroundColor: 'transparent', backgroundOpacity: 1, backgroundImage: '' })}
-                            className="w-full text-xs text-slate-400 hover:text-white py-1"
-                          >
-                            Reset
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    )}
-
+                    
                     {/* Columns */}
                     <div 
                       className="flex gap-4 p-4 relative"
@@ -962,7 +925,13 @@ export default function VersionEditorPage() {
                                   onDragLeave={handleElementDragLeave}
                                   onDrop={(e) => handleElementDrop(e, rowIndex, colIndex, elementIndex)}
                                   onDragEnd={handleElementDragEnd}
-                                  onClick={() => !isPreviewMode && setSelectedElementId(element.id)}
+                                  onClick={(e) => {
+                                    if (!isPreviewMode) {
+                                      e.stopPropagation()
+                                      setSelectedElementId(element.id)
+                                      setRightPanelTab('properties')
+                                    }
+                                  }}
                                   className={`relative p-3 rounded-lg transition-all ${
                                     !isPreviewMode ? 'cursor-grab active:cursor-grabbing' : ''
                                   } ${
@@ -1059,26 +1028,106 @@ export default function VersionEditorPage() {
         {/* Right Sidebar - Properties (hidden in preview mode) */}
         {!isPreviewMode && (
         <div className="w-72 bg-[#1a1a2e] border-l border-[#2a2a3e] flex flex-col overflow-hidden shrink-0">
-          <div className="p-3 border-b border-[#2a2a3e] flex items-center gap-2">
-            <Settings size={16} className="text-slate-400" />
-            <span className="text-sm font-medium text-white">Properties</span>
+          {/* Tabs */}
+          <div className="flex border-b border-[#2a2a3e]">
+            <button
+              onClick={() => setRightPanelTab('properties')}
+              className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+                rightPanelTab === 'properties' 
+                  ? 'text-white border-b-2 border-purple-500 bg-purple-500/10' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Properties
+            </button>
+            <button
+              onClick={() => setRightPanelTab('row')}
+              className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+                rightPanelTab === 'row' 
+                  ? 'text-white border-b-2 border-purple-500 bg-purple-500/10' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Row Settings
+            </button>
           </div>
+          
           <div className="flex-1 overflow-y-auto p-4">
-            {selectedElement ? (
-              <ElementProperties 
-                element={selectedElement} 
-                onUpdate={(data) => updateElementData(selectedElement.id, data)}
-                versionsWithCards={versionsWithCards}
-              />
-            ) : (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 rounded-full bg-[#2a2a3e] flex items-center justify-center mx-auto mb-3">
-                  <Palette size={20} className="text-slate-400" />
+            {rightPanelTab === 'properties' ? (
+              selectedElement ? (
+                <ElementProperties 
+                  element={selectedElement} 
+                  onUpdate={(data) => updateElementData(selectedElement.id, data)}
+                  versionsWithCards={versionsWithCards}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 rounded-full bg-[#2a2a3e] flex items-center justify-center mx-auto mb-3">
+                    <Palette size={20} className="text-slate-400" />
+                  </div>
+                  <p className="text-sm text-slate-400">
+                    Select an element to edit its properties
+                  </p>
                 </div>
-                <p className="text-sm text-slate-400">
-                  Select an element to edit its properties
-                </p>
-              </div>
+              )
+            ) : (
+              /* Row Settings Tab */
+              selectedRowIndex !== null && content.rows[selectedRowIndex] ? (
+                <div className="space-y-4">
+                  <div className="text-sm text-slate-400 mb-2">Row {selectedRowIndex + 1} Settings</div>
+                  
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1">Background Color</label>
+                    <input
+                      type="color"
+                      value={content.rows[selectedRowIndex].settings.backgroundColor === 'transparent' ? '#1a1a2e' : (content.rows[selectedRowIndex].settings.backgroundColor || '#1a1a2e')}
+                      onChange={(e) => updateRowSettings(selectedRowIndex, { backgroundColor: e.target.value })}
+                      className="w-full h-8 rounded cursor-pointer"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1">
+                      Opacity: {Math.round((content.rows[selectedRowIndex].settings.backgroundOpacity ?? 1) * 100)}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={(content.rows[selectedRowIndex].settings.backgroundOpacity ?? 1) * 100}
+                      onChange={(e) => updateRowSettings(selectedRowIndex, { backgroundOpacity: parseInt(e.target.value) / 100 })}
+                      className="w-full h-2 bg-[#3a3a4e] rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1">Background Image URL</label>
+                    <input
+                      type="text"
+                      value={content.rows[selectedRowIndex].settings.backgroundImage || ''}
+                      onChange={(e) => updateRowSettings(selectedRowIndex, { backgroundImage: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-[#0d0d15] border border-[#3a3a4e] rounded-lg text-sm text-white"
+                    />
+                  </div>
+                  
+                  <button
+                    onClick={() => updateRowSettings(selectedRowIndex, { backgroundColor: 'transparent', backgroundOpacity: 1, backgroundImage: '' })}
+                    className="w-full text-sm text-slate-400 hover:text-white py-2 border border-[#3a3a4e] rounded-lg hover:border-slate-500 transition-colors"
+                  >
+                    Reset to Default
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 rounded-full bg-[#2a2a3e] flex items-center justify-center mx-auto mb-3">
+                    <Settings size={20} className="text-slate-400" />
+                  </div>
+                  <p className="text-sm text-slate-400">
+                    Click on a row to edit its settings
+                  </p>
+                </div>
+              )
             )}
           </div>
         </div>
