@@ -529,6 +529,29 @@ export default function VersionEditorPage() {
     updateContentWithHistory({ ...content, rows: newRows })
   }
 
+  // Delete column
+  const deleteColumn = (rowIndex: number, colIndex: number) => {
+    const newRows = [...content.rows]
+    const row = newRows[rowIndex]
+    
+    // If only 1 column, delete the entire row
+    if (row.columns.length <= 1) {
+      newRows.splice(rowIndex, 1)
+    } else {
+      // Remove the column
+      row.columns.splice(colIndex, 1)
+      // Recalculate widths
+      const colCount = row.columns.length
+      row.columns = row.columns.map(col => ({
+        ...col,
+        width: `${100 / colCount}%`
+      }))
+    }
+    
+    updateContentWithHistory({ ...content, rows: newRows })
+    setActiveColumn(null)
+  }
+
   // Move column to another row
   const moveColumnToRow = (fromRowIndex: number, fromColIndex: number, toRowIndex: number) => {
     if (fromRowIndex === toRowIndex) return
@@ -1034,6 +1057,16 @@ export default function VersionEditorPage() {
                                 title="Duplicate column"
                               >
                                 <Copy size={10} />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  deleteColumn(rowIndex, colIndex)
+                                }}
+                                className="p-1 bg-[#2a2a3e] rounded text-slate-400 hover:text-red-400 text-xs"
+                                title="Delete column"
+                              >
+                                <Trash2 size={10} />
                               </button>
                             </div>
                           )}
