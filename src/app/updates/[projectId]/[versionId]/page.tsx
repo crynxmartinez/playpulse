@@ -375,16 +375,17 @@ function ElementRenderer({ element, onImageClick }: { element: Element; onImageC
 
     case 'image':
       return (
-        <div className="rounded-lg overflow-hidden">
+        <div className="rounded-lg overflow-hidden flex items-center justify-center">
           {data.src ? (
             <img 
               src={data.src as string} 
               alt={(data.alt as string) || ''} 
-              className="w-full cursor-pointer hover:opacity-90 transition-opacity" 
+              className="max-w-full cursor-pointer hover:opacity-90 transition-opacity" 
+              style={{ maxHeight: '300px', objectFit: 'contain' }}
               onClick={() => onImageClick && onImageClick(data.src as string)}
             />
           ) : (
-            <div className="h-40 bg-[#2a2a3e] flex items-center justify-center">
+            <div className="h-40 bg-[#2a2a3e] flex items-center justify-center w-full">
               <ImageIcon size={32} className="text-slate-500" />
             </div>
           )}
