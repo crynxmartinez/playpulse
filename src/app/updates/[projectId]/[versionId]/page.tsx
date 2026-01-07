@@ -221,7 +221,7 @@ export default function PublicUpdatePage() {
                         className="flex-1"
                         style={{ width: col.width }}
                       >
-                        <div className="space-y-1">
+                        <div className="space-y-3">
                           {col.elements.map((element) => (
                             <div 
                               key={element.id} 
@@ -230,10 +230,10 @@ export default function PublicUpdatePage() {
                                 marginRight: element.data.marginRight === 'auto' ? 'auto' : (typeof element.data.marginRight === 'number' ? element.data.marginRight : 0),
                                 marginBottom: element.data.marginBottom === 'auto' ? 'auto' : (typeof element.data.marginBottom === 'number' ? element.data.marginBottom : 0),
                                 marginLeft: element.data.marginLeft === 'auto' ? 'auto' : (typeof element.data.marginLeft === 'number' ? element.data.marginLeft : 0),
-                                paddingTop: element.data.paddingTop === 'auto' ? 0 : (typeof element.data.paddingTop === 'number' ? element.data.paddingTop : 0),
-                                paddingRight: element.data.paddingRight === 'auto' ? 0 : (typeof element.data.paddingRight === 'number' ? element.data.paddingRight : 0),
-                                paddingBottom: element.data.paddingBottom === 'auto' ? 0 : (typeof element.data.paddingBottom === 'number' ? element.data.paddingBottom : 0),
-                                paddingLeft: element.data.paddingLeft === 'auto' ? 0 : (typeof element.data.paddingLeft === 'number' ? element.data.paddingLeft : 0),
+                                paddingTop: (element.data.paddingTop === 'auto' ? 0 : (typeof element.data.paddingTop === 'number' ? element.data.paddingTop : 0)) + 12,
+                                paddingRight: (element.data.paddingRight === 'auto' ? 0 : (typeof element.data.paddingRight === 'number' ? element.data.paddingRight : 0)) + 12,
+                                paddingBottom: (element.data.paddingBottom === 'auto' ? 0 : (typeof element.data.paddingBottom === 'number' ? element.data.paddingBottom : 0)) + 12,
+                                paddingLeft: (element.data.paddingLeft === 'auto' ? 0 : (typeof element.data.paddingLeft === 'number' ? element.data.paddingLeft : 0)) + 12,
                               }}
                             >
                               <ElementRenderer element={element} onImageClick={setLightboxImage} />
