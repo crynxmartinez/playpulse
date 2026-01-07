@@ -1015,11 +1015,15 @@ export default function VersionEditorPage() {
                     {/* Columns */}
                     <div 
                       className={`grid gap-4 p-4 relative ${
-                        row.columns.length === 1 
-                          ? 'grid-cols-1' 
-                          : row.columns.length === 2 
-                            ? 'grid-cols-1 md:grid-cols-2' 
-                            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                        devicePreview === 'mobile' 
+                          ? 'grid-cols-1'
+                          : devicePreview === 'tablet'
+                            ? (row.columns.length === 1 ? 'grid-cols-1' : 'grid-cols-2')
+                            : (row.columns.length === 1 
+                                ? 'grid-cols-1' 
+                                : row.columns.length === 2 
+                                  ? 'grid-cols-2' 
+                                  : 'grid-cols-3')
                       }`}
                       style={{ 
                         backgroundColor: row.settings.backgroundColor !== 'transparent' 
