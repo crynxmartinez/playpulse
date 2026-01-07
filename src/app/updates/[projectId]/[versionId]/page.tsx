@@ -223,7 +223,19 @@ export default function PublicUpdatePage() {
                       >
                         <div className="space-y-1">
                           {col.elements.map((element) => (
-                            <div key={element.id} className="p-1">
+                            <div 
+                              key={element.id} 
+                              style={{
+                                marginTop: (element.data.marginTop as number) || 0,
+                                marginRight: (element.data.marginRight as number) || 0,
+                                marginBottom: (element.data.marginBottom as number) || 0,
+                                marginLeft: (element.data.marginLeft as number) || 0,
+                                paddingTop: (element.data.paddingTop as number) || 0,
+                                paddingRight: (element.data.paddingRight as number) || 0,
+                                paddingBottom: (element.data.paddingBottom as number) || 0,
+                                paddingLeft: (element.data.paddingLeft as number) || 0,
+                              }}
+                            >
                               <ElementRenderer element={element} onImageClick={setLightboxImage} />
                             </div>
                           ))}
@@ -458,14 +470,27 @@ function ElementRenderer({ element, onImageClick }: { element: Element; onImageC
       )
 
     case 'image':
+      const imgWidth = (data.width as string) || 'auto'
+      const imgHeight = (data.height as string) || 'auto'
       return (
-        <div className="rounded-lg flex items-center justify-center w-full">
+        <div 
+          className="rounded-lg flex items-center justify-center"
+          style={{
+            width: imgWidth === 'auto' ? '100%' : imgWidth,
+            height: imgHeight === 'auto' ? 'auto' : imgHeight,
+          }}
+        >
           {data.src ? (
             <img 
               src={data.src as string} 
               alt={(data.alt as string) || ''} 
-              className="w-full max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
-              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+              style={{ 
+                width: imgWidth === 'auto' ? '100%' : imgWidth,
+                height: imgHeight === 'auto' ? 'auto' : imgHeight,
+                maxHeight: imgHeight === 'auto' ? '400px' : undefined,
+                objectFit: 'contain' 
+              }}
               onClick={() => onImageClick && onImageClick(data.src as string)}
             />
           ) : (

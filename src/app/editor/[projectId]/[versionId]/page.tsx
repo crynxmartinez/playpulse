@@ -1103,7 +1103,7 @@ export default function VersionEditorPage() {
                                       setRightPanelTab('properties')
                                     }
                                   }}
-                                  className={`relative p-3 rounded-lg transition-all ${
+                                  className={`relative rounded-lg transition-all ${
                                     !isPreviewMode ? 'cursor-grab active:cursor-grabbing' : ''
                                   } ${
                                     !isPreviewMode && selectedElementId === element.id
@@ -1120,6 +1120,16 @@ export default function VersionEditorPage() {
                                     draggedElement?.elementIndex === elementIndex 
                                       ? 'opacity-50' : ''
                                   }`}
+                                  style={{
+                                    marginTop: (element.data.marginTop as number) || 0,
+                                    marginRight: (element.data.marginRight as number) || 0,
+                                    marginBottom: (element.data.marginBottom as number) || 0,
+                                    marginLeft: (element.data.marginLeft as number) || 0,
+                                    paddingTop: ((element.data.paddingTop as number) || 0) + 12,
+                                    paddingRight: ((element.data.paddingRight as number) || 0) + 12,
+                                    paddingBottom: ((element.data.paddingBottom as number) || 0) + 12,
+                                    paddingLeft: ((element.data.paddingLeft as number) || 0) + 12,
+                                  }}
                                 >
                                   {/* Element Renderer with inline editing */}
                                   <ElementRenderer 
@@ -1895,14 +1905,27 @@ function ElementRenderer({
       )
 
     case 'image':
+      const imgWidth = (data.width as string) || 'auto'
+      const imgHeight = (data.height as string) || 'auto'
       return (
-        <div className="rounded-lg flex items-center justify-center w-full">
+        <div 
+          className="rounded-lg flex items-center justify-center"
+          style={{
+            width: imgWidth === 'auto' ? '100%' : imgWidth,
+            height: imgHeight === 'auto' ? 'auto' : imgHeight,
+          }}
+        >
           {data.src ? (
             <img 
               src={data.src as string} 
               alt={data.alt as string} 
-              className={`w-full max-w-full rounded-lg transition-opacity ${!isEditing ? 'cursor-pointer hover:opacity-90' : ''}`}
-              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              className={`max-w-full rounded-lg transition-opacity ${!isEditing ? 'cursor-pointer hover:opacity-90' : ''}`}
+              style={{ 
+                width: imgWidth === 'auto' ? '100%' : imgWidth,
+                height: imgHeight === 'auto' ? 'auto' : imgHeight,
+                maxHeight: imgHeight === 'auto' ? '400px' : undefined,
+                objectFit: 'contain' 
+              }}
               onClick={(e) => {
                 if (!isEditing) {
                   e.stopPropagation()
@@ -2380,6 +2403,32 @@ function ElementProperties({
               className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
             />
           </div>
+          <div className="border-t border-[#2a2a3e] pt-3 mt-3">
+            <label className="block text-xs text-slate-400 mb-2">Container Size</label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Width</label>
+                <input
+                  type="text"
+                  value={(data.width as string) || 'auto'}
+                  onChange={(e) => onUpdate({ width: e.target.value })}
+                  placeholder="auto"
+                  className="w-full px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded text-white text-xs focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Height</label>
+                <input
+                  type="text"
+                  value={(data.height as string) || 'auto'}
+                  onChange={(e) => onUpdate({ height: e.target.value })}
+                  placeholder="auto"
+                  className="w-full px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded text-white text-xs focus:outline-none focus:border-purple-500"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">Use px, %, or auto</p>
+          </div>
         </>
       )}
 
@@ -2474,6 +2523,105 @@ function ElementProperties({
           />
         </div>
       )}
+
+      {/* Margin & Padding - Available for all elements */}
+      <div className="border-t border-[#2a2a3e] pt-3 mt-3">
+        <label className="block text-xs text-slate-400 mb-2">Margin & Padding</label>
+        
+        {/* Visual Box Model */}
+        <div className="relative bg-[#0d0d15] rounded-lg p-2">
+          {/* Margin Box */}
+          <div className="text-xs text-slate-500 mb-1">MARGIN</div>
+          <div className="border border-dashed border-slate-600 p-2 rounded">
+            {/* Margin Top */}
+            <div className="flex justify-center mb-1">
+              <input
+                type="number"
+                value={(data.marginTop as number) || 0}
+                onChange={(e) => onUpdate({ marginTop: parseInt(e.target.value) || 0 })}
+                className="w-12 px-1 py-0.5 bg-transparent border border-[#3a3a4e] rounded text-center text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+                min="0"
+              />
+            </div>
+            
+            <div className="flex items-center gap-1">
+              {/* Margin Left */}
+              <input
+                type="number"
+                value={(data.marginLeft as number) || 0}
+                onChange={(e) => onUpdate({ marginLeft: parseInt(e.target.value) || 0 })}
+                className="w-12 px-1 py-0.5 bg-transparent border border-[#3a3a4e] rounded text-center text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+                min="0"
+              />
+              
+              {/* Padding Box */}
+              <div className="flex-1 border border-purple-500/30 bg-purple-500/5 rounded p-2">
+                <div className="text-xs text-purple-400 text-center mb-1">PADDING</div>
+                {/* Padding Top */}
+                <div className="flex justify-center mb-1">
+                  <input
+                    type="number"
+                    value={(data.paddingTop as number) || 0}
+                    onChange={(e) => onUpdate({ paddingTop: parseInt(e.target.value) || 0 })}
+                    className="w-10 px-1 py-0.5 bg-[#1a1a2e] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+                    min="0"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  {/* Padding Left */}
+                  <input
+                    type="number"
+                    value={(data.paddingLeft as number) || 0}
+                    onChange={(e) => onUpdate({ paddingLeft: parseInt(e.target.value) || 0 })}
+                    className="w-10 px-1 py-0.5 bg-[#1a1a2e] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+                    min="0"
+                  />
+                  <div className="w-8 h-6 bg-[#2a2a3e] rounded" />
+                  {/* Padding Right */}
+                  <input
+                    type="number"
+                    value={(data.paddingRight as number) || 0}
+                    onChange={(e) => onUpdate({ paddingRight: parseInt(e.target.value) || 0 })}
+                    className="w-10 px-1 py-0.5 bg-[#1a1a2e] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+                    min="0"
+                  />
+                </div>
+                {/* Padding Bottom */}
+                <div className="flex justify-center mt-1">
+                  <input
+                    type="number"
+                    value={(data.paddingBottom as number) || 0}
+                    onChange={(e) => onUpdate({ paddingBottom: parseInt(e.target.value) || 0 })}
+                    className="w-10 px-1 py-0.5 bg-[#1a1a2e] border border-[#3a3a4e] rounded text-center text-xs text-white focus:outline-none focus:border-purple-500"
+                    min="0"
+                  />
+                </div>
+              </div>
+              
+              {/* Margin Right */}
+              <input
+                type="number"
+                value={(data.marginRight as number) || 0}
+                onChange={(e) => onUpdate({ marginRight: parseInt(e.target.value) || 0 })}
+                className="w-12 px-1 py-0.5 bg-transparent border border-[#3a3a4e] rounded text-center text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+                min="0"
+              />
+            </div>
+            
+            {/* Margin Bottom */}
+            <div className="flex justify-center mt-1">
+              <input
+                type="number"
+                value={(data.marginBottom as number) || 0}
+                onChange={(e) => onUpdate({ marginBottom: parseInt(e.target.value) || 0 })}
+                className="w-12 px-1 py-0.5 bg-transparent border border-[#3a3a4e] rounded text-center text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+                min="0"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 mt-1 text-center">Values in pixels</p>
+        </div>
+      </div>
     </div>
   )
 }
