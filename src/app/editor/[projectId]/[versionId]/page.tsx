@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { 
   ArrowLeft, 
@@ -28,7 +28,9 @@ import {
   Palette,
   Move,
   Share2,
-  Check
+  Check,
+  Undo2,
+  Redo2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -68,6 +70,8 @@ interface Row {
 
 interface RowSettings {
   backgroundColor?: string
+  backgroundOpacity?: number
+  backgroundImage?: string
   padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl'
   maxWidth?: 'full' | 'xl' | '2xl' | '4xl' | '6xl'
 }
@@ -197,9 +201,15 @@ export default function VersionEditorPage() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['layout', 'text', 'game'])
   const [showElementPicker, setShowElementPicker] = useState(false)
   const [insertPosition, setInsertPosition] = useState<{ rowIndex: number; colIndex: number } | null>(null)
+  const [activeColumn, setActiveColumn] = useState<{ rowIndex: number; colIndex: number } | null>(null)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [copied, setCopied] = useState(false)
   const [versionsWithCards, setVersionsWithCards] = useState<VersionWithCards[]>([])
+  
+  // Undo/Redo history (max 10 states)
+  const [history, setHistory] = useState<PageContent[]>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  const MAX_HISTORY = 10
 
   // Copy share link
   const copyShareLink = () => {
@@ -208,6 +218,41 @@ export default function VersionEditorPage() {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  // Update content with history tracking
+  const updateContentWithHistory = useCallback((newContent: PageContent) => {
+    // Add current state to history before updating
+    setHistory(prev => {
+      const newHistory = [...prev.slice(0, historyIndex + 1), content]
+      // Keep only last MAX_HISTORY states
+      if (newHistory.length > MAX_HISTORY) {
+        return newHistory.slice(-MAX_HISTORY)
+      }
+      return newHistory
+    })
+    setHistoryIndex(prev => Math.min(prev + 1, MAX_HISTORY - 1))
+    setContent(newContent)
+  }, [content, historyIndex, MAX_HISTORY])
+
+  // Undo function
+  const undo = useCallback(() => {
+    if (historyIndex >= 0 && history.length > 0) {
+      const previousState = history[historyIndex]
+      setContent(previousState)
+      setHistoryIndex(prev => prev - 1)
+    }
+  }, [history, historyIndex])
+
+  // Redo function  
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const nextState = history[historyIndex + 1]
+      if (nextState) {
+        setContent(nextState)
+        setHistoryIndex(prev => prev + 1)
+      }
+    }
+  }, [history, historyIndex])
 
   // Fetch version and page data
   useEffect(() => {
@@ -354,6 +399,26 @@ export default function VersionEditorPage() {
     }
   }, [content, projectId, versionId])
 
+  // Keyboard shortcuts for undo/redo/save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          redo()
+        } else {
+          undo()
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        saveContent()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [undo, redo, saveContent])
+
   // Add a row
   const addRow = (columns: number = 1) => {
     const columnWidth = `${100 / columns}%`
@@ -371,7 +436,7 @@ export default function VersionEditorPage() {
         elements: [],
       })),
     }
-    setContent({ ...content, rows: [...content.rows, newRow] })
+    updateContentWithHistory({ ...content, rows: [...content.rows, newRow] })
   }
 
   // Add element to a column
@@ -385,7 +450,7 @@ export default function VersionEditorPage() {
     
     const newRows = [...content.rows]
     newRows[rowIndex].columns[colIndex].elements.push(newElement)
-    setContent({ ...content, rows: newRows })
+    updateContentWithHistory({ ...content, rows: newRows })
     setSelectedElementId(newElement.id)
     setShowElementPicker(false)
     setInsertPosition(null)
@@ -400,14 +465,24 @@ export default function VersionEditorPage() {
         elements: col.elements.filter(el => el.id !== elementId),
       })),
     }))
-    setContent({ ...content, rows: newRows })
+    updateContentWithHistory({ ...content, rows: newRows })
     setSelectedElementId(null)
   }
 
   // Delete row
   const deleteRow = (rowIndex: number) => {
     const newRows = content.rows.filter((_, i) => i !== rowIndex)
-    setContent({ ...content, rows: newRows })
+    updateContentWithHistory({ ...content, rows: newRows })
+  }
+
+  // Update row settings
+  const updateRowSettings = (rowIndex: number, settings: Partial<RowSettings>) => {
+    const newRows = [...content.rows]
+    newRows[rowIndex] = {
+      ...newRows[rowIndex],
+      settings: { ...newRows[rowIndex].settings, ...settings }
+    }
+    updateContentWithHistory({ ...content, rows: newRows })
   }
 
   // Find selected element
@@ -432,7 +507,7 @@ export default function VersionEditorPage() {
         ),
       })),
     }))
-    setContent({ ...content, rows: newRows })
+    updateContentWithHistory({ ...content, rows: newRows })
   }
 
   // Toggle category
@@ -598,6 +673,25 @@ export default function VersionEditorPage() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
+          {/* Undo/Redo buttons */}
+          <div className="flex items-center gap-1 mr-2">
+            <button
+              onClick={undo}
+              disabled={historyIndex < 0}
+              title="Undo (Ctrl+Z)"
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#2a2a3e] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Undo2 size={18} />
+            </button>
+            <button
+              onClick={redo}
+              disabled={historyIndex >= history.length - 1}
+              title="Redo (Ctrl+Shift+Z)"
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#2a2a3e] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Redo2 size={18} />
+            </button>
+          </div>
           <button 
             onClick={copyShareLink}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
@@ -634,6 +728,11 @@ export default function VersionEditorPage() {
         <div className="w-64 bg-[#1a1a2e] border-r border-[#2a2a3e] flex flex-col overflow-hidden shrink-0">
           <div className="p-3 border-b border-[#2a2a3e]">
             <div className="text-sm font-medium text-white">Elements</div>
+            {activeColumn && (
+              <div className="text-xs text-purple-400 mt-1">
+                Inserting to Row {activeColumn.rowIndex + 1}, Col {activeColumn.colIndex + 1}
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             {ELEMENT_CATEGORIES.map((category) => (
@@ -660,8 +759,13 @@ export default function VersionEditorPage() {
                             addRow(1)
                             setTimeout(() => {
                               addElement(element.type, 0, 0)
+                              setActiveColumn({ rowIndex: 0, colIndex: 0 })
                             }, 0)
+                          } else if (activeColumn) {
+                            // Use active column if one is selected
+                            addElement(element.type, activeColumn.rowIndex, activeColumn.colIndex)
                           } else {
+                            // Default to last row, first column
                             addElement(element.type, content.rows.length - 1, 0)
                           }
                         }}
@@ -753,23 +857,92 @@ export default function VersionEditorPage() {
                       </div>
                     </div>
                     )}
+                    
+                    {/* Row Background Settings (hidden in preview mode) */}
+                    {!isPreviewMode && (
+                    <div className="absolute -right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <div className="bg-[#2a2a3e] rounded-lg p-2 shadow-lg">
+                        <div className="text-xs text-slate-400 mb-2">Row Background</div>
+                        <div className="space-y-2">
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">Color</label>
+                            <input
+                              type="color"
+                              value={row.settings.backgroundColor === 'transparent' ? '#1a1a2e' : (row.settings.backgroundColor || '#1a1a2e')}
+                              onChange={(e) => updateRowSettings(rowIndex, { backgroundColor: e.target.value })}
+                              className="w-full h-6 rounded cursor-pointer"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">Opacity: {Math.round((row.settings.backgroundOpacity ?? 1) * 100)}%</label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={(row.settings.backgroundOpacity ?? 1) * 100}
+                              onChange={(e) => updateRowSettings(rowIndex, { backgroundOpacity: parseInt(e.target.value) / 100 })}
+                              className="w-full h-1 bg-[#3a3a4e] rounded-lg appearance-none cursor-pointer"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">Image URL</label>
+                            <input
+                              type="text"
+                              value={row.settings.backgroundImage || ''}
+                              onChange={(e) => updateRowSettings(rowIndex, { backgroundImage: e.target.value })}
+                              placeholder="https://..."
+                              className="w-full px-2 py-1 bg-[#0d0d15] border border-[#3a3a4e] rounded text-xs text-white"
+                            />
+                          </div>
+                          <button
+                            onClick={() => updateRowSettings(rowIndex, { backgroundColor: 'transparent', backgroundOpacity: 1, backgroundImage: '' })}
+                            className="w-full text-xs text-slate-400 hover:text-white py-1"
+                          >
+                            Reset
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    )}
 
                     {/* Columns */}
                     <div 
-                      className="flex gap-4 p-4"
-                      style={{ backgroundColor: row.settings.backgroundColor }}
+                      className="flex gap-4 p-4 relative"
+                      style={{ 
+                        backgroundColor: row.settings.backgroundColor !== 'transparent' 
+                          ? `rgba(${parseInt(row.settings.backgroundColor?.slice(1, 3) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(3, 5) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(5, 7) || '2e', 16)}, ${row.settings.backgroundOpacity ?? 1})`
+                          : 'transparent',
+                        backgroundImage: row.settings.backgroundImage ? `url(${row.settings.backgroundImage})` : undefined,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
                     >
                       {row.columns.map((col, colIndex) => (
                         <div
                           key={col.id}
-                          className={`flex-1 min-h-[100px] rounded-lg p-2 ${!isPreviewMode ? 'border border-dashed border-[#3a3a4e]' : ''}`}
+                          onClick={(e) => {
+                            if (!isPreviewMode) {
+                              e.stopPropagation()
+                              setActiveColumn({ rowIndex, colIndex })
+                              setSelectedElementId(null)
+                            }
+                          }}
+                          className={`flex-1 min-h-[100px] rounded-lg p-2 transition-all ${
+                            !isPreviewMode ? 'border border-dashed cursor-pointer' : ''
+                          } ${
+                            !isPreviewMode && activeColumn?.rowIndex === rowIndex && activeColumn?.colIndex === colIndex
+                              ? 'border-purple-500 bg-purple-500/5'
+                              : !isPreviewMode ? 'border-[#3a3a4e] hover:border-purple-400/50' : ''
+                          }`}
                           style={{ width: col.width }}
                         >
                           {col.elements.length === 0 ? (
                             !isPreviewMode ? (
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation()
                                 setInsertPosition({ rowIndex, colIndex })
+                                setActiveColumn({ rowIndex, colIndex })
                                 setShowElementPicker(true)
                               }}
                               className="w-full h-full min-h-[80px] flex flex-col items-center justify-center text-slate-500 hover:text-purple-400 hover:border-purple-400 border border-dashed border-transparent rounded-lg transition-colors"
@@ -948,7 +1121,98 @@ export default function VersionEditorPage() {
   )
 }
 
-// Inline Editable Text Component
+// Inline Rich Text Component with basic formatting
+function InlineRichText({ 
+  value, 
+  onChange, 
+  isEditing,
+  className,
+  placeholder = 'Enter text...',
+  multiline = false
+}: { 
+  value: string
+  onChange: (value: string) => void
+  isEditing: boolean
+  className?: string
+  placeholder?: string
+  multiline?: boolean
+}) {
+  const editorRef = useRef<HTMLDivElement>(null)
+  const [showToolbar, setShowToolbar] = useState(false)
+
+  // Initialize content
+  useEffect(() => {
+    if (editorRef.current && isEditing) {
+      editorRef.current.innerHTML = value || ''
+    }
+  }, [isEditing])
+
+  const execCommand = (command: string, val?: string) => {
+    document.execCommand(command, false, val)
+    editorRef.current?.focus()
+  }
+
+  const handleBlur = () => {
+    setShowToolbar(false)
+    if (editorRef.current) {
+      onChange(editorRef.current.innerHTML)
+    }
+  }
+
+  if (!isEditing) {
+    return (
+      <div 
+        className={className}
+        dangerouslySetInnerHTML={{ __html: value || placeholder }}
+      />
+    )
+  }
+
+  return (
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      {/* Mini Toolbar */}
+      {showToolbar && (
+        <div className="absolute -top-8 left-0 flex items-center gap-0.5 bg-[#2a2a3e] rounded-lg px-1 py-0.5 z-10 shadow-lg">
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('bold') }}
+            className="p-1 text-slate-400 hover:text-white rounded text-xs font-bold"
+            title="Bold"
+          >
+            B
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('italic') }}
+            className="p-1 text-slate-400 hover:text-white rounded text-xs italic"
+            title="Italic"
+          >
+            I
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); execCommand('underline') }}
+            className="p-1 text-slate-400 hover:text-white rounded text-xs underline"
+            title="Underline"
+          >
+            U
+          </button>
+        </div>
+      )}
+      <div
+        ref={editorRef}
+        contentEditable
+        onFocus={() => setShowToolbar(true)}
+        onBlur={handleBlur}
+        data-placeholder={placeholder}
+        className={`${className} bg-transparent outline-none w-full focus:ring-1 focus:ring-purple-500 rounded px-1 ${multiline ? 'min-h-[60px]' : ''} [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-slate-500`}
+        style={{ minHeight: multiline ? '60px' : 'auto' }}
+      />
+    </div>
+  )
+}
+
+// Simple Inline Editable Text Component (for non-rich text fields)
 function InlineEditableText({ 
   value, 
   onChange, 
@@ -1019,7 +1283,7 @@ function ElementRenderer({
           HeadingTag === 'h2' ? 'text-2xl' :
           'text-xl'
         }`}>
-          <InlineEditableText
+          <InlineRichText
             value={(data.text as string) || ''}
             onChange={(text) => handleUpdate({ text })}
             isEditing={isEditing}
@@ -1030,8 +1294,8 @@ function ElementRenderer({
 
     case 'paragraph':
       return (
-        <div className="text-slate-300 text-sm">
-          <InlineEditableText
+        <div className="text-slate-300 text-sm leading-relaxed">
+          <InlineRichText
             value={(data.text as string) || ''}
             onChange={(text) => handleUpdate({ text })}
             isEditing={isEditing}
@@ -1300,11 +1564,56 @@ function ElementRenderer({
       )
 
     case 'list':
+      const items = (data.items as string[]) || ['Item 1', 'Item 2']
       return (
         <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
-          {((data.items as string[]) || ['Item 1', 'Item 2']).map((item, i) => (
-            <li key={i}>{item}</li>
+          {items.map((item, i) => (
+            <li key={i} className="flex items-start gap-2 group">
+              <span className="mt-1.5 w-1.5 h-1.5 bg-slate-400 rounded-full shrink-0" />
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={item}
+                  onChange={(e) => {
+                    const newItems = [...items]
+                    newItems[i] = e.target.value
+                    handleUpdate({ items: newItems })
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 bg-transparent border-none outline-none text-slate-300 focus:ring-1 focus:ring-purple-500 rounded px-1 -ml-1"
+                  placeholder="List item..."
+                />
+              ) : (
+                <span>{item}</span>
+              )}
+              {isEditing && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    const newItems = items.filter((_, idx) => idx !== i)
+                    handleUpdate({ items: newItems.length > 0 ? newItems : ['Item 1'] })
+                  }}
+                  className="opacity-0 group-hover:opacity-100 p-0.5 text-red-400 hover:text-red-300 transition-opacity"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </li>
           ))}
+          {isEditing && (
+            <li>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleUpdate({ items: [...items, ''] })
+                }}
+                className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 ml-3.5"
+              >
+                <Plus size={12} />
+                Add item
+              </button>
+            </li>
+          )}
         </ul>
       )
 
@@ -1520,6 +1829,59 @@ function ElementProperties({
             value={(data.height as number) || 40}
             onChange={(e) => onUpdate({ height: parseInt(e.target.value) })}
             className="w-full px-3 py-2 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+          />
+        </div>
+      )}
+
+      {type === 'list' && (
+        <div>
+          <label className="block text-xs text-slate-400 mb-2">List Items</label>
+          <div className="space-y-2">
+            {((data.items as string[]) || ['Item 1']).map((item, i) => (
+              <div key={i} className="flex gap-2">
+                <input
+                  type="text"
+                  value={item}
+                  onChange={(e) => {
+                    const newItems = [...((data.items as string[]) || [])]
+                    newItems[i] = e.target.value
+                    onUpdate({ items: newItems })
+                  }}
+                  placeholder="List item..."
+                  className="flex-1 px-2 py-1.5 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg text-white text-xs focus:outline-none focus:border-purple-500"
+                />
+                <button
+                  onClick={() => {
+                    const newItems = ((data.items as string[]) || []).filter((_, idx) => idx !== i)
+                    onUpdate({ items: newItems.length > 0 ? newItems : ['Item 1'] })
+                  }}
+                  className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                const newItems = [...((data.items as string[]) || []), '']
+                onUpdate({ items: newItems })
+              }}
+              className="w-full py-1.5 text-xs text-purple-400 hover:text-purple-300 border border-dashed border-[#2a2a3e] hover:border-purple-500 rounded-lg transition-colors"
+            >
+              + Add Item
+            </button>
+          </div>
+        </div>
+      )}
+
+      {type === 'divider' && (
+        <div>
+          <label className="block text-xs text-slate-400 mb-1">Color</label>
+          <input
+            type="color"
+            value={(data.color as string) || '#333333'}
+            onChange={(e) => onUpdate({ color: e.target.value })}
+            className="w-full h-10 bg-[#0d0d15] border border-[#2a2a3e] rounded-lg cursor-pointer"
           />
         </div>
       )}

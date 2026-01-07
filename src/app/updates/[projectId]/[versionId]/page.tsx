@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Square,
   Image as ImageIcon,
+  X,
 } from 'lucide-react'
 
 interface Element {
@@ -58,6 +59,7 @@ export default function PublicUpdatePage() {
   const [content, setContent] = useState<PageContent>({ rows: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -116,7 +118,24 @@ export default function PublicUpdatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0d15]">
+    <div className="min-h-screen bg-[#0d0d15] relative overflow-hidden">
+      {/* Animated Stars Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent" />
+        {Array.from({ length: 50 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${2 + Math.random() * 3}s`,
+              opacity: 0.3 + Math.random() * 0.5,
+            }}
+          />
+        ))}
+      </div>
       {/* Header */}
       <header className="bg-[#1a1a2e] border-b border-[#2a2a3e] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -149,24 +168,31 @@ export default function PublicUpdatePage() {
               </p>
             </div>
           ) : (
-            <div className="p-4 space-y-4">
+            <div className="p-2 space-y-2">
               {content.rows.map((row) => (
                 <div
                   key={row.id}
-                  className="rounded-lg"
-                  style={{ backgroundColor: row.settings.backgroundColor }}
+                  className="rounded-lg overflow-hidden"
+                  style={{ 
+                    backgroundColor: row.settings.backgroundColor !== 'transparent' 
+                      ? `rgba(${parseInt(row.settings.backgroundColor?.slice(1, 3) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(3, 5) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(5, 7) || '2e', 16)}, ${(row.settings as { backgroundOpacity?: number }).backgroundOpacity ?? 1})`
+                      : 'transparent',
+                    backgroundImage: (row.settings as { backgroundImage?: string }).backgroundImage ? `url(${(row.settings as { backgroundImage?: string }).backgroundImage})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
                 >
-                  <div className="flex gap-4 p-4">
+                  <div className="flex gap-2 p-2">
                     {row.columns.map((col) => (
                       <div
                         key={col.id}
                         className="flex-1"
                         style={{ width: col.width }}
                       >
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           {col.elements.map((element) => (
-                            <div key={element.id} className="p-3">
-                              <ElementRenderer element={element} />
+                            <div key={element.id} className="p-1">
+                              <ElementRenderer element={element} onImageClick={setLightboxImage} />
                             </div>
                           ))}
                         </div>
@@ -184,32 +210,55 @@ export default function PublicUpdatePage() {
       <footer className="py-8 text-center text-slate-500 text-sm">
         <p>Powered by <Link href="/" className="text-purple-400 hover:text-purple-300">PlayPulse</Link></p>
       </footer>
+
+      {/* Image Lightbox Modal */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+        >
+          <button
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white bg-black/50 rounded-full transition-colors"
+          >
+            <X size={24} />
+          </button>
+          <img 
+            src={lightboxImage} 
+            alt="Enlarged view" 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   )
 }
 
 // Element Renderer Component (same as editor but read-only)
-function ElementRenderer({ element }: { element: Element }) {
+function ElementRenderer({ element, onImageClick }: { element: Element; onImageClick?: (src: string) => void }) {
   const { type, data } = element
 
   switch (type) {
     case 'heading':
       const HeadingTag = (data.level as string) || 'h2'
       return (
-        <div className={`font-bold text-white ${
-          HeadingTag === 'h1' ? 'text-3xl' :
-          HeadingTag === 'h2' ? 'text-2xl' :
-          'text-xl'
-        }`}>
-          {(data.text as string) || 'Heading'}
-        </div>
+        <div 
+          className={`font-bold text-white ${
+            HeadingTag === 'h1' ? 'text-3xl' :
+            HeadingTag === 'h2' ? 'text-2xl' :
+            'text-xl'
+          }`}
+          dangerouslySetInnerHTML={{ __html: (data.text as string) || 'Heading' }}
+        />
       )
 
     case 'paragraph':
       return (
-        <p className="text-slate-300 text-sm leading-relaxed">
-          {(data.text as string) || 'Enter your text here...'}
-        </p>
+        <div 
+          className="text-slate-300 text-sm leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: (data.text as string) || 'Enter your text here...' }}
+        />
       )
 
     case 'bullet-list':
@@ -328,7 +377,12 @@ function ElementRenderer({ element }: { element: Element }) {
       return (
         <div className="rounded-lg overflow-hidden">
           {data.src ? (
-            <img src={data.src as string} alt={(data.alt as string) || ''} className="w-full" />
+            <img 
+              src={data.src as string} 
+              alt={(data.alt as string) || ''} 
+              className="w-full cursor-pointer hover:opacity-90 transition-opacity" 
+              onClick={() => onImageClick && onImageClick(data.src as string)}
+            />
           ) : (
             <div className="h-40 bg-[#2a2a3e] flex items-center justify-center">
               <ImageIcon size={32} className="text-slate-500" />
