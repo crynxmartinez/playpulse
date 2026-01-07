@@ -27,12 +27,24 @@ interface Row {
   columns: Column[]
   settings: {
     backgroundColor?: string
+    backgroundOpacity?: number
+    backgroundImage?: string
     padding?: string
   }
 }
 
+interface PageSettings {
+  backgroundColor?: string
+  backgroundOpacity?: number
+  backgroundImage?: string
+  contentBackgroundColor?: string
+  contentBackgroundOpacity?: number
+  contentBackgroundImage?: string
+}
+
 interface PageContent {
   rows: Row[]
+  settings?: PageSettings
 }
 
 interface Version {
@@ -157,8 +169,28 @@ export default function PublicUpdatePage() {
       </header>
 
       {/* Content */}
-      <main className="py-8 px-4">
-        <div className="mx-auto bg-[#1a1a2e] min-h-[50vh] rounded-lg shadow-2xl">
+      <main 
+        className="py-8 px-4"
+        style={{
+          backgroundColor: content.settings?.backgroundColor 
+            ? `rgba(${parseInt(content.settings.backgroundColor.slice(1, 3), 16)}, ${parseInt(content.settings.backgroundColor.slice(3, 5), 16)}, ${parseInt(content.settings.backgroundColor.slice(5, 7), 16)}, ${content.settings?.backgroundOpacity ?? 1})`
+            : '#0d0d15',
+          backgroundImage: content.settings?.backgroundImage ? `url(${content.settings.backgroundImage})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div 
+          className="mx-auto min-h-[50vh] rounded-lg shadow-2xl"
+          style={{
+            backgroundColor: content.settings?.contentBackgroundColor 
+              ? `rgba(${parseInt(content.settings.contentBackgroundColor.slice(1, 3), 16)}, ${parseInt(content.settings.contentBackgroundColor.slice(3, 5), 16)}, ${parseInt(content.settings.contentBackgroundColor.slice(5, 7), 16)}, ${content.settings?.contentBackgroundOpacity ?? 1})`
+              : '#1a1a2e',
+            backgroundImage: content.settings?.contentBackgroundImage ? `url(${content.settings.contentBackgroundImage})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
           {content.rows.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="text-4xl mb-4">📄</div>
@@ -168,21 +200,21 @@ export default function PublicUpdatePage() {
               </p>
             </div>
           ) : (
-            <div className="p-2 space-y-2">
+            <div className="p-4 space-y-4">
               {content.rows.map((row) => (
                 <div
                   key={row.id}
                   className="rounded-lg overflow-hidden"
                   style={{ 
                     backgroundColor: row.settings.backgroundColor !== 'transparent' 
-                      ? `rgba(${parseInt(row.settings.backgroundColor?.slice(1, 3) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(3, 5) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(5, 7) || '2e', 16)}, ${(row.settings as { backgroundOpacity?: number }).backgroundOpacity ?? 1})`
+                      ? `rgba(${parseInt(row.settings.backgroundColor?.slice(1, 3) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(3, 5) || '1a', 16)}, ${parseInt(row.settings.backgroundColor?.slice(5, 7) || '2e', 16)}, ${row.settings.backgroundOpacity ?? 1})`
                       : 'transparent',
-                    backgroundImage: (row.settings as { backgroundImage?: string }).backgroundImage ? `url(${(row.settings as { backgroundImage?: string }).backgroundImage})` : undefined,
+                    backgroundImage: row.settings.backgroundImage ? `url(${row.settings.backgroundImage})` : undefined,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                   }}
                 >
-                  <div className="flex gap-2 p-2">
+                  <div className="flex gap-4 p-4">
                     {row.columns.map((col) => (
                       <div
                         key={col.id}
@@ -242,6 +274,9 @@ function ElementRenderer({ element, onImageClick }: { element: Element; onImageC
   switch (type) {
     case 'heading':
       const HeadingTag = (data.level as string) || 'h2'
+      const headingAlign = (data.align as string) || 'left'
+      const headingFontSize = (data.fontSize as string) || '24'
+      const headingFontFamily = (data.fontFamily as string) || 'inherit'
       return (
         <div 
           className={`font-bold text-white ${
@@ -249,24 +284,73 @@ function ElementRenderer({ element, onImageClick }: { element: Element; onImageC
             HeadingTag === 'h2' ? 'text-2xl' :
             'text-xl'
           }`}
+          style={{ 
+            textAlign: headingAlign as 'left' | 'center' | 'right',
+            fontSize: `${headingFontSize}px`,
+            fontFamily: headingFontFamily === 'inherit' ? 'inherit' : headingFontFamily
+          }}
           dangerouslySetInnerHTML={{ __html: (data.text as string) || 'Heading' }}
         />
       )
 
     case 'paragraph':
+      const paraAlign = (data.align as string) || 'left'
+      const paraFontSize = (data.fontSize as string) || '14'
+      const paraFontFamily = (data.fontFamily as string) || 'inherit'
       return (
         <div 
-          className="text-slate-300 text-sm leading-relaxed"
+          className="text-slate-300 leading-relaxed"
+          style={{ 
+            textAlign: paraAlign as 'left' | 'center' | 'right',
+            fontSize: `${paraFontSize}px`,
+            fontFamily: paraFontFamily === 'inherit' ? 'inherit' : paraFontFamily
+          }}
           dangerouslySetInnerHTML={{ __html: (data.text as string) || 'Enter your text here...' }}
         />
       )
 
     case 'bullet-list':
     case 'list':
+      const items = (data.items as string[]) || ['Item 1']
+      const bulletStyle = (data.bulletStyle as string) || 'disc'
+      const listAlign = (data.align as string) || 'left'
+      const listIndent = (data.indent as number) || 0
+      const listFontSize = (data.fontSize as string) || '14'
+      const listFontFamily = (data.fontFamily as string) || 'inherit'
+      
+      const getBulletShape = (style: string) => {
+        switch (style) {
+          case 'disc': return '●'
+          case 'circle': return '○'
+          case 'square': return '■'
+          case 'diamond': return '◆'
+          case 'triangle': return '▶'
+          case 'heart': return '♥'
+          case 'star': return '★'
+          case 'arrow': return '→'
+          case 'check': return '✓'
+          case 'dash': return '—'
+          default: return '●'
+        }
+      }
+      
       return (
-        <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
-          {((data.items as string[]) || ['Item 1']).map((item, i) => (
-            <li key={i}>{item}</li>
+        <ul 
+          className="text-slate-300 space-y-1"
+          style={{ 
+            textAlign: listAlign as 'left' | 'center' | 'right',
+            paddingLeft: `${listIndent * 16}px`,
+            fontSize: `${listFontSize}px`,
+            fontFamily: listFontFamily === 'inherit' ? 'inherit' : listFontFamily
+          }}
+        >
+          {items.map((item, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="shrink-0 text-slate-400" style={{ fontSize: `${parseInt(listFontSize) * 0.7}px` }}>
+                {getBulletShape(bulletStyle)}
+              </span>
+              <span>{item}</span>
+            </li>
           ))}
         </ul>
       )
@@ -375,18 +459,19 @@ function ElementRenderer({ element, onImageClick }: { element: Element; onImageC
 
     case 'image':
       return (
-        <div className="rounded-lg overflow-hidden flex items-center justify-center">
+        <div className="rounded-lg flex items-center justify-center w-full">
           {data.src ? (
             <img 
               src={data.src as string} 
               alt={(data.alt as string) || ''} 
-              className="max-w-full cursor-pointer hover:opacity-90 transition-opacity" 
-              style={{ maxHeight: '300px', objectFit: 'contain' }}
+              className="w-full max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
               onClick={() => onImageClick && onImageClick(data.src as string)}
             />
           ) : (
-            <div className="h-40 bg-[#2a2a3e] flex items-center justify-center w-full">
-              <ImageIcon size={32} className="text-slate-500" />
+            <div className="text-center text-slate-500 py-8 bg-[#2a2a3e] w-full rounded-lg">
+              <ImageIcon size={32} className="mx-auto mb-2" />
+              <span className="text-xs">No image</span>
             </div>
           )}
         </div>
@@ -404,18 +489,21 @@ function ElementRenderer({ element, onImageClick }: { element: Element; onImageC
       )
 
     case 'divider':
+      const dividerSpacing = (data.spacing as number) || 5
       return (
-        <hr 
-          className="border-t" 
-          style={{ 
-            borderColor: (data.color as string) || '#333',
-            borderStyle: (data.style as string) || 'solid'
-          }} 
-        />
+        <div style={{ paddingTop: dividerSpacing, paddingBottom: dividerSpacing }}>
+          <hr 
+            className="border-t" 
+            style={{ 
+              borderColor: (data.color as string) || '#333',
+              borderWidth: '1px'
+            }} 
+          />
+        </div>
       )
 
     case 'spacer':
-      return <div style={{ height: (data.height as number) || 40 }} />
+      return <div style={{ height: (data.height as number) || 20 }} />
 
     case 'card-reference':
       const refOverlay = (data.overlay as string) || 'none'
