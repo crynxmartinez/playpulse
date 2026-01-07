@@ -43,6 +43,7 @@ import Link from "next/link";
 import { FollowButton } from "@/components/FollowButton";
 import { FeedbackSection } from "@/components/FeedbackSection";
 import { GallerySection } from "@/components/GallerySection";
+import { LiveAnalyticsWidget } from "@/components/LiveAnalyticsWidget";
 
 type Update = {
   id: string;
@@ -1311,37 +1312,12 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                     {pinnedAnalytics.length > 0 ? (
                       <div className="space-y-4">
                         {pinnedAnalytics.slice(0, 2).map((pinned) => (
-                          <Card key={pinned.id} className="rounded-3xl">
-                            <CardHeader className="pb-3">
-                              <CardTitle className="text-base">{pinned.title || 'Analytics'}</CardTitle>
-                              <CardDescription>{pinned.widgetType || 'Live data'}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="h-64">
-                              {pinned.widgetType === 'trend-chart' && (
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="version" fontSize={12} />
-                                    <YAxis fontSize={12} domain={[0, 10]} />
-                                    <Tooltip />
-                                    <Area type="monotone" dataKey="fun" fillOpacity={0.25} strokeWidth={2} />
-                                    <Area type="monotone" dataKey="difficulty" fillOpacity={0.18} strokeWidth={2} />
-                                  </AreaChart>
-                                </ResponsiveContainer>
-                              )}
-                              {pinned.widgetType === 'response-volume' && (
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="version" fontSize={12} />
-                                    <YAxis fontSize={12} />
-                                    <Tooltip />
-                                    <Area type="monotone" dataKey="responses" fillOpacity={0.25} strokeWidth={2} />
-                                  </AreaChart>
-                                </ResponsiveContainer>
-                              )}
-                            </CardContent>
-                          </Card>
+                          <LiveAnalyticsWidget
+                            key={pinned.id}
+                            projectId={project.id}
+                            widgetType={pinned.widgetType || 'unknown'}
+                            title={pinned.title || 'Analytics'}
+                          />
                         ))}
                       </div>
                     ) : (
