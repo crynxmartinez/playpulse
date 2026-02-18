@@ -100,6 +100,7 @@ model Project {
   followers     ProjectFollower[]
   feedbackThreads FeedbackThread[]
   galleryImages GalleryImage[]
+  progressBoards ProgressBoard[]
 }
 
 // Tracks all updates/changes to the project (like GitHub contributions)
@@ -398,4 +399,22 @@ model GalleryImage {
   order       Int      @default(0) // For ordering images
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Progress Board - shareable live dashboard for tracking game progress
+model ProgressBoard {
+  id          String     @id @default(cuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String     // Board name (e.g., "Public Progress", "Investor Dashboard")
+  shareToken  String     @unique @default(cuid()) // Unique token for public sharing
+  visibility  Visibility @default(PRIVATE)
+  
+  // Configuration
+  columns     Json       // Array of column configs: [{statId, label, showDelta}]
+  showTrend   Boolean    @default(true)  // Show trend chart
+  showTable   Boolean    @default(true)  // Show version comparison table
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }

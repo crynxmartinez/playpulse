@@ -13,6 +13,7 @@ import {
   GitBranch,
   Lightbulb,
   ImageIcon,
+  LayoutDashboard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -33,6 +34,7 @@ const formNavItems = [
 // Overview mode nav items
 const overviewNavItems = [
   { href: '', label: 'Overview', shortLabel: 'Overview', icon: Eye },
+  { href: '/boards', label: 'Boards', shortLabel: 'Boards', icon: LayoutDashboard },
   { href: '/feedback', label: 'Feedback', shortLabel: 'Feedback', icon: Lightbulb },
   { href: '/gallery', label: 'Gallery', shortLabel: 'Gallery', icon: ImageIcon },
   { href: '/settings', label: 'Settings', shortLabel: 'Settings', icon: Settings },
