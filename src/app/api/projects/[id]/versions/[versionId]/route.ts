@@ -12,6 +12,9 @@ export async function GET(
     
     const version = await prisma.projectVersion.findFirst({
       where: { id: versionId, projectId: id },
+      include: {
+        project: { select: { slug: true } }
+      }
     })
 
     if (!version) {

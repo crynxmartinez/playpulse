@@ -37,9 +37,13 @@ import Link from 'next/link'
 // Types
 interface Version {
   id: string
+  slug?: string | null
   version: string
   title: string
   description: string | null
+  project?: {
+    slug?: string | null
+  }
 }
 
 interface ChangeCardData {
@@ -225,7 +229,10 @@ export default function VersionEditorPage() {
 
   // Copy share link
   const copyShareLink = () => {
-    const url = `${window.location.origin}/updates/${projectId}/${versionId}`
+    // Use slug-based URL if available
+    const gameSlug = version?.project?.slug || projectId
+    const versionSlug = version?.slug || versionId
+    const url = `${window.location.origin}/updates/${gameSlug}/${versionSlug}`
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

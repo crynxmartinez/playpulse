@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 
+// Generate a URL-friendly slug from version and title
+function generateVersionSlug(version: string, title: string): string {
+  const combined = `${version}-${title}`
+  return combined
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 50)
+}
+
 // GET /api/projects/[id]/versions - List all versions for a project
 export async function GET(
   request: NextRequest,
@@ -57,9 +67,25 @@ export async function POST(
       )
     }
 
+    // Generate slug
+    const baseSlug = generateVersionSlug(version, title)
+    let slug = baseSlug
+    let counter = 1
+    
+    // Ensure unique slug within project
+    while (true) {
+      const existing = await prisma.projectVersion.findFirst({
+        where: { projectId: id, slug },
+      })
+      if (!existing) break
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+
     const newVersion = await prisma.projectVersion.create({
       data: {
         projectId: id,
+        slug,
         version,
         title,
         description,

@@ -134,6 +134,7 @@ model ProjectVersion {
   id          String   @id @default(cuid())
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  slug        String?  // URL-friendly slug (e.g., "v1-0-new-combat-system")
   version     String   // e.g., "1.0.0", "v2.1"
   title       String   // Version title/name
   description String?  @db.Text  // Brief description of this version
@@ -143,6 +144,8 @@ model ProjectVersion {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   page        VersionPage?
+
+  @@unique([projectId, slug])
 }
 
 // Version page content (full page builder data)

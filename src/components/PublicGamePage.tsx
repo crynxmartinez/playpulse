@@ -48,10 +48,11 @@ import { stripHtml } from "@/lib/utils";
 
 type Update = {
   id: string;
+  slug?: string | null;
   version: string;
   title: string;
   date: string;
-  type: "Devlog" | "Playtest";
+  type: "Devlog" | "Patch" | "Major";
   summary: string;
   highlights: string[];
   metrics?: {
@@ -98,6 +99,7 @@ interface PublicGamePageProps {
     };
     versions?: Array<{
       id: string;
+      slug?: string | null;
       version: string;
       title: string;
       description?: string | null;
@@ -633,7 +635,12 @@ function SnapshotCard({ title, caption }: { title: string; caption: string }) {
 }
 
 // GitHub-style timeline item
-function TimelineItem({ u, projectId }: { u: Update; projectId: string }) {
+function TimelineItem({ u, projectSlug }: { u: Update; projectSlug: string | null }) {
+  // Use slug-based URL if available, fallback to ID
+  const updateUrl = projectSlug && u.slug 
+    ? `/updates/${projectSlug}/${u.slug}`
+    : `/updates/${projectSlug || u.id}/${u.slug || u.id}`
+  
   return (
     <div className="relative flex gap-4">
       {/* Vertical line connector */}
@@ -656,7 +663,7 @@ function TimelineItem({ u, projectId }: { u: Update; projectId: string }) {
               {u.summary || "No description provided."}
             </div>
             <a 
-              href={`/updates/${u.id}`}
+              href={updateUrl}
               className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 hover:underline"
             >
               <ExternalLink className="h-3 w-3" />
@@ -698,7 +705,7 @@ function UpdateCard({ u, expanded, onToggle }: { u: Update; expanded: boolean; o
             <Badge variant="secondary" className="rounded-xl">
               {u.version}
             </Badge>
-            <Badge className="rounded-xl" variant={u.type === "Playtest" ? "default" : "outline"}>
+            <Badge className="rounded-xl" variant={u.type === "Major" ? "default" : "outline"}>
               {u.type}
             </Badge>
             <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -841,6 +848,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
   // Convert published versions to Update format for the timeline
   const updates: Update[] = publishedVersions.map(v => ({
     id: v.id,
+    slug: v.slug,
     version: v.version,
     title: v.title,
     date: v.publishedAt 
@@ -1263,7 +1271,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                                         {u.summary || "No description provided."}
                                       </div>
                                       <a 
-                                        href={`/updates/${project.id}/${u.id}`}
+                                        href={project.slug && u.slug ? `/updates/${project.slug}/${u.slug}` : `/updates/${project.slug || project.id}/${u.slug || u.id}`}
                                         className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 hover:underline"
                                       >
                                         <ExternalLink className="h-3 w-3" />
