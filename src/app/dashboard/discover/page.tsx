@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { stripHtml } from '@/lib/utils'
 
 interface Game {
   id: string
@@ -244,7 +245,7 @@ export default function DiscoverPage() {
                       </div>
                       {game.description && (
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                          {game.description}
+                          {stripHtml(game.description)}
                         </p>
                       )}
                       <div className="flex flex-wrap gap-1">

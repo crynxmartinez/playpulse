@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { truncateText } from '@/lib/utils'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -78,7 +79,7 @@ export default async function MyGamesPage() {
                     <div>
                       <div className="text-base font-semibold">{game.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {game.description || 'No description'}
+                        {truncateText(game.description, 200) || 'No description'}
                       </div>
                     </div>
                     <Badge variant={game.visibility === 'PUBLIC' ? 'default' : 'secondary'} className="rounded-full text-xs">{game.visibility}</Badge>

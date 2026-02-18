@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import StarsBackground from '@/components/ui/stars-background'
+import { stripHtml } from '@/lib/utils'
 
 interface Game {
   id: string
@@ -286,7 +287,7 @@ function DiscoverContent() {
                         </div>
                         {game.description && (
                           <p className="text-sm text-slate-500 line-clamp-2 mb-3">
-                            {game.description}
+                            {stripHtml(game.description)}
                           </p>
                         )}
                         <div className="flex flex-wrap gap-1">

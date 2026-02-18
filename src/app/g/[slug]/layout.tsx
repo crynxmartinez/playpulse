@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
+import { stripHtml } from '@/lib/utils'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
 
     const developerName = project.user?.studioName || project.user?.displayName || project.user?.username || 'Developer'
-    const description = project.description || `${project.name} by ${developerName} on PlayPulse`
+    const description = stripHtml(project.description) || `${project.name} by ${developerName} on PlayPulse`
     const imageUrl = project.bannerUrl || project.logoUrl || '/og-default.png'
 
     return {

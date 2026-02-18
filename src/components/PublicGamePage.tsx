@@ -44,6 +44,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { FeedbackSection } from "@/components/FeedbackSection";
 import { GallerySection } from "@/components/GallerySection";
 import { LiveAnalyticsWidget } from "@/components/LiveAnalyticsWidget";
+import { stripHtml } from "@/lib/utils";
 
 type Update = {
   id: string;
@@ -1127,9 +1128,9 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
               <Card className="rounded-3xl border-[#2a2a3e] bg-[#0d0d15]">
                 <CardHeader>
                   <CardTitle className="text-base text-white">About</CardTitle>
-                  <CardDescription 
-                    dangerouslySetInnerHTML={{ __html: project.description || "A game in development on PlayPulse." }}
-                  />
+                  <CardDescription className="text-slate-400">
+                    {stripHtml(project.description) || "A game in development on PlayPulse."}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
                   {/* How to Play / Rules */}
