@@ -36,7 +36,7 @@ const NAV_ITEMS = [
   { id: 'mygames', label: 'My Games', icon: Gamepad2, href: '/dashboard/games' },
   { id: 'mytests', label: 'My Tests', icon: Trophy, href: '/dashboard/my-tests' },
   { id: 'discover', label: 'Discover', icon: Compass, href: '/dashboard/discover' },
-  { id: 'feedback', label: 'Feedback', icon: MessageSquare, href: '/dashboard/feedback' },
+  { id: 'feedback', label: 'Requests', icon: MessageSquare, href: '/dashboard/feedback' },
   { id: 'settings', label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
 
