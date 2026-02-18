@@ -19,7 +19,8 @@ export async function POST(
         isActive: true 
       },
       include: {
-        questions: true
+        questions: true,
+        project: { select: { id: true } }
       }
     })
 
@@ -65,7 +66,7 @@ export async function POST(
       }
     })
 
-    return NextResponse.json({ response }, { status: 201 })
+    return NextResponse.json({ response, projectId: form.project.id }, { status: 201 })
   } catch (error) {
     console.error('Submit response error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

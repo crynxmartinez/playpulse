@@ -179,6 +179,22 @@ export default function PublicFormPage() {
         return
       }
 
+      const responseData = await res.json()
+
+      // Track XP for logged-in users (fire and forget - don't block on this)
+      if (responseData.response?.id && responseData.projectId) {
+        fetch('/api/tester/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            responseId: responseData.response.id,
+            projectId: responseData.projectId,
+          }),
+        }).catch(() => {
+          // Silently ignore - user might not be logged in
+        })
+      }
+
       // Calculate results
       if (form) {
         const categoryScores: { [key: string]: { total: number, max: number } } = {}
