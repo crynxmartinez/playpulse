@@ -23,6 +23,7 @@ export async function GET() {
       website: true,
       twitter: true,
       discord: true,
+      role: true,
       createdAt: true,
     },
   })
