@@ -42,8 +42,8 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
 
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2">
+          {/* Logo - goes to landing page */}
+          <Link href="/" className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#2a2a3e] bg-[#1a1a2e]">
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
