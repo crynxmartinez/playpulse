@@ -247,11 +247,10 @@ export default function LandingPage() {
       
       {/* Gradient orbs */}
       <div 
-        className="fixed w-[600px] h-[600px] rounded-full bg-purple-600/20 blur-[120px] pointer-events-none transition-transform duration-1000 ease-out"
+        className="fixed w-[600px] h-[600px] rounded-full bg-purple-600/20 blur-[120px] pointer-events-none transition-all duration-1000 ease-out"
         style={{ 
           left: mousePosition.x - 300, 
           top: mousePosition.y - 300,
-          transform: 'translate(-50%, -50%)'
         }}
       />
       <div className="fixed top-0 right-0 w-[800px] h-[800px] rounded-full bg-indigo-600/10 blur-[150px] pointer-events-none" />
