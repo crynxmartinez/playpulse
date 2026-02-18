@@ -36,6 +36,36 @@ export async function GET() {
   }
 }
 
+// DELETE /api/admin/users - Delete user (admin only)
+export async function DELETE(request: Request) {
+  try {
+    const currentUser = await getCurrentUser()
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    const { userId } = await request.json()
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
+    }
+
+    // Prevent admin from deleting themselves
+    if (userId === currentUser.id) {
+      return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 })
+    }
+
+    await (prisma as any).user.delete({
+      where: { id: userId }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to delete user:', error)
+    return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 })
+  }
+}
+
 // PATCH /api/admin/users - Update user (admin only)
 export async function PATCH(request: Request) {
   try {

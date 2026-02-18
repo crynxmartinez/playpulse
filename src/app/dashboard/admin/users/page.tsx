@@ -11,7 +11,8 @@ import {
   MoreVertical,
   Mail,
   Calendar,
-  Gamepad2
+  Gamepad2,
+  Trash2
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -69,6 +70,31 @@ export default function AdminUsersPage() {
       }
     } catch (error) {
       console.error('Failed to update user:', error)
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  const deleteUser = async (userId: string, userEmail: string) => {
+    if (!confirm(`Are you sure you want to delete ${userEmail}? This action cannot be undone.`)) {
+      return
+    }
+    
+    setUpdating(userId)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        fetchUsers()
+      } else {
+        alert(data.error || 'Failed to delete user')
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error)
     } finally {
       setUpdating(null)
     }
@@ -259,6 +285,15 @@ export default function AdminUsersPage() {
                             Remove Admin
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg text-xs border-red-500/30 text-red-400 hover:bg-red-500/20"
+                          onClick={() => deleteUser(user.id, user.email)}
+                          disabled={updating === user.id}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
