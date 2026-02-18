@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { hashPassword, generateToken } from '@/lib/auth'
-import { cookies } from 'next/headers'
+import { hashPassword } from '@/lib/auth'
+import { sendVerificationEmail, generateVerificationCode, getVerificationExpiry } from '@/lib/email'
+
+// Cast to any to avoid type errors before prisma generate runs
+const db = prisma as any
 
 export async function POST(request: Request) {
   try {
@@ -21,7 +24,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await db.user.findUnique({
       where: { email: email.toLowerCase() },
     })
 
@@ -33,38 +36,33 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await hashPassword(password)
+    const verificationCode = generateVerificationCode()
+    const verificationExpiry = getVerificationExpiry()
 
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         email: email.toLowerCase(),
         password: hashedPassword,
         name: name || null,
         role: 'USER',
+        emailVerified: false,
+        verificationCode,
+        verificationExpiry,
       },
     })
 
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    })
-
-    const cookieStore = await cookies()
-    cookieStore.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    })
+    // Send verification email
+    const emailResult = await sendVerificationEmail(user.email, verificationCode)
+    
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error)
+      // Still return success - user can request resend
+    }
 
     return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      message: 'Registration successful. Please check your email for verification code.',
+      email: user.email,
+      requiresVerification: true,
     })
   } catch (error) {
     console.error('Registration error:', error)

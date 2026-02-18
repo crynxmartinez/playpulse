@@ -34,6 +34,18 @@ export async function POST(request: Request) {
       )
     }
 
+    // Check if email is verified
+    if (!(user as any).emailVerified) {
+      return NextResponse.json(
+        { 
+          error: 'Please verify your email first',
+          requiresVerification: true,
+          email: user.email,
+        },
+        { status: 403 }
+      )
+    }
+
     const token = generateToken({
       userId: user.id,
       email: user.email,

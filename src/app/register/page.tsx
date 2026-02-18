@@ -45,8 +45,13 @@ export default function RegisterPage() {
         return
       }
 
-      router.push('/dashboard')
-      router.refresh()
+      // Redirect to verification page
+      if (data.requiresVerification) {
+        router.push(`/verify?email=${encodeURIComponent(data.email)}`)
+      } else {
+        router.push('/dashboard')
+        router.refresh()
+      }
     } catch {
       setError('Something went wrong')
     } finally {
