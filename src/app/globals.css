@@ -47,3 +47,70 @@
     scrollbar-width: none;
   }
 }
+
+/* Rich text content styles for How to Play / Rules section */
+.rules-content h1 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.rules-content h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-top: 1rem;
+  margin-bottom: 0.375rem;
+}
+.rules-content p {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+.rules-content ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.rules-content ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.rules-content li {
+  margin-bottom: 0.25rem;
+  line-height: 1.6;
+}
+.rules-content strong,
+.rules-content b {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+.rules-content em,
+.rules-content i {
+  font-style: italic;
+}
+.rules-content u {
+  text-decoration: underline;
+}
+.rules-content blockquote {
+  border-left: 3px solid #4c1d95;
+  padding-left: 0.75rem;
+  margin: 0.75rem 0;
+  color: #94a3b8;
+}
+.rules-content code {
+  background-color: #1a1a2e;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+  color: #a78bfa;
+}
+.rules-content a {
+  color: #a78bfa;
+  text-decoration: underline;
+}
+.rules-content hr {
+  border-color: #2a2a3e;
+  margin: 0.75rem 0;
+}

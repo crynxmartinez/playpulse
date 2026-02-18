@@ -1148,9 +1148,10 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                           </button>
                         </div>
                       ) : (
-                        <div className="text-sm text-slate-400 whitespace-pre-wrap">
-                          {project.rules}
-                        </div>
+                        <div 
+                          className="rules-content text-sm text-slate-400"
+                          dangerouslySetInnerHTML={{ __html: project.rules ?? '' }}
+                        />
                       )}
                     </div>
                   )}
