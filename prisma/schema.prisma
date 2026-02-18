@@ -49,6 +49,11 @@ model User {
   // Tester engagement
   testerProfile     TesterProfile?
   testSessions      TestSession[]
+  
+  // Platform feature requests
+  featureRequests       FeatureRequest[]        @relation("FeatureAuthor")
+  featureVotes          FeatureRequestVote[]    @relation("FeatureVoter")
+  featureComments       FeatureRequestComment[] @relation("FeatureCommentAuthor")
 }
 
 enum Role {
@@ -430,6 +435,66 @@ model ProgressBoard {
   
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+// Platform Feature Requests - for PatchPlay feedback
+model FeatureRequest {
+  id          String   @id @default(cuid())
+  authorId    String
+  author      User     @relation("FeatureAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?  @db.Text
+  category    FeatureCategory @default(OTHER)
+  status      FeatureStatus @default(OPEN)
+  isPinned    Boolean  @default(false)
+  
+  votes       FeatureRequestVote[]
+  comments    FeatureRequestComment[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FeatureRequestVote {
+  id          String   @id @default(cuid())
+  featureId   String
+  feature     FeatureRequest @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation("FeatureVoter", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([featureId, userId])
+}
+
+model FeatureRequestComment {
+  id          String   @id @default(cuid())
+  featureId   String
+  feature     FeatureRequest @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation("FeatureCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  content     String   @db.Text
+  isOfficial  Boolean  @default(false)  // Admin response
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum FeatureCategory {
+  UI           // User interface
+  ANALYTICS    // Analytics & reporting
+  FORMS        // Form builder
+  DEVLOGS      // Devlog/updates
+  DISCOVERY    // Discovery & search
+  PROFILE      // User profiles
+  OTHER        // Other
+}
+
+enum FeatureStatus {
+  OPEN         // New/open
+  PLANNED      // Accepted, will do
+  IN_PROGRESS  // Being worked on
+  COMPLETED    // Done
+  DECLINED     // Won't do
 }
 
 // Tester Profile - gamification for playtesters

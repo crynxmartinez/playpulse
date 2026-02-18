@@ -18,6 +18,7 @@ import {
   Users,
   BarChart3,
   Shield,
+  MessageSquare,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { id: 'mygames', label: 'My Games', icon: Gamepad2, href: '/dashboard/games' },
   { id: 'mytests', label: 'My Tests', icon: Trophy, href: '/dashboard/my-tests' },
   { id: 'discover', label: 'Discover', icon: Compass, href: '/dashboard/discover' },
+  { id: 'feedback', label: 'Feedback', icon: MessageSquare, href: '/dashboard/feedback' },
   { id: 'settings', label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
 
@@ -107,6 +109,7 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
     if (pathname.startsWith('/dashboard/games') || pathname.startsWith('/dashboard/projects')) return 'mygames'
     if (pathname.startsWith('/dashboard/my-tests')) return 'mytests'
     if (pathname.startsWith('/dashboard/discover')) return 'discover'
+    if (pathname.startsWith('/dashboard/feedback')) return 'feedback'
     if (pathname.startsWith('/dashboard/settings')) return 'settings'
     if (pathname.startsWith('/dashboard/admin/users')) return 'admin-users'
     if (pathname.startsWith('/dashboard/admin/games')) return 'admin-games'
