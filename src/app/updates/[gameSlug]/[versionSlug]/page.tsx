@@ -4,6 +4,9 @@ import type { Metadata } from 'next'
 import { truncateText } from '@/lib/utils'
 import PublicUpdatePageClient from '@/components/PublicUpdatePageClient'
 
+// Cast to any to avoid type errors before prisma generate runs
+const db = prisma as any
+
 interface PageProps {
   params: Promise<{ gameSlug: string; versionSlug: string }>
 }
@@ -20,7 +23,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!project) return { title: 'Update Not Found | PlayPulse' }
 
   // Find version by slug or ID (fallback for old links)
-  const version = await prisma.projectVersion.findFirst({
+  const version = await db.projectVersion.findFirst({
     where: {
       projectId: project.id,
       OR: [
@@ -68,7 +71,7 @@ export default async function PublicUpdatePage({ params }: PageProps) {
   if (!project) notFound()
 
   // Find version by slug or ID (fallback for old links)
-  const version = await prisma.projectVersion.findFirst({
+  const version = await db.projectVersion.findFirst({
     where: {
       projectId: project.id,
       OR: [

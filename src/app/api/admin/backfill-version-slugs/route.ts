@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 
+// Cast to any to avoid type errors before prisma generate runs
+const db = prisma as any
+
 // Generate a URL-friendly slug from version and title
 function generateVersionSlug(version: string, title: string): string {
   const combined = `${version}-${title}`
@@ -21,7 +24,7 @@ export async function POST() {
     }
 
     // Get all versions without slugs for this user's projects
-    const versionsWithoutSlugs = await prisma.projectVersion.findMany({
+    const versionsWithoutSlugs = await db.projectVersion.findMany({
       where: {
         slug: null,
         project: { userId: user.id }
@@ -49,7 +52,7 @@ export async function POST() {
 
       // Ensure unique slug within project
       while (true) {
-        const existing = await prisma.projectVersion.findFirst({
+        const existing = await db.projectVersion.findFirst({
           where: { 
             projectId: version.projectId, 
             slug,
@@ -62,7 +65,7 @@ export async function POST() {
       }
 
       // Update the version with the new slug
-      await prisma.projectVersion.update({
+      await db.projectVersion.update({
         where: { id: version.id },
         data: { slug }
       })
