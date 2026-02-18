@@ -15,6 +15,9 @@ import {
   Check,
   User,
   Trophy,
+  Users,
+  BarChart3,
+  Shield,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,6 +38,12 @@ const NAV_ITEMS = [
   { id: 'settings', label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
 
+const ADMIN_NAV_ITEMS = [
+  { id: 'admin-users', label: 'Users', icon: Users, href: '/dashboard/admin/users' },
+  { id: 'admin-games', label: 'All Games', icon: Gamepad2, href: '/dashboard/admin/games' },
+  { id: 'admin-reports', label: 'Reports', icon: BarChart3, href: '/dashboard/admin/reports' },
+]
+
 const VISIBILITY_ICONS = {
   PRIVATE: Lock,
   UNLISTED: LinkIcon,
@@ -47,6 +56,7 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(true)
   const [isGameSelectorOpen, setIsGameSelectorOpen] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
   
   // Extract project ID from URL if on a project page
   const urlProjectId = pathname.match(/\/dashboard\/projects\/([^/]+)/)?.[1] || null
@@ -54,6 +64,7 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
 
   useEffect(() => {
     fetchGames()
+    fetchUserRole()
   }, [])
 
   const fetchGames = async () => {
@@ -67,6 +78,18 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
       console.error('Failed to fetch games:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchUserRole = async () => {
+    try {
+      const res = await fetch('/api/auth/me')
+      const data = await res.json()
+      if (data.user?.role) {
+        setUserRole(data.user.role)
+      }
+    } catch (error) {
+      console.error('Failed to fetch user role:', error)
     }
   }
   
@@ -85,8 +108,13 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
     if (pathname.startsWith('/dashboard/my-tests')) return 'mytests'
     if (pathname.startsWith('/dashboard/discover')) return 'discover'
     if (pathname.startsWith('/dashboard/settings')) return 'settings'
+    if (pathname.startsWith('/dashboard/admin/users')) return 'admin-users'
+    if (pathname.startsWith('/dashboard/admin/games')) return 'admin-games'
+    if (pathname.startsWith('/dashboard/admin/reports')) return 'admin-reports'
     return 'dashboard'
   }
+
+  const isAdmin = userRole === 'ADMIN'
 
   const activeNav = getActiveNav()
 
@@ -119,6 +147,42 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
           </div>
         </CardContent>
       </Card>
+
+      {/* Admin Section - Only visible to admins */}
+      {isAdmin && (
+        <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <Shield className="h-3 w-3" />
+              Admin
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <div className="space-y-1">
+              {ADMIN_NAV_ITEMS.map((item) => {
+                const Icon = item.icon
+                const isActive = activeNav === item.id
+                
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-purple-600/20 text-purple-400 border border-purple-500/30"
+                        : "text-slate-400 hover:bg-[#1a1a2e]/50 hover:text-white"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Selected Game Card */}
       <Card className="rounded-3xl bg-[#0d0d15] border-[#1a1a2e]">
