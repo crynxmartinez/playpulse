@@ -188,12 +188,22 @@ function HowItWorksStep({
 
 export default function LandingPage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY })
     }
     window.addEventListener('mousemove', handleMouseMove)
+    
+    // Check if user is logged in
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) setIsLoggedIn(true)
+      })
+      .catch(() => {})
+    
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
@@ -273,19 +283,30 @@ export default function LandingPage() {
             <a href="#features" className="text-sm text-white/70 hover:text-white transition-colors">Features</a>
             <a href="#screenshots" className="text-sm text-white/70 hover:text-white transition-colors">Screenshots</a>
             <a href="#how-it-works" className="text-sm text-white/70 hover:text-white transition-colors">How it Works</a>
+            <Link href="/blog" className="text-sm text-white/70 hover:text-white transition-colors">Blog</Link>
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-purple-500/30">
-                Get Started <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard">
+                <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-purple-500/30">
+                  Dashboard <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-purple-500/30">
+                    Get Started <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

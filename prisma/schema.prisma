@@ -54,6 +54,10 @@ model User {
   featureRequests       FeatureRequest[]        @relation("FeatureAuthor")
   featureVotes          FeatureRequestVote[]    @relation("FeatureVoter")
   featureComments       FeatureRequestComment[] @relation("FeatureCommentAuthor")
+  
+  // Blog
+  blogPosts             BlogPost[]              @relation("BlogAuthor")
+  blogComments          BlogComment[]           @relation("BlogCommentAuthor")
 }
 
 enum Role {
@@ -530,4 +534,57 @@ model TestSession {
   
   @@index([userId])
   @@index([projectId])
+}
+
+// Blog System - Admin-managed blog posts
+model BlogPost {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  excerpt       String?  @db.Text  // Short preview for cards/SEO
+  content       String   @db.Text  // Rich text HTML content
+  coverImage    String?            // Cover image URL
+  
+  category      BlogCategory @default(ANNOUNCEMENT)
+  tags          String[]  @default([])
+  status        BlogStatus @default(DRAFT)
+  
+  // SEO fields
+  metaTitle       String?   // Custom meta title (defaults to title)
+  metaDescription String?   // Custom meta description (defaults to excerpt)
+  
+  authorId      String
+  author        User     @relation("BlogAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  publishedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  comments      BlogComment[]
+}
+
+model BlogComment {
+  id          String   @id @default(cuid())
+  postId      String
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation("BlogCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  content     String   @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum BlogCategory {
+  ANNOUNCEMENT  // Platform news, launches
+  GUIDES        // How-to tutorials
+  UPDATES       // Feature updates, changelogs
+  DEV_BLOG      // Behind-the-scenes development
+  TIPS          // Quick tips & tricks
+  COMMUNITY     // User spotlights, community content
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
 }

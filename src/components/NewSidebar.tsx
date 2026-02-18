@@ -44,6 +44,7 @@ const ADMIN_NAV_ITEMS = [
   { id: 'admin-users', label: 'Users', icon: Users, href: '/dashboard/admin/users' },
   { id: 'admin-games', label: 'All Games', icon: Gamepad2, href: '/dashboard/admin/games' },
   { id: 'admin-reports', label: 'Reports', icon: BarChart3, href: '/dashboard/admin/reports' },
+  { id: 'admin-blog', label: 'Blog', icon: MessageSquare, href: '/dashboard/admin/blog' },
 ]
 
 const VISIBILITY_ICONS = {
@@ -114,6 +115,7 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
     if (pathname.startsWith('/dashboard/admin/users')) return 'admin-users'
     if (pathname.startsWith('/dashboard/admin/games')) return 'admin-games'
     if (pathname.startsWith('/dashboard/admin/reports')) return 'admin-reports'
+    if (pathname.startsWith('/dashboard/admin/blog')) return 'admin-blog'
     return 'dashboard'
   }
 
