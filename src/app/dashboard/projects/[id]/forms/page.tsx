@@ -475,7 +475,7 @@ export default function FormsPage() {
               <div className="mb-3 text-xs">
                 {editingSlug === form.id ? (
                   <div className="flex items-center gap-2 bg-[#1a1a2e] p-2 rounded-lg">
-                    <span className="text-slate-500 text-xs">playpulse.vercel.app/f/</span>
+                    <span className="text-slate-500 text-xs">patchplay.live/f/</span>
                     <input
                       type="text"
                       value={slugInput}
@@ -500,7 +500,7 @@ export default function FormsPage() {
                 ) : (
                   <div className="flex items-center gap-1 text-slate-500 bg-[#1a1a2e] px-3 py-2 rounded-lg">
                     <LinkIcon size={12} />
-                    <span className="text-slate-500">playpulse.vercel.app/f/</span>
+                    <span className="text-slate-500">patchplay.live/f/</span>
                     <span className="font-mono font-semibold text-white">{form.slug || form.id}</span>
                     {form.slug && <span className="text-green-400 ml-1 text-xs">(custom)</span>}
                   </div>

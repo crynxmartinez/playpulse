@@ -1,4 +1,4 @@
-# PlayPulse Execution Plan
+# PatchPlay Execution Plan
 
 > Step-by-step implementation guide with interface previews
 
@@ -6,7 +6,7 @@
 
 ## Overview
 
-We'll build PlayPulse in **8 sprints** (Sprint 0-7), each taking approximately 1-2 weeks. Each sprint delivers a working feature that builds on the previous one.
+We'll build PatchPlay in **8 sprints** (Sprint 0-7), each taking approximately 1-2 weeks. Each sprint delivers a working feature that builds on the previous one.
 
 **Design System:** Based on ChatGPT's UI prototype using shadcn/ui components with consistent `rounded-2xl/3xl` styling.
 
@@ -49,7 +49,7 @@ npm install recharts lucide-react
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ TOP BAR                                                                 │
 │ ┌─────────┐  [Search games, tags, studios...]  [Workspace|Public] [+]  │
-│ │PlayPulse│                                                    [🔔][👤]│
+│ │PatchPlay│                                                    [🔔][👤]│
 │ └─────────┘                                                             │
 ├────────────────┬────────────────────────────────────────────────────────┤
 │ SIDEBAR        │ MAIN CONTENT                                          │
@@ -293,7 +293,7 @@ enum Visibility {
 │                                                                 │
 │  ○ Private   - Only you can see this game                       │
 │  ○ Unlisted  - Anyone with the link can view                    │
-│  ● Public    - Discoverable on PlayPulse                        │
+│  ● Public    - Discoverable on PatchPlay                        │
 │                                                                 │
 │                                    [Cancel]  [Save Changes]     │
 └─────────────────────────────────────────────────────────────────┘
@@ -843,7 +843,7 @@ type ChangelogItem = {
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ PlayPulse                                      [Search...] [Login]      │
+│ PatchPlay                                      [Search...] [Login]      │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Discover Games                                                         │
@@ -927,7 +927,7 @@ Total:      ~11 weeks to full feature set
 
 ## Feature Preservation Map
 
-**IMPORTANT:** Our existing playtest engine (forms, stats, responses, analytics) is the CORE of PlayPulse. All new features wrap around it.
+**IMPORTANT:** Our existing playtest engine (forms, stats, responses, analytics) is the CORE of PatchPlay. All new features wrap around it.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -951,7 +951,7 @@ Total:      ~11 weeks to full feature set
 │  │  │ System  │→ │ Builder │→ │   View    │→ │  Charts   │        │    │
 │  │  └─────────┘  └─────────┘  └───────────┘  └───────────┘        │    │
 │  │                                                                 │    │
-│  │  This is what makes PlayPulse unique. Everything else          │    │
+│  │  This is what makes PatchPlay unique. Everything else          │    │
 │  │  enhances discoverability and shareability of this data.       │    │
 │  └─────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────┘

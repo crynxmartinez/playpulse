@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     select: { id: true, name: true, bannerUrl: true, logoUrl: true, slug: true },
   })
 
-  if (!project) return { title: 'Update Not Found | PlayPulse' }
+  if (!project) return { title: 'Update Not Found | PatchPlay' }
 
   // Find version by slug or ID (fallback for old links)
   const version = await db.projectVersion.findFirst({
@@ -33,10 +33,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   })
 
-  if (!version || !version.isPublished) return { title: 'Update Not Found | PlayPulse' }
+  if (!version || !version.isPublished) return { title: 'Update Not Found | PatchPlay' }
 
-  const title = `${version.title} — ${project.name} | PlayPulse`
-  const description = truncateText(version.description, 160) || `Version ${version.version} update for ${project.name} on PlayPulse.`
+  const title = `${version.title} — ${project.name} | PatchPlay`
+  const description = truncateText(version.description, 160) || `Version ${version.version} update for ${project.name} on PatchPlay.`
   const image = project.bannerUrl || project.logoUrl || null
 
   return {
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: 'article',
-      siteName: 'PlayPulse',
+      siteName: 'PatchPlay',
       ...(image && { images: [{ url: image, width: 1200, height: 630, alt: project.name }] }),
     },
     twitter: {

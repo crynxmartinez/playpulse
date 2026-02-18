@@ -1,4 +1,4 @@
-# PlayPulse Vision & Implementation Plan
+# PatchPlay Vision & Implementation Plan
 
 > **One-liner:** A Steam-like discovery and devlog platform powered by playtest analytics—private by default, shareable by choice.
 
@@ -18,7 +18,7 @@
 
 ## Product Vision
 
-PlayPulse is where indie game developers:
+PatchPlay is where indie game developers:
 - **Run playtests** with structured feedback collection
 - **Publish devlogs** with rich, block-based content
 - **Show progress** with shareable analytics dashboards
@@ -165,7 +165,7 @@ User (Profile)
 |-------|-------------|----------|
 | **Private** | Only owner/team | Development, internal testing |
 | **Unlisted** | Anyone with link | Share with Discord, press, investors |
-| **Public** | Everyone on PlayPulse | Discovery, marketing, social proof |
+| **Public** | Everyone on PatchPlay | Discovery, marketing, social proof |
 
 ### Response Identity Options (per Campaign)
 
@@ -732,7 +732,7 @@ Keep these as the core engine:
 
 ## Summary
 
-PlayPulse evolves from a simple playtest form tool into a **complete indie game development platform** that combines:
+PatchPlay evolves from a simple playtest form tool into a **complete indie game development platform** that combines:
 
 1. **Playtest Analytics** (existing) - The engine
 2. **Game Hub** (new) - The storefront

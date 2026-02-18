@@ -326,7 +326,7 @@ export default function PublicBoardPage() {
             <Sparkles className="h-4 w-4 text-primary" />
             <span>Powered by</span>
             <Link href="/" className="text-primary hover:underline font-medium">
-              PlayPulse
+              PatchPlay
             </Link>
           </div>
         </div>

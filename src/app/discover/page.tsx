@@ -134,7 +134,7 @@ function DiscoverContent() {
               <Sparkles className="h-4 w-4 text-purple-500" />
             </div>
             <div className="hidden sm:block">
-              <div className="text-sm font-semibold leading-none text-white">PlayPulse</div>
+              <div className="text-sm font-semibold leading-none text-white">PatchPlay</div>
               <div className="text-xs text-slate-400">Discover Games</div>
             </div>
           </Link>
@@ -340,7 +340,7 @@ function DiscoverContent() {
 
       {/* Footer */}
       <footer className="border-t border-[#1a1a2e] py-8 text-center text-slate-500 text-sm">
-        Powered by <Link href="/" className="text-purple-400 hover:text-purple-300">PlayPulse</Link>
+        Powered by <Link href="/" className="text-purple-400 hover:text-purple-300">PatchPlay</Link>
       </footer>
     </div>
   )

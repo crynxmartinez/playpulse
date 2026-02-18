@@ -72,7 +72,7 @@ export default function RegisterPage() {
               <Sparkles className="h-5 w-5 text-white" />
             </div>
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">PlayPulse</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">PatchPlay</h1>
           <p className="text-white/70">Create your account</p>
         </div>
 

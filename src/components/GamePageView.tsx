@@ -44,7 +44,7 @@ export default function GamePageView({ project, user, isOwner = false }: GamePag
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
               <div className="hidden sm:block">
-                <div className="text-sm font-semibold leading-none text-white">PlayPulse</div>
+                <div className="text-sm font-semibold leading-none text-white">PatchPlay</div>
                 <div className="text-xs text-muted-foreground">devlogs • playtests • proof</div>
               </div>
             </Link>

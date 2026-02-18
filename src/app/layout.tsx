@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'PlayPulse',
-  description: 'PlayPulse Application',
+  title: 'PatchPlay',
+  description: 'PatchPlay Application',
 }
 
 export default function RootLayout({

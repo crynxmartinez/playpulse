@@ -1,4 +1,4 @@
-# PlayPulse
+# PatchPlay
 
 A modern gaming platform dashboard built with Next.js, Prisma, and TailwindCSS.
 

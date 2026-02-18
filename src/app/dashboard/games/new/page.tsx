@@ -113,7 +113,7 @@ export default function NewGamePage() {
                 URL Slug
               </label>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">playpulse.app/game/</span>
+                <span className="text-sm text-muted-foreground">PatchPlay.app/game/</span>
                 <Input
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: generateSlug(e.target.value) })}

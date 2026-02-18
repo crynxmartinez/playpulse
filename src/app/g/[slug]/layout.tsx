@@ -35,17 +35,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     if (!project) {
       return {
-        title: 'Game Not Found | PlayPulse',
+        title: 'Game Not Found | PatchPlay',
         description: 'This game does not exist or is private.',
       }
     }
 
     const developerName = project.user?.studioName || project.user?.displayName || project.user?.username || 'Developer'
-    const description = stripHtml(project.description) || `${project.name} by ${developerName} on PlayPulse`
+    const description = stripHtml(project.description) || `${project.name} by ${developerName} on PatchPlay`
     const imageUrl = project.bannerUrl || project.logoUrl || '/og-default.png'
 
     return {
-      title: `${project.name} | PlayPulse`,
+      title: `${project.name} | PatchPlay`,
       description,
       keywords: [project.genre, ...(project.tags || []), 'game', 'playtest', 'indie game'].filter(Boolean) as string[],
       authors: [{ name: developerName }],
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         description,
         type: 'website',
         images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: project.name }] : [],
-        siteName: 'PlayPulse',
+        siteName: 'PatchPlay',
       },
       twitter: {
         card: 'summary_large_image',
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   } catch (error) {
     console.error('Failed to generate metadata:', error)
     return {
-      title: 'PlayPulse',
+      title: 'PatchPlay',
       description: 'Discover and playtest indie games',
     }
   }

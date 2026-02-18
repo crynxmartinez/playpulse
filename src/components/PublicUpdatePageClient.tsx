@@ -255,7 +255,7 @@ export default function PublicUpdatePageClient({ projectId, versionId, initialVe
 
       {/* Footer */}
       <footer className="py-8 text-center text-slate-500 text-sm">
-        <p>Powered by <Link href="/" className="text-purple-400 hover:text-purple-300">PlayPulse</Link></p>
+        <p>Powered by <Link href="/" className="text-purple-400 hover:text-purple-300">PatchPlay</Link></p>
       </footer>
 
       {/* Image Lightbox Modal */}

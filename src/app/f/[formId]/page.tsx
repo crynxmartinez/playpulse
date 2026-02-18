@@ -416,7 +416,7 @@ export default function PublicFormPage() {
             )}
           </div>
           
-          <p className="text-center text-white/40 text-sm mt-8">Powered by PlayPulse</p>
+          <p className="text-center text-white/40 text-sm mt-8">Powered by PatchPlay</p>
         </div>
       </div>
     )

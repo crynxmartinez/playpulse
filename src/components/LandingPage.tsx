@@ -128,7 +128,7 @@ function ScreenshotShowcase({ images }: { images: string[] }) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent z-10 pointer-events-none" />
         <img 
           src={images[activeIndex]} 
-          alt="PlayPulse Dashboard"
+          alt="PatchPlay Dashboard"
           className="w-full h-auto transition-opacity duration-500"
         />
       </div>
@@ -265,7 +265,7 @@ export default function LandingPage() {
               <Sparkles className="h-5 w-5 text-white" />
             </div>
             <div>
-              <div className="font-bold text-lg">PlayPulse</div>
+              <div className="font-bold text-lg">PatchPlay</div>
               <div className="text-xs text-white/50">devlogs • playtests • proof</div>
             </div>
           </Link>
@@ -362,7 +362,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              See PlayPulse in Action
+              See PatchPlay in Action
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
               A powerful dashboard designed specifically for game developers. 
@@ -391,7 +391,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
               Stop cobbling together Google Forms, spreadsheets, and random websites. 
-              PlayPulse gives you everything in one place.
+              PatchPlay gives you everything in one place.
             </p>
           </div>
 
@@ -492,7 +492,7 @@ export default function LandingPage() {
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
-                <div className="font-bold">PlayPulse</div>
+                <div className="font-bold">PatchPlay</div>
                 <div className="text-xs text-white/50">devlogs • playtests • proof</div>
               </div>
             </div>
@@ -504,7 +504,7 @@ export default function LandingPage() {
             </div>
 
             <div className="text-sm text-white/40">
-              © 2026 PlayPulse. All rights reserved.
+              © 2026 PatchPlay. All rights reserved.
             </div>
           </div>
         </div>

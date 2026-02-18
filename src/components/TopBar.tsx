@@ -48,7 +48,7 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div className="hidden sm:block">
-              <div className="text-sm font-semibold leading-none">PlayPulse</div>
+              <div className="text-sm font-semibold leading-none">PatchPlay</div>
               <div className="text-xs text-muted-foreground">devlogs • playtests • proof</div>
             </div>
           </Link>

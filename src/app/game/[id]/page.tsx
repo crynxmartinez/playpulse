@@ -23,11 +23,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   })
 
-  if (!project) return { title: 'Game Not Found | PlayPulse' }
+  if (!project) return { title: 'Game Not Found | PatchPlay' }
 
   const developerName = project.user?.studioName || project.user?.displayName || project.user?.username || 'Unknown Developer'
-  const title = `${project.name} | PlayPulse`
-  const description = truncateText(project.description, 160) || `${project.name} by ${developerName} on PlayPulse.`
+  const title = `${project.name} | PatchPlay`
+  const description = truncateText(project.description, 160) || `${project.name} by ${developerName} on PatchPlay.`
   const image = project.bannerUrl || project.logoUrl || null
 
   return {
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: 'website',
-      siteName: 'PlayPulse',
+      siteName: 'PatchPlay',
       ...(image && { images: [{ url: image, width: 1200, height: 630, alt: project.name }] }),
     },
     twitter: {

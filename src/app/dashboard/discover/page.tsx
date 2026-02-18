@@ -505,7 +505,7 @@ export default function DiscoverPage() {
               <section>
                 <SectionHeader 
                   icon={Sparkles} 
-                  title="New on PlayPulse" 
+                  title="New on PatchPlay" 
                   subtitle="Recently added games"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -525,7 +525,7 @@ export default function DiscoverPage() {
                   </div>
                   <h2 className="text-lg font-semibold mb-2 text-white">No Games Yet</h2>
                   <p className="text-muted-foreground max-w-md mx-auto text-sm">
-                    Be the first to publish a game on PlayPulse!
+                    Be the first to publish a game on PatchPlay!
                   </p>
                   <Button className="rounded-2xl mt-4" asChild>
                     <Link href="/dashboard/games/new">Create a Game</Link>

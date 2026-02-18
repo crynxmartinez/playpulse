@@ -1137,7 +1137,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                 <CardHeader>
                   <CardTitle className="text-base text-white">About</CardTitle>
                   <CardDescription className="text-slate-400">
-                    {stripHtml(project.description) || "A game in development on PlayPulse."}
+                    {stripHtml(project.description) || "A game in development on PatchPlay."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
@@ -1407,7 +1407,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
           <div className="text-sm text-muted-foreground">
             Public analytics are aggregate-only • Creators keep raw responses private by default.
           </div>
-          <div className="text-sm text-muted-foreground">PlayPulse • Public Game Page</div>
+          <div className="text-sm text-muted-foreground">PatchPlay • Public Game Page</div>
         </div>
       </div>
 

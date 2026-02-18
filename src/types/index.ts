@@ -1,4 +1,4 @@
-// Shared type definitions for PlayPulse
+// Shared type definitions for PatchPlay
 
 export interface User {
   id: string
