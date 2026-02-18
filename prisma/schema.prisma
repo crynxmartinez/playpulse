@@ -40,6 +40,10 @@ model User {
   feedbackVotes     FeedbackVote[]    @relation("FeedbackVoter")
   feedbackComments  FeedbackComment[] @relation("CommentAuthor")
   notifications     Notification[]
+  
+  // Tester engagement
+  testerProfile     TesterProfile?
+  testSessions      TestSession[]
 }
 
 enum Role {
@@ -241,6 +245,7 @@ model Response {
   respondentEmail String?
   createdAt       DateTime @default(now())
   answers         Answer[]
+  testSession     TestSession?
 }
 
 model Answer {
@@ -417,4 +422,39 @@ model ProgressBoard {
   
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+// Tester Profile - gamification for playtesters
+model TesterProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  xp          Int      @default(0)      // Total XP earned
+  level       Int      @default(1)      // Current level
+  badges      Json     @default("[]")   // Array of earned badge IDs
+  
+  // Stats
+  testsCompleted  Int  @default(0)      // Total playtests completed
+  gamesHelped     Int  @default(0)      // Unique games tested
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Test Session - tracks when a user completes a playtest
+model TestSession {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  responseId  String   @unique
+  response    Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  projectId   String
+  
+  xpEarned    Int      @default(10)     // XP earned for this test
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([projectId])
 }

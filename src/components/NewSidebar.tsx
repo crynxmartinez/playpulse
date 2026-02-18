@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Check,
   User,
+  Trophy,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { id: 'profile', label: 'Profile', icon: User, href: '/dashboard/profile' },
   { id: 'mygames', label: 'My Games', icon: Gamepad2, href: '/dashboard/games' },
+  { id: 'mytests', label: 'My Tests', icon: Trophy, href: '/dashboard/my-tests' },
   { id: 'discover', label: 'Discover', icon: Compass, href: '/dashboard/discover' },
   { id: 'settings', label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
@@ -80,6 +82,7 @@ export default function NewSidebar({ selectedGameId: propSelectedGameId, onSelec
     if (pathname === '/dashboard') return 'dashboard'
     if (pathname.startsWith('/dashboard/profile')) return 'profile'
     if (pathname.startsWith('/dashboard/games') || pathname.startsWith('/dashboard/projects')) return 'mygames'
+    if (pathname.startsWith('/dashboard/my-tests')) return 'mytests'
     if (pathname.startsWith('/dashboard/discover')) return 'discover'
     if (pathname.startsWith('/dashboard/settings')) return 'settings'
     return 'dashboard'
