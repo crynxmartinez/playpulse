@@ -43,7 +43,7 @@ export default function ProjectFormNav({ projectId }: ProjectFormNavProps) {
           )}
         >
           <FileText size={14} />
-          <span>Form</span>
+          <span>Testplay</span>
         </Link>
         <Link
           href={`${basePath}/updates`}

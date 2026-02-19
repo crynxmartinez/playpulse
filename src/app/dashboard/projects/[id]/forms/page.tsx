@@ -89,7 +89,7 @@ const QUESTION_TEMPLATES = [
 ]
 
 const WIZARD_STEPS = [
-  { id: 1, name: 'Landing Page', description: 'Design your form intro' },
+  { id: 1, name: 'Landing Page', description: 'Design your testplay intro' },
   { id: 2, name: 'Select Stats', description: 'Choose what to measure' },
   { id: 3, name: 'Questions', description: 'Build your questionnaire' },
 ]
@@ -412,7 +412,7 @@ export default function FormsPage() {
         <div>
           <div className="text-lg font-semibold">Campaigns</div>
           <div className="text-sm text-muted-foreground">
-            Create feedback forms to collect player responses.
+            Create testplays to collect player responses.
           </div>
         </div>
         <Button
@@ -439,14 +439,14 @@ export default function FormsPage() {
       {forms.length === 0 ? (
         <div className="bg-[#0d0d15] rounded-xl p-12 border border-[#2a2a3e] text-center">
           <FileText className="mx-auto text-slate-500 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-white mb-2">No forms yet</h3>
-          <p className="text-slate-400 mb-4">Create forms to start collecting player feedback.</p>
+          <h3 className="text-lg font-medium text-white mb-2">No testplays yet</h3>
+          <p className="text-slate-400 mb-4">Create testplays to start collecting player feedback.</p>
           {stats.length > 0 && (
             <button
               onClick={() => setShowWizard(true)}
               className="text-purple-400 hover:text-purple-300 font-medium"
             >
-              Create your first form
+              Create your first testplay
             </button>
           )}
         </div>
