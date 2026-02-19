@@ -35,6 +35,9 @@ export default function GalleryPage() {
   const [imageUrl, setImageUrl] = useState('')
   const [imageTitle, setImageTitle] = useState('')
   const [imageDescription, setImageDescription] = useState('')
+  const [bulkMode, setBulkMode] = useState(false)
+  const [bulkUrls, setBulkUrls] = useState('')
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null)
 
   const fetchGallery = useCallback(async () => {
     try {
@@ -73,10 +76,7 @@ export default function GalleryPage() {
       if (res.ok) {
         const data = await res.json()
         setImages(prev => [...prev, data.image])
-        setShowUploadModal(false)
-        setImageUrl('')
-        setImageTitle('')
-        setImageDescription('')
+        closeModal()
       } else {
         const error = await res.json()
         alert(`Failed to add image: ${error.error}`)
@@ -87,6 +87,45 @@ export default function GalleryPage() {
     } finally {
       setUploading(false)
     }
+  }
+
+  const handleBulkUpload = async () => {
+    const urls = bulkUrls.split('\n').map(u => u.trim()).filter(u => u.length > 0)
+    if (urls.length === 0) return
+
+    setUploading(true)
+    setBulkProgress({ done: 0, total: urls.length })
+
+    let added = 0
+    for (const url of urls) {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/gallery`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: url, title: null, description: null })
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setImages(prev => [...prev, data.image])
+          added++
+        }
+      } catch {}
+      setBulkProgress({ done: added, total: urls.length })
+    }
+
+    setUploading(false)
+    setBulkProgress(null)
+    closeModal()
+  }
+
+  const closeModal = () => {
+    setShowUploadModal(false)
+    setImageUrl('')
+    setImageTitle('')
+    setImageDescription('')
+    setBulkMode(false)
+    setBulkUrls('')
+    setBulkProgress(null)
   }
 
   const handleDelete = async (imageId: string) => {
@@ -196,78 +235,121 @@ export default function GalleryPage() {
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <CardTitle>Add Image</CardTitle>
-              <CardDescription>
-                Add an image URL to your gallery. Use services like Imgur, Cloudinary, or any direct image link.
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Add Image{bulkMode ? 's' : ''}</CardTitle>
+                  <CardDescription>
+                    {bulkMode ? 'Paste multiple image URLs, one per line.' : 'Add a single image URL to your gallery.'}
+                  </CardDescription>
+                </div>
+                <button
+                  onClick={() => setBulkMode(!bulkMode)}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                    bulkMode
+                      ? 'bg-purple-600 border-purple-500 text-white'
+                      : 'border-[#2a2a3e] text-slate-400 hover:text-white hover:border-slate-500'
+                  }`}
+                >
+                  {bulkMode ? 'Single' : 'Bulk Add'}
+                </button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl">Image URL *</Label>
-                <Input
-                  id="imageUrl"
-                  placeholder="https://example.com/image.jpg"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="imageTitle">Title (optional)</Label>
-                <Input
-                  id="imageTitle"
-                  placeholder="Screenshot of gameplay"
-                  value={imageTitle}
-                  onChange={(e) => setImageTitle(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="imageDescription">Description (optional)</Label>
-                <Textarea
-                  id="imageDescription"
-                  placeholder="A brief description of the image..."
-                  value={imageDescription}
-                  onChange={(e) => setImageDescription(e.target.value)}
-                  rows={2}
-                />
-              </div>
-              
-              {/* Preview */}
-              {imageUrl && (
-                <div className="rounded-lg overflow-hidden bg-muted">
-                  <img 
-                    src={imageUrl} 
-                    alt="Preview"
-                    className="w-full h-40 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none'
-                    }}
-                  />
-                </div>
+              {bulkMode ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="bulkUrls">Image URLs (one per line) *</Label>
+                    <Textarea
+                      id="bulkUrls"
+                      placeholder={`https://example.com/image1.jpg\nhttps://example.com/image2.jpg\nhttps://example.com/image3.jpg`}
+                      value={bulkUrls}
+                      onChange={(e) => setBulkUrls(e.target.value)}
+                      rows={8}
+                      className="font-mono text-xs"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {bulkUrls.split('\n').filter(u => u.trim()).length} URL{bulkUrls.split('\n').filter(u => u.trim()).length !== 1 ? 's' : ''} detected
+                    </p>
+                  </div>
+
+                  {/* Bulk progress */}
+                  {bulkProgress && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-slate-400">
+                        <span>Uploading...</span>
+                        <span>{bulkProgress.done} / {bulkProgress.total}</span>
+                      </div>
+                      <div className="w-full bg-[#1a1a2e] rounded-full h-2">
+                        <div
+                          className="bg-purple-500 h-2 rounded-full transition-all"
+                          style={{ width: `${(bulkProgress.done / bulkProgress.total) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="imageUrl">Image URL *</Label>
+                    <Input
+                      id="imageUrl"
+                      placeholder="https://example.com/image.jpg"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="imageTitle">Title (optional)</Label>
+                    <Input
+                      id="imageTitle"
+                      placeholder="Screenshot of gameplay"
+                      value={imageTitle}
+                      onChange={(e) => setImageTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="imageDescription">Description (optional)</Label>
+                    <Textarea
+                      id="imageDescription"
+                      placeholder="A brief description of the image..."
+                      value={imageDescription}
+                      onChange={(e) => setImageDescription(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  
+                  {/* Preview */}
+                  {imageUrl && (
+                    <div className="rounded-lg overflow-hidden bg-muted">
+                      <img 
+                        src={imageUrl} 
+                        alt="Preview"
+                        className="w-full h-40 object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
               )}
 
               <div className="flex gap-2 justify-end pt-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowUploadModal(false)
-                    setImageUrl('')
-                    setImageTitle('')
-                    setImageDescription('')
-                  }}
-                >
+                <Button variant="outline" onClick={closeModal} disabled={uploading}>
                   Cancel
                 </Button>
                 <Button 
-                  onClick={handleUpload}
-                  disabled={!imageUrl.trim() || uploading}
+                  onClick={bulkMode ? handleBulkUpload : handleUpload}
+                  disabled={uploading || (bulkMode ? !bulkUrls.trim() : !imageUrl.trim())}
                 >
                   {uploading ? (
                     <>
                       <Loader2 size={16} className="animate-spin mr-2" />
-                      Adding...
+                      {bulkMode ? `Adding ${bulkProgress?.done ?? 0}/${bulkProgress?.total ?? 0}...` : 'Adding...'}
                     </>
                   ) : (
-                    'Add Image'
+                    bulkMode ? `Add ${bulkUrls.split('\n').filter(u => u.trim()).length || ''} Images` : 'Add Image'
                   )}
                 </Button>
               </div>

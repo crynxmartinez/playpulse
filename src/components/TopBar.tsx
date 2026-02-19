@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Bell, Plus, Sparkles, Menu, Search, X } from 'lucide-react'
+import { Bell, Plus, Sparkles, Menu, Search, X, User as UserIcon, Settings, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { User } from '@/types'
@@ -18,6 +18,22 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const displayName = user.displayName || user.name || user.email.split('@')[0]
+  const initials = (user.displayName || user.name || user.email)[0].toUpperCase()
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +41,12 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
       router.push(`/dashboard/discover?q=${encodeURIComponent(searchQuery)}`)
       setIsSearchOpen(false)
     }
+  }
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
   }
 
   return (
@@ -94,9 +116,78 @@ export default function TopBar({ user, onMenuToggle, isSidebarOpen }: TopBarProp
             <Bell className="h-5 w-5" />
           </Button>
 
-          {/* User Avatar */}
-          <div className="h-9 w-9 rounded-2xl border border-[#2a2a3e] bg-gradient-to-br from-purple-500/20 to-purple-500/40 flex items-center justify-center text-sm font-semibold cursor-pointer hover:opacity-80 transition-opacity text-white">
-            {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+          {/* User Avatar + Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="h-9 w-9 rounded-2xl border border-[#2a2a3e] overflow-hidden hover:border-purple-500/50 transition-all focus:outline-none"
+            >
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-500/40 to-indigo-600/40 flex items-center justify-center text-sm font-semibold text-white">
+                  {initials}
+                </div>
+              )}
+            </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className="absolute right-0 top-11 w-56 rounded-2xl border border-[#2a2a3e] bg-[#0d0d15] shadow-xl shadow-black/50 overflow-hidden z-50">
+                {/* User Info */}
+                <div className="px-4 py-3 border-b border-[#1a1a2e]">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-xl border border-[#2a2a3e] overflow-hidden flex-shrink-0">
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-purple-500/40 to-indigo-600/40 flex items-center justify-center text-sm font-semibold text-white">
+                          {initials}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-white truncate">{displayName}</div>
+                      <div className="text-xs text-slate-400 truncate">{user.email}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu Items */}
+                <div className="p-1">
+                  <Link
+                    href="/dashboard/profile"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-[#1a1a2e] hover:text-white transition-colors"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                    Profile
+                  </Link>
+                  <Link
+                    href="/dashboard/settings"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-[#1a1a2e] hover:text-white transition-colors"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                </div>
+
+                <div className="p-1 border-t border-[#1a1a2e]">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Log Out
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
