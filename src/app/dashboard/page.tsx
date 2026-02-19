@@ -1,10 +1,11 @@
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { Plus, Camera, BarChart3, Link as LinkIcon } from 'lucide-react'
+import { Plus, Camera, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import ProgressBoardCard from './ProgressBoardCard'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -140,55 +141,7 @@ export default async function DashboardPage() {
         </Card>
 
         {/* Progress Board Card */}
-        <Card className="rounded-3xl lg:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Progress Board</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="rounded-2xl border p-3">
-              <div className="text-xs text-muted-foreground">Link visibility</div>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="rounded-full inline-flex items-center gap-1">
-                  <LinkIcon className="h-3 w-3" /> Private
-                </Badge>
-                <span className="text-sm text-muted-foreground">Share progress with your team.</span>
-              </div>
-            </div>
-            
-            {selectedGame ? (
-              <div className="rounded-2xl border p-3">
-                <div className="text-xs text-muted-foreground">Quick preview</div>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
-                  <div className="font-medium">Game</div>
-                  <div className="font-medium">Campaigns</div>
-                  <div className="font-medium">Stats</div>
-                  <div className="text-muted-foreground truncate">{selectedGame.name}</div>
-                  <div className="text-muted-foreground">{selectedGame._count.forms}</div>
-                  <div className="text-muted-foreground">{selectedGame._count.stats}</div>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border p-3 text-center text-sm text-muted-foreground">
-                Create a game to see progress
-              </div>
-            )}
-            
-            <div className="flex gap-2">
-              <Button className="flex-1 rounded-2xl" variant="outline" disabled={!selectedGame}>
-                Copy Link
-              </Button>
-              <Button className="flex-1 rounded-2xl" disabled={!selectedGame} asChild>
-                {selectedGame ? (
-                  <Link href={`/dashboard/projects/${selectedGame.id}/analytics`}>
-                    Open
-                  </Link>
-                ) : (
-                  <span>Open</span>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ProgressBoardCard selectedGame={selectedGame ?? null} />
       </div>
 
       {/* Quick Actions */}

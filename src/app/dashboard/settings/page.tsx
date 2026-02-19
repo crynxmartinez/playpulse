@@ -28,6 +28,11 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [user, setUser] = useState<UserProfile | null>(null)
+
+  // Password change state
+  const [pwData, setPwData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwMessage, setPwMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -99,6 +104,41 @@ export default function SettingsPage() {
     await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/login')
     router.refresh()
+  }
+
+  const handleChangePassword = async () => {
+    setPwMessage(null)
+    if (!pwData.currentPassword || !pwData.newPassword || !pwData.confirmPassword) {
+      setPwMessage({ type: 'error', text: 'All fields are required' })
+      return
+    }
+    if (pwData.newPassword.length < 6) {
+      setPwMessage({ type: 'error', text: 'New password must be at least 6 characters' })
+      return
+    }
+    if (pwData.newPassword !== pwData.confirmPassword) {
+      setPwMessage({ type: 'error', text: 'New passwords do not match' })
+      return
+    }
+    setPwSaving(true)
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: pwData.currentPassword, newPassword: pwData.newPassword }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setPwMessage({ type: 'success', text: 'Password changed successfully!' })
+        setPwData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      } else {
+        setPwMessage({ type: 'error', text: data.error || 'Failed to change password' })
+      }
+    } catch {
+      setPwMessage({ type: 'error', text: 'Something went wrong' })
+    } finally {
+      setPwSaving(false)
+    }
   }
 
   if (loading) {
@@ -236,6 +276,61 @@ export default function SettingsPage() {
       >
         {saving ? 'Saving...' : 'Save All Changes'}
       </Button>
+
+      {/* Change Password Card */}
+      <Card className="rounded-3xl">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Change Password</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {pwMessage && (
+            <div className={`p-3 rounded-2xl text-sm ${
+              pwMessage.type === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-700'
+                : 'bg-red-50 border border-red-200 text-red-700'
+            }`}>
+              {pwMessage.text}
+            </div>
+          )}
+          <div>
+            <label className="text-sm text-muted-foreground">Current Password</label>
+            <Input
+              type="password"
+              placeholder="Enter current password"
+              className="rounded-2xl mt-1"
+              value={pwData.currentPassword}
+              onChange={(e) => setPwData({ ...pwData, currentPassword: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">New Password</label>
+            <Input
+              type="password"
+              placeholder="At least 6 characters"
+              className="rounded-2xl mt-1"
+              value={pwData.newPassword}
+              onChange={(e) => setPwData({ ...pwData, newPassword: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Confirm New Password</label>
+            <Input
+              type="password"
+              placeholder="Repeat new password"
+              className="rounded-2xl mt-1"
+              value={pwData.confirmPassword}
+              onChange={(e) => setPwData({ ...pwData, confirmPassword: e.target.value })}
+            />
+          </div>
+          <Button
+            className="rounded-2xl"
+            onClick={handleChangePassword}
+            disabled={pwSaving}
+          >
+            {pwSaving ? 'Changing...' : 'Change Password'}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Account Card */}
       <Card className="rounded-3xl">
