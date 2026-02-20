@@ -73,6 +73,57 @@ const QUESTION_TYPES = [
   { value: 'TEXT_RATING', label: 'Text + Rating', icon: MessageSquare, description: 'Open text with rating' },
 ]
 
+type QuestionType = 'SLIDER' | 'YES_NO' | 'MULTIPLE_SINGLE' | 'MULTIPLE_MULTI' | 'TEXT_RATING' | 'STAR_RATING' | 'NPS'
+
+interface SuggestedQuestion {
+  questionText: string
+  type: QuestionType
+  statId: string
+  statName: string
+  options: QuestionOption[]
+  minValue: number
+  maxValue: number
+}
+
+const STAT_TO_QUESTION_MAP: Record<string, { question: string; type: QuestionType }> = {
+  // By stat name (lowercase) — exact matches first
+  'fun factor':        { question: 'How fun and engaging was the gameplay?', type: 'SLIDER' },
+  'difficulty':        { question: 'How would you describe the difficulty level?', type: 'MULTIPLE_SINGLE' },
+  'game length':       { question: 'Was the session length appropriate?', type: 'YES_NO' },
+  'replayability':     { question: 'Would you want to play this game again?', type: 'YES_NO' },
+  'card balance':      { question: 'Do the cards feel fair and balanced?', type: 'SLIDER' },
+  'deck variety':      { question: 'Are there enough viable deck strategies?', type: 'SLIDER' },
+  'meta diversity':    { question: 'How healthy is the competitive meta?', type: 'SLIDER' },
+  'power creep':       { question: 'Do newer cards feel overpowered compared to older ones?', type: 'YES_NO' },
+  'ui clarity':        { question: 'Was the interface easy to understand?', type: 'YES_NO' },
+  'tutorial quality':  { question: 'How well did the tutorial teach you the game?', type: 'SLIDER' },
+  'controls':          { question: 'Were the controls intuitive and responsive?', type: 'YES_NO' },
+  'match flow':        { question: 'Did the game flow smoothly without interruptions?', type: 'SLIDER' },
+  'art quality':       { question: 'How would you rate the visual artwork?', type: 'STAR_RATING' },
+  'visual effects':    { question: 'Were the animations and visual effects satisfying?', type: 'SLIDER' },
+  'sound design':      { question: 'How appropriate were the sound effects?', type: 'SLIDER' },
+  'music':             { question: 'Did the soundtrack fit the game atmosphere?', type: 'YES_NO' },
+  'reward satisfaction': { question: 'Did rewards feel meaningful and satisfying?', type: 'SLIDER' },
+  'grind factor':      { question: 'Was the progression too grindy?', type: 'YES_NO' },
+  'f2p friendliness':  { question: 'Is the game fair for free-to-play players?', type: 'SLIDER' },
+  'collection progress': { question: 'How satisfying was collecting items or cards?', type: 'SLIDER' },
+  'matchmaking quality': { question: 'Were your matches fair and well-balanced?', type: 'SLIDER' },
+  'connection stability': { question: 'Did you experience any lag or disconnects?', type: 'YES_NO' },
+  'opponent skill match': { question: 'Were opponents at a similar skill level to you?', type: 'YES_NO' },
+  'would recommend':   { question: 'How likely are you to recommend this game to a friend?', type: 'NPS' },
+  'overall score':     { question: 'How would you rate the game overall?', type: 'STAR_RATING' },
+}
+
+const CATEGORY_FALLBACK_MAP: Record<string, { question: (name: string) => string; type: QuestionType }> = {
+  gameplay:    { question: (n) => `How would you rate the ${n.toLowerCase()}?`, type: 'SLIDER' },
+  visuals:     { question: (n) => `How would you rate the ${n.toLowerCase()}?`, type: 'STAR_RATING' },
+  ux:          { question: (n) => `Was the ${n.toLowerCase()} good?`, type: 'YES_NO' },
+  balance:     { question: (n) => `How balanced did the ${n.toLowerCase()} feel?`, type: 'SLIDER' },
+  progression: { question: (n) => `How satisfying was the ${n.toLowerCase()}?`, type: 'SLIDER' },
+  multiplayer: { question: (n) => `How would you rate the ${n.toLowerCase()}?`, type: 'SLIDER' },
+  overall:     { question: (n) => `How would you rate the ${n.toLowerCase()}?`, type: 'NPS' },
+}
+
 const QUESTION_TEMPLATES = [
   { label: 'Overall Experience', question: 'How would you rate your overall experience with the game?', type: 'STAR_RATING' as const },
   { label: 'Recommend to Friend', question: 'How likely are you to recommend this game to a friend?', type: 'NPS' as const },
@@ -86,6 +137,12 @@ const QUESTION_TEMPLATES = [
   ]},
   { label: 'Bugs Encountered', question: 'Did you encounter any bugs or issues?', type: 'YES_NO' as const },
   { label: 'What You Liked', question: 'What did you like most about the game?', type: 'TEXT_RATING' as const },
+]
+
+const DIFFICULTY_OPTIONS: QuestionOption[] = [
+  { text: 'Too Easy', points: 3 },
+  { text: 'Just Right', points: 10 },
+  { text: 'Too Hard', points: 3 },
 ]
 
 const WIZARD_STEPS = [
@@ -126,6 +183,8 @@ export default function FormsPage() {
   const [showWizard, setShowWizard] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [wizardStep, setWizardStep] = useState(1)
+  const [step3Mode, setStep3Mode] = useState<'suggested' | 'scratch'>('suggested')
+  const [suggestedSelected, setSuggestedSelected] = useState<Set<number>>(new Set())
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
   const [slugInput, setSlugInput] = useState('')
@@ -378,9 +437,55 @@ export default function FormsPage() {
     }
   }
 
+  const generateSuggestedQuestions = (): SuggestedQuestion[] => {
+    const selectedStats = stats.filter(s => wizardData.selectedStatIds.includes(s.id))
+    const questions: SuggestedQuestion[] = selectedStats.map(stat => {
+      const key = stat.name.toLowerCase()
+      const mapped = STAT_TO_QUESTION_MAP[key]
+      const fallback = stat.category ? CATEGORY_FALLBACK_MAP[stat.category] : null
+
+      const questionText = mapped?.question ?? fallback?.question(stat.name) ?? `How would you rate the ${stat.name}?`
+      const type: QuestionType = mapped?.type ?? fallback?.type ?? 'SLIDER'
+
+      const options: QuestionOption[] =
+        type === 'YES_NO' ? [{ text: 'Yes', points: 10 }, { text: 'No', points: 0 }]
+        : type === 'MULTIPLE_SINGLE' && key === 'difficulty' ? DIFFICULTY_OPTIONS
+        : []
+
+      return {
+        questionText,
+        type,
+        statId: stat.id,
+        statName: stat.name,
+        options,
+        minValue: type === 'STAR_RATING' ? 1 : type === 'NPS' ? 0 : 1,
+        maxValue: type === 'STAR_RATING' ? 5 : type === 'NPS' ? 10 : 10,
+      }
+    })
+    // Always append a free-text catch-all at the end
+    questions.push({
+      questionText: 'Any other feedback or suggestions?',
+      type: 'TEXT_RATING',
+      statId: wizardData.selectedStatIds[0] || '',
+      statName: 'General',
+      options: [],
+      minValue: 1,
+      maxValue: 10,
+    })
+    return questions
+  }
+
+  const applySelectedSuggestions = (suggested: SuggestedQuestion[], selected: Set<number>) => {
+    const toAdd = suggested.filter((_, i) => selected.has(i)).map(({ statName: _n, ...q }) => q)
+    setWizardData(prev => ({ ...prev, questions: [...prev.questions, ...toAdd] }))
+    setStep3Mode('scratch')
+  }
+
   const resetWizard = () => {
     setShowWizard(false)
     setWizardStep(1)
+    setStep3Mode('suggested')
+    setSuggestedSelected(new Set())
     setWizardData({
       title: '',
       landingTitle: '',
@@ -808,9 +913,158 @@ export default function FormsPage() {
                 {/* Step 3: Questions */}
                 {wizardStep === 3 && (
                   <div className="space-y-6">
+                    {/* Mode Tabs */}
+                    <div className="flex items-center gap-1 p-1 bg-[#1a1a2e] rounded-xl w-fit">
+                      <button
+                        onClick={() => setStep3Mode('suggested')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          step3Mode === 'suggested'
+                            ? 'bg-purple-600 text-white shadow'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Sparkles size={14} />
+                        Suggested
+                        {step3Mode === 'suggested' && (
+                          <span className="ml-1 px-1.5 py-0.5 text-xs bg-white/20 rounded-full">
+                            {wizardData.selectedStatIds.length + 1}
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setStep3Mode('scratch')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          step3Mode === 'scratch'
+                            ? 'bg-[#2a2a3e] text-white shadow'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Type size={14} />
+                        Build from Scratch
+                        {wizardData.questions.length > 0 && (
+                          <span className="ml-1 px-1.5 py-0.5 text-xs bg-purple-500/30 text-purple-300 rounded-full">
+                            {wizardData.questions.length}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Suggested Tab */}
+                    {step3Mode === 'suggested' && (() => {
+                      const suggested = generateSuggestedQuestions()
+                      const allSelected = suggestedSelected.size === suggested.length
+                      const TYPE_LABELS: Record<QuestionType, string> = {
+                        SLIDER: 'Slider', STAR_RATING: 'Stars', NPS: 'NPS',
+                        YES_NO: 'Yes/No', MULTIPLE_SINGLE: 'Multiple Choice',
+                        MULTIPLE_MULTI: 'Checkboxes', TEXT_RATING: 'Open Text',
+                      }
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-slate-400">
+                              Questions auto-generated from your <span className="text-purple-400 font-medium">{wizardData.selectedStatIds.length} selected stats</span>. Pick which ones to use.
+                            </p>
+                            <button
+                              onClick={() => setSuggestedSelected(
+                                allSelected ? new Set() : new Set(suggested.map((_, i) => i))
+                              )}
+                              className="text-xs px-3 py-1.5 rounded-lg bg-[#2a2a3e] text-slate-300 hover:bg-[#3a3a4e] transition"
+                            >
+                              {allSelected ? 'Deselect All' : 'Select All'}
+                            </button>
+                          </div>
+
+                          <div className="space-y-2">
+                            {suggested.map((sq, i) => {
+                              const isSelected = suggestedSelected.has(i)
+                              const isLast = i === suggested.length - 1
+                              return (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  onClick={() => {
+                                    const next = new Set(suggestedSelected)
+                                    isSelected ? next.delete(i) : next.add(i)
+                                    setSuggestedSelected(next)
+                                  }}
+                                  className={`w-full text-left p-4 rounded-xl border transition-all ${
+                                    isSelected
+                                      ? 'border-purple-500 bg-purple-500/10'
+                                      : 'border-[#2a2a3e] bg-[#1a1a2e] hover:border-[#3a3a4e]'
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className={`mt-0.5 w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border transition-colors ${
+                                      isSelected ? 'bg-purple-600 border-purple-600' : 'border-[#3a3a4e]'
+                                    }`}>
+                                      {isSelected && <Check size={12} className="text-white" />}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-slate-300'}`}>
+                                        {sq.questionText}
+                                      </p>
+                                      <div className="flex items-center gap-2 mt-1.5">
+                                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#2a2a3e] text-slate-400">
+                                          {TYPE_LABELS[sq.type]}
+                                        </span>
+                                        {!isLast && (
+                                          <span className="text-xs text-slate-500">
+                                            → {sq.statName}
+                                          </span>
+                                        )}
+                                        {isLast && (
+                                          <span className="text-xs text-slate-500 italic">catch-all</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+
+                          <div className="flex items-center gap-3 pt-2">
+                            <button
+                              onClick={() => {
+                                const all = new Set(suggested.map((_, i) => i))
+                                applySelectedSuggestions(suggested, all)
+                                setSuggestedSelected(new Set())
+                              }}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                            >
+                              <Sparkles size={15} />
+                              Use All ({suggested.length})
+                            </button>
+                            <button
+                              disabled={suggestedSelected.size === 0}
+                              onClick={() => {
+                                applySelectedSuggestions(suggested, suggestedSelected)
+                                setSuggestedSelected(new Set())
+                              }}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-[#2a2a3e] text-slate-300 rounded-lg hover:bg-[#3a3a4e] transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              <Check size={15} />
+                              Use Selected ({suggestedSelected.size})
+                            </button>
+                            <button
+                              onClick={() => setStep3Mode('scratch')}
+                              className="text-sm text-slate-500 hover:text-slate-300 transition-colors ml-auto"
+                            >
+                              Skip, build from scratch →
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })()}
+
+                    {/* Scratch Tab */}
+                    {step3Mode === 'scratch' && (
+                    <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-slate-600">
-                        Create questions for your selected stats. Each question measures one or more stats.
+                      <p className="text-slate-500 text-sm">
+                        {wizardData.questions.length > 0
+                          ? `${wizardData.questions.length} question${wizardData.questions.length !== 1 ? 's' : ''} added. Edit, reorder, or add more.`
+                          : 'Build your questionnaire manually or use a quick template below.'}
                       </p>
                       <button
                         onClick={() => addQuestion()}
@@ -822,17 +1076,17 @@ export default function FormsPage() {
                     </div>
 
                     {/* Quick Templates */}
-                    <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                    <div className="p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
                       <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="h-4 w-4 text-purple-600" />
-                        <span className="text-sm font-medium text-purple-700">Quick Templates</span>
+                        <Sparkles className="h-4 w-4 text-purple-400" />
+                        <span className="text-sm font-medium text-purple-300">Quick Templates</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {QUESTION_TEMPLATES.map((template, i) => (
                           <button
                             key={i}
                             onClick={() => addTemplateQuestion(template)}
-                            className="px-3 py-1.5 text-xs bg-white border border-purple-200 rounded-full text-purple-700 hover:bg-purple-100 transition"
+                            className="px-3 py-1.5 text-xs bg-[#1a1a2e] border border-[#2a2a3e] rounded-full text-purple-300 hover:bg-purple-500/20 hover:border-purple-500/40 transition"
                           >
                             + {template.label}
                           </button>
@@ -841,9 +1095,15 @@ export default function FormsPage() {
                     </div>
 
                     {wizardData.questions.length === 0 ? (
-                      <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl">
-                        <Type className="mx-auto text-slate-300 mb-3" size={40} />
+                      <div className="text-center py-12 border-2 border-dashed border-[#2a2a3e] rounded-xl">
+                        <Type className="mx-auto text-slate-600 mb-3" size={40} />
                         <p className="text-slate-500">No questions yet. Click a template above or &quot;Add Question&quot; to start.</p>
+                        <button
+                          onClick={() => setStep3Mode('suggested')}
+                          className="mt-3 text-sm text-purple-400 hover:text-purple-300 transition-colors"
+                        >
+                          ← Back to Suggested
+                        </button>
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -1053,6 +1313,8 @@ export default function FormsPage() {
                         ))}
                       </div>
                     )}
+                  </div>
+                  )}
                   </div>
                 )}
               </div>
