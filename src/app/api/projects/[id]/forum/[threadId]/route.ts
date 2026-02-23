@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 // PATCH /api/projects/[id]/forum/[threadId] - Update thread (pin/lock, owner only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; threadId: string } }
+  { params }: { params: Promise<{ id: string; threadId: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -13,8 +13,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const projectId = params.id
-    const threadId = params.threadId
+    const { id: projectId, threadId } = await params
 
     // Check if user owns the project
     const project = await prisma.project.findUnique({
@@ -63,7 +62,7 @@ export async function PATCH(
 // DELETE /api/projects/[id]/forum/[threadId] - Delete thread (owner only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; threadId: string } }
+  { params }: { params: Promise<{ id: string; threadId: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -71,8 +70,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const projectId = params.id
-    const threadId = params.threadId
+    const { id: projectId, threadId } = await params
 
     // Check if user owns the project
     const project = await prisma.project.findUnique({

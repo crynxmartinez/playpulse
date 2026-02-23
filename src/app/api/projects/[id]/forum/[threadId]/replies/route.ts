@@ -5,10 +5,10 @@ import { getCurrentUser } from '@/lib/auth'
 // GET /api/projects/[id]/forum/[threadId]/replies - Get all replies (public)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; threadId: string } }
+  { params }: { params: Promise<{ id: string; threadId: string }> }
 ) {
   try {
-    const threadId = params.threadId
+    const { threadId } = await params
 
     const replies = await prisma.forumReply.findMany({
       where: { threadId },
@@ -39,7 +39,7 @@ export async function GET(
 // POST /api/projects/[id]/forum/[threadId]/replies - Create a reply (auth required)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; threadId: string } }
+  { params }: { params: Promise<{ id: string; threadId: string }> }
 ) {
   try {
     const user = await getCurrentUser()
@@ -47,7 +47,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const threadId = params.threadId
+    const { threadId } = await params
     const { body } = await request.json()
 
     if (!body?.trim()) {
