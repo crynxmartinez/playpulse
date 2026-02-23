@@ -14,6 +14,7 @@ import {
   Lightbulb,
   ImageIcon,
   LayoutDashboard,
+  MessagesSquare,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -36,6 +37,7 @@ const overviewNavItems = [
   { href: '', label: 'Overview', shortLabel: 'Overview', icon: Eye },
   { href: '/boards', label: 'Boards', shortLabel: 'Boards', icon: LayoutDashboard },
   { href: '/feedback', label: 'Feedback', shortLabel: 'Feedback', icon: Lightbulb },
+  { href: '/forum', label: 'Forum', shortLabel: 'Forum', icon: MessagesSquare },
   { href: '/gallery', label: 'Gallery', shortLabel: 'Gallery', icon: ImageIcon },
   { href: '/settings', label: 'Settings', shortLabel: 'Settings', icon: Settings },
 ]
