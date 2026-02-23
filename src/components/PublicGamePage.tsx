@@ -42,6 +42,7 @@ import {
 import Link from "next/link";
 import { FollowButton } from "@/components/FollowButton";
 import { FeedbackSection } from "@/components/FeedbackSection";
+import { ForumSection } from "@/components/ForumSection";
 import { GallerySection } from "@/components/GallerySection";
 import { LiveAnalyticsWidget } from "@/components/LiveAnalyticsWidget";
 import { stripHtml } from "@/lib/utils";
@@ -1195,7 +1196,7 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
               />
 
               <Tabs defaultValue="updates" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 rounded-2xl h-auto gap-1 p-1">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 rounded-2xl h-auto gap-1 p-1">
                   <TabsTrigger value="updates" className="rounded-xl text-xs sm:text-sm py-2">
                     Updates
                   </TabsTrigger>
@@ -1204,6 +1205,9 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   </TabsTrigger>
                   <TabsTrigger value="feedback" className="rounded-xl text-xs sm:text-sm py-2">
                     Feedback
+                  </TabsTrigger>
+                  <TabsTrigger value="forum" className="rounded-xl text-xs sm:text-sm py-2">
+                    Forum
                   </TabsTrigger>
                   <TabsTrigger value="gallery" className="rounded-xl text-xs sm:text-sm py-2">
                     Gallery
@@ -1380,6 +1384,11 @@ export default function PublicGamePage({ project, isOwner = false }: PublicGameP
                   </div>
 
                   <FeedbackSection projectId={project.id} isOwner={isOwner} />
+                </TabsContent>
+
+                {/* Forum */}
+                <TabsContent value="forum" className="mt-6 space-y-4">
+                  <ForumSection projectId={project.id} />
                 </TabsContent>
 
                 {/* Gallery */}
