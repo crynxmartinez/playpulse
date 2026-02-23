@@ -72,10 +72,20 @@ export default async function ForumThreadPage({ params }: PageProps) {
 
   const isOwner = user?.id === project.userId
 
+  // Serialize dates for client component
+  const serializedThread = {
+    ...thread,
+    createdAt: thread.createdAt.toISOString(),
+    replies: thread.replies.map((reply: any) => ({
+      ...reply,
+      createdAt: reply.createdAt.toISOString(),
+    })),
+  }
+
   return (
     <ForumThreadView 
       project={project}
-      thread={thread}
+      thread={serializedThread}
       user={user}
       isOwner={isOwner}
     />
