@@ -3,8 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { Resend } from 'resend'
 import crypto from 'crypto'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function POST(request: Request) {
   try {
     const { email } = await request.json()
@@ -36,6 +34,7 @@ export async function POST(request: Request) {
 
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.patchplay.live'}/reset-password?token=${token}`
 
+    const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
       from: 'PatchPlay <noreply@patchplay.live>',
       to: email,
