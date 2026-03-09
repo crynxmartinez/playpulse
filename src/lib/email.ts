@@ -1,9 +1,8 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function sendVerificationEmail(email: string, code: string) {
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const { data, error } = await resend.emails.send({
       from: 'PatchPlay <noreply@patchplay.live>',
       to: email,
