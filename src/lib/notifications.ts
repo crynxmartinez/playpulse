@@ -88,14 +88,15 @@ export async function notifyUpdatePublished(
   projectId: string,
   projectName: string,
   updateTitle: string,
-  publisherId: string
+  publisherId: string,
+  projectSlug?: string | null
 ) {
   return notifyFollowers({
     projectId,
     type: 'UPDATE_PUBLISHED',
     title: `New update from ${projectName}`,
     message: updateTitle,
-    link: `/game/${projectId}`,
+    link: projectSlug ? `/g/${projectSlug}` : `/game/${projectId}`,
     excludeUserId: publisherId
   })
 }
@@ -123,14 +124,15 @@ export async function notifyCommentReply(
   authorId: string,
   replierName: string,
   projectId: string,
-  threadId: string
+  threadId: string,
+  projectSlug?: string | null
 ) {
   return notifyUser({
     userId: authorId,
     type: 'FEEDBACK_COMMENT',
     title: 'New reply to your comment',
     message: `${replierName} replied to your comment`,
-    link: `/game/${projectId}?tab=feedback&thread=${threadId}`
+    link: projectSlug ? `/g/${projectSlug}?tab=feedback&thread=${threadId}` : `/game/${projectId}?tab=feedback&thread=${threadId}`
   })
 }
 
@@ -139,7 +141,8 @@ export async function notifyThreadParticipants(
   threadId: string,
   projectId: string,
   replierName: string,
-  excludeUserIds: string[] // Don't notify the replier and thread author
+  excludeUserIds: string[], // Don't notify the replier and thread author
+  projectSlug?: string | null
 ) {
   try {
     // Get all unique participants in this thread (commenters)
@@ -155,13 +158,15 @@ export async function notifyThreadParticipants(
 
     if (participantIds.length === 0) return
 
+    const link = projectSlug ? `/g/${projectSlug}?tab=feedback&thread=${threadId}` : `/game/${projectId}?tab=feedback&thread=${threadId}`
+
     await prisma.notification.createMany({
       data: participantIds.map(userId => ({
         userId,
         type: 'FEEDBACK_REPLY' as NotificationType,
         title: 'New reply in a thread you participated in',
         message: `${replierName} added a comment`,
-        link: `/game/${projectId}?tab=feedback&thread=${threadId}`
+        link
       }))
     })
 

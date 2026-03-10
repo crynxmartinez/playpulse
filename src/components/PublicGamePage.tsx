@@ -242,8 +242,8 @@ function SnapshotImageCard({ imageData, title, type }: { imageData: string; titl
 function SharePageCard({ projectId, slug }: { projectId: string; slug: string | null }) {
   const [copied, setCopied] = useState(false);
   const pageUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/game/${projectId}`
-    : `/game/${projectId}`;
+    ? `${window.location.origin}${slug ? `/g/${slug}` : `/game/${projectId}`}`
+    : slug ? `/g/${slug}` : `/game/${projectId}`;
 
   const handleCopy = async () => {
     try {

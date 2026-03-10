@@ -1,10 +1,11 @@
 import { Resend } from 'resend'
+import { EMAIL_FROM, APP_NAME, APP_TAGLINE } from './constants'
 
 export async function sendVerificationEmail(email: string, code: string) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { data, error } = await resend.emails.send({
-      from: 'PatchPlay <noreply@patchplay.live>',
+      from: EMAIL_FROM,
       to: email,
       subject: 'Verify your PatchPlay account',
       html: `

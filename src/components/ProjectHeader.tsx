@@ -17,7 +17,7 @@ const VISIBILITY_ICONS = {
 
 export default function ProjectHeader({ project }: ProjectHeaderProps) {
   const workspaceUrl = `/dashboard/projects/${project.id}`
-  const gamePageUrl = `/game/${project.id}`
+  const gamePageUrl = project.slug ? `/g/${project.slug}` : `/game/${project.id}`
   
   const config = VISIBILITY_CONFIG[project.visibility]
   const VisibilityIcon = VISIBILITY_ICONS[project.visibility]

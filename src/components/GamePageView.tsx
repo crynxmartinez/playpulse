@@ -29,7 +29,7 @@ export default function GamePageView({ project, user, isOwner = false }: GamePag
   }
 
   const workspaceUrl = `/dashboard/projects/${project.id}`
-  const gamePageUrl = `/game/${project.id}`
+  const gamePageUrl = project.slug ? `/g/${project.slug}` : `/game/${project.id}`
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] relative">

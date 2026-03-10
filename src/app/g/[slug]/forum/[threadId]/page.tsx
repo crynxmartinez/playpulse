@@ -76,7 +76,7 @@ export default async function ForumThreadPage({ params }: PageProps) {
   const serializedThread = {
     ...thread,
     createdAt: thread.createdAt.toISOString(),
-    replies: thread.replies.map((reply: any) => ({
+    replies: thread.replies.map((reply) => ({
       ...reply,
       createdAt: reply.createdAt.toISOString(),
     })),

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Resend } from 'resend'
 import crypto from 'crypto'
+import { EMAIL_FROM, APP_URL, APP_NAME } from '@/lib/constants'
 
 export async function POST(request: Request) {
   try {
@@ -32,11 +33,11 @@ export async function POST(request: Request) {
       data: { token, userId: user.id, expiresAt }
     })
 
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.patchplay.live'}/reset-password?token=${token}`
+    const resetUrl = `${APP_URL}/reset-password?token=${token}`
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
-      from: 'PatchPlay <noreply@patchplay.live>',
+      from: EMAIL_FROM,
       to: email,
       subject: 'Reset your PatchPlay password',
       html: `
